@@ -207,7 +207,7 @@ function BuildSiteHandler:ClosestBuildSpot(builder, position, unitTypeToBuild, m
 			-- Spring.Echo(pos.x, pos.y, pos.z, unitTypeToBuild:Name(), builder:Name(), position.x, position.y, position.z, vpos)
 			return vpos
 		end
-		return self.map:FindClosestBuildSite(unitTypeToBuild, position, 300, minDistance, validFunction)
+		return self.map:FindClosestBuildSite(unitTypeToBuild, position, 400, minDistance, validFunction)
 	end
 	local tmpAttemptNumber = attemptNumber or 0
 	local pos = nil
