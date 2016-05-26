@@ -35,22 +35,7 @@ function AssistBehaviour:Init()
 	ai.assisthandler:AssignIDByName(self)
 	-- game:SendToConsole("assistbehaviour:init", ai, ai.id, self.ai, self.ai.id)
 	EchoDebug(uname .. " " .. ai.IDByName[self.id])
-	EchoDebug("AssistBehaviour: added to unit "..uname)
-end
-
-function AssistBehaviour:UnitBuilt(unit)
-	if unit.engineID == self.unit.engineID then
-		if self.isNanoTurret then
-			-- set nano turrets to patrol
-			local upos = RandomAway(self.unit:Internal():GetPosition(), 50)
-			local floats = api.vectorFloat()
-			-- populate with x, y, z of the position
-			floats:push_back(upos.x)
-			floats:push_back(upos.y)
-			floats:push_back(upos.z)
-			self.unit:Internal():ExecuteCustomCommand(CMD_PATROL, floats)
-		end
-	end
+	EchoDebug("added to unit "..uname)
 end
 
 function AssistBehaviour:UnitIdle(unit)
@@ -122,17 +107,27 @@ function AssistBehaviour:Update()
 end
 
 function AssistBehaviour:Activate()
-	EchoDebug("AssistBehaviour: activated on unit "..self.name)
+	EchoDebug("activated on unit "..self.name)
 	if self:DoIAssist() then
 		ai.assisthandler:Release(self.unit:Internal())
 		ai.assisthandler:AddFree(self)
+	end
+	if self.isNanoTurret then
+		-- set nano turrets to patrol
+		local upos = RandomAway(self.unit:Internal():GetPosition(), 50)
+		local floats = api.vectorFloat()
+		-- populate with x, y, z of the position
+		floats:push_back(upos.x)
+		floats:push_back(upos.y)
+		floats:push_back(upos.z)
+		self.unit:Internal():ExecuteCustomCommand(CMD_PATROL, floats)
 	end
 	self.active = true
 	self.target = nil
 end
 
 function AssistBehaviour:Deactivate()
-	EchoDebug("AssistBehaviour: deactivated on unit "..self.name)
+	EchoDebug("deactivated on unit "..self.name)
 	ai.assisthandler:RemoveWorking(self)
 	ai.assisthandler:RemoveFree(self)
 	self.active = false

@@ -262,6 +262,7 @@ function AssistHandler:Release(builder, bid, dead)
 				ai.nonAssistant[asstbehaviour.id] = true
 			end
 		end
+		-- self.ai:UnitIdle(asstbehaviour.unit:Internal())
 		EchoDebug(asstbehaviour.name .. " released to available assistants")
 	end
 	self.working[bid] = nil

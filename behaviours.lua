@@ -72,6 +72,7 @@ function defaultBehaviours(unit, ai)
 			else
 				table.insert(b, AssistBehaviour)
 				table.insert(b, ReclaimBehaviour)
+				table.insert(b, CleanerBehaviour)
 			end
 		end
 		table.insert(b, WardBehaviour)

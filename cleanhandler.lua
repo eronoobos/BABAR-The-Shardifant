@@ -38,13 +38,17 @@ end
 
 function CleanHandler:UnitDestroyed(unit)
 	if unit:Team() == self.ai.id then
-		for i = #self.cleanables, 1, -1 do
-			local cleanable = self.cleanables[i]
-			if cleanable:ID() == unit:ID() then
-				EchoDebug("remove cleanable " .. unit:Name())
-				table.remove(self.cleanables, i)
-				return
-			end
+		self:RemoveCleanable(unit:ID())
+	end
+end
+
+function CleanHandler:RemoveCleanable(unitID)
+	for i = #self.cleanables, 1, -1 do
+		local cleanable = self.cleanables[i]
+		if cleanable:ID() == unitID then
+			EchoDebug("remove cleanable " .. cleanable:Name())
+			table.remove(self.cleanables, i)
+			return
 		end
 	end
 end

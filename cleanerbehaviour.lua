@@ -18,19 +18,23 @@ CleanerBehaviour = class(Behaviour)
 
 function CleanerBehaviour:Init()
 	self.name = self.unit:Internal():Name()
+	EchoDebug("init " .. self.name)
 	if nanoTurretList[self.name] then
+		self.isStationary = true
 		self.cleaningRadius = 390
 	else
 		self.cleaningRadius = 250
 	end
 	self.frameCounter = 0
+	self.ignore = {}
 end
 
 function CleanerBehaviour:Update()
 	self.frameCounter = self.frameCounter + 1
-	if self.frameCounter == 30 then
-		self:UnitIdle(self.unit)
+	if (self.isStationary and self.frameCounter == 30) or (not self.isStationary and self.frameCounter == 90) then
 		self.frameCounter = 0
+		self:Search()
+		self.unit:ElectBehaviour()
 	end
 end
 
@@ -38,8 +42,13 @@ function CleanerBehaviour:UnitIdle(unit)
 	if unit.engineID ~= self.unit.engineID then
 		return
 	end
+	EchoDebug("idle " .. self.unit:Internal():Name())
 	self:Search()
 	self.unit:ElectBehaviour()
+end
+
+function CleanerBehaviour:UnitDestroyed(unit)
+	self.ignore[unit:ID()] = nil
 end
 
 function CleanerBehaviour:Activate()
@@ -49,7 +58,7 @@ end
 
 function CleanerBehaviour:Priority()
 	if self.cleanThis then
-		return 101
+		return 103
 	else
 		return 0
 	end
@@ -59,16 +68,21 @@ function CleanerBehaviour:Search()
 	self.cleanThis = nil
 	local cleanables = self.ai.cleanhandler:GetCleanables()
 	if cleanables and #cleanables > 0 then
-		EchoDebug(#cleanables .. " cleanables")
 		local myPos = self.unit:Internal():GetPosition()
-		for i = 1, #cleanables do
-			local engineUnit = cleanables[i]
-			local p = engineUnit:GetPosition()
-			if p then
-				local dist = Distance(myPos, p)
-				if dist < self.cleaningRadius then
-					self.cleanThis = engineUnit
-					return
+		for i = #cleanables, 1, -1 do
+			local cleanable = cleanables[i]
+			if not self.ignore[cleanable:ID()] then
+				local p = cleanable:GetPosition()
+				if p then
+					local dist = Distance(myPos, p)
+					if dist < self.cleaningRadius then
+						self.cleanThis = cleanable
+						return
+					else
+						self.ignore[cleanable:ID()] = true
+					end
+				else
+					self.ai.cleanhandler:RemoveCleanable(cleanable:ID())
 				end
 			end
 		end
