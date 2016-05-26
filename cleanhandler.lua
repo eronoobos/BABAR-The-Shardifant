@@ -1,6 +1,6 @@
 shard_include "common"
 
-local DebugEnabled = true
+local DebugEnabled = false
 
 
 local function EchoDebug(inStr)
@@ -69,4 +69,27 @@ function CleanHandler:GetCleanables()
 		return
 	end
 	return self.cleanables
+end
+
+function CleanHandler:ClosestCleanable(unit)
+	local cleanables = self.ai.cleanhandler:GetCleanables()
+	if not cleanables or #cleanables == 0 then
+		return
+	end
+	local myPos = unit:GetPosition()
+	local bestDist, bestCleanable
+	for i = #cleanables, 1, -1 do
+		local cleanable = cleanables[i]
+		local p = cleanable:GetPosition()
+		if p then
+			local dist = Distance(myPos, p)
+			if not bestDist or dist < bestDist then
+				bestCleanable = cleanable
+				bestDist = dist
+			end
+		else
+			self:RemoveCleanable(cleanable:ID())
+		end
+	end
+	return bestCleanable
 end

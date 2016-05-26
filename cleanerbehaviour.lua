@@ -1,6 +1,6 @@
 shard_include "common"
 
-local DebugEnabled = true
+local DebugEnabled = false
 
 
 local function EchoDebug(inStr)
@@ -23,10 +23,10 @@ function CleanerBehaviour:Init()
 		self.isStationary = true
 		self.cleaningRadius = 390
 	else
-		self.cleaningRadius = 250
+		self.cleaningRadius = 300
 	end
-	self.frameCounter = 0
 	self.ignore = {}
+	self.frameCounter = 0
 end
 
 function CleanerBehaviour:Update()
@@ -78,7 +78,7 @@ function CleanerBehaviour:Search()
 					if dist < self.cleaningRadius then
 						self.cleanThis = cleanable
 						return
-					else
+					elseif self.isStationary then
 						self.ignore[cleanable:ID()] = true
 					end
 				else

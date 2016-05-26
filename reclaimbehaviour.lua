@@ -19,7 +19,7 @@ end
 ReclaimBehaviour = class(Behaviour)
 
 function ReclaimBehaviour:Init()
-	local mtype, network = ai.maphandler:MobilityOfUnit(self.unit:Internal())
+	local mtype, network = self.ai.maphandler:MobilityOfUnit(self.unit:Internal())
 	self.mtype = mtype
 	self.layers = {}
 	if self.mtype == "veh" or self.mtype == "bot" or self.mtype == "amp" or self.mtype == "hov" then
@@ -47,19 +47,10 @@ function ReclaimBehaviour:UnitDead(unit)
 		-- notify the command that area is too hot
 		-- game:SendToConsole("reclaimer " .. self.name .. " died")
 		if self.target then
-			ai.targethandler:AddBadPosition(self.target, self.mtype)
+			self.ai.targethandler:AddBadPosition(self.target, self.mtype)
 		end
-		ai.buildsitehandler:ClearMyPlans(self)
+		self.ai.buildsitehandler:ClearMyPlans(self)
 	end
-end
-
-function ReclaimBehaviour:UnitIdle(unit)
-	--[[
-	if unit.engineID == self.unit.engineID then
-		self.targetCell = nil
-		self.unit:ElectBehaviour()
-	end
-	]]--
 end
 
 function ReclaimBehaviour:Update()
@@ -68,9 +59,9 @@ function ReclaimBehaviour:Update()
 		local doreclaim = false
 		if self.dedicated and not self.resurrecting then
 			doreclaim = true
-		elseif ai.conCount > 2 and ai.needToReclaim and ai.reclaimerCount == 0 and ai.IDByName[self.id] ~= 1 and ai.IDByName[self.id] == ai.nameCount[self.name] then
-			if not ai.haveExtraReclaimer then
-				ai.haveExtraReclaimer = true
+		elseif self.ai.conCount > 2 and self.ai.needToReclaim and self.ai.reclaimerCount == 0 and self.ai.IDByName[self.id] ~= 1 and self.ai.IDByName[self.id] == self.ai.nameCount[self.name] then
+			if not self.ai.haveExtraReclaimer then
+				self.ai.haveExtraReclaimer = true
 				self.extraReclaimer = true
 				doreclaim = true
 			elseif self.extraReclaimer then
@@ -78,14 +69,17 @@ function ReclaimBehaviour:Update()
 			end
 		else
 			if self.extraReclaimer then
-				ai.haveExtraReclaimer = false
+				self.ai.haveExtraReclaimer = false
 				self.extraReclaimer = false
 				self.targetCell = nil
+				self.targetUnit = nil
+				self.target = nil
 				self.unit:ElectBehaviour()
 			end
 		end
 		if doreclaim then
 			self:Retarget()
+			self.unit:ElectBehaviour()
 			self:Reclaim()
 		end
 	end
@@ -94,17 +88,23 @@ end
 function ReclaimBehaviour:Retarget()
 	EchoDebug("needs target")
 	local unit = self.unit:Internal()
-	if not ai.needToReclaim and self.dedicated then
-		self.targetResurrection, self.targetCell = ai.targethandler:WreckToResurrect(unit)
-	else
-		self.targetCell = ai.targethandler:GetBestReclaimCell(unit)
-		self.targetResurrection = nil
+	self.targetResurrection = nil
+	self.targetUnit = nil
+	self.targetCell = nil
+	if self.ai.Metal.full > 0.5 and self.dedicated then
+		self.targetResurrection, self.targetCell = self.ai.targethandler:WreckToResurrect(unit)
+	end
+	if not self.targetResurrection and self.ai.Metal.full < 0.75 then
+		self.targetUnit = self.ai.cleanhandler:ClosestCleanable(unit)
+		if not self.targetUnit then
+			self.targetCell = self.ai.targethandler:GetBestReclaimCell(unit)
+		end
 	end
 	self.unit:ElectBehaviour()
 end
 
 function ReclaimBehaviour:Priority()
-	if self.targetCell ~= nil then
+	if self.targetCell or self.targetUnit then
 		return 101
 	else
 		-- EchoDebug("priority 0")
@@ -114,7 +114,7 @@ end
 
 function ReclaimBehaviour:Reclaim()
 	if self.active then
-		if self.targetCell ~= nil then
+		if self.targetCell then
 			local cell = self.targetCell
 			self.target = cell.pos
 			EchoDebug("cell at" .. self.target.x .. " " .. self.target.z)
@@ -134,12 +134,15 @@ function ReclaimBehaviour:Reclaim()
 				local unitName = featureTable[self.targetResurrection.featureName].unitName
 				EchoDebug(unitName)
 				CustomCommand(self.unit:Internal(), CMD_RESURRECT, {resPosition.x, resPosition.y, resPosition.z, 15})
-				ai.buildsitehandler:NewPlan(unitName, resPosition, self, true)
+				self.ai.buildsitehandler:NewPlan(unitName, resPosition, self, true)
 				self.resurrecting = true
 			else
 				EchoDebug("reclaiming area...")
 				self.unit:Internal():AreaReclaim(self.target, 200)
 			end
+		elseif self.targetUnit then
+			self.target = self.targetUnit:GetPosition()
+			CustomCommand(self.unit:Internal(), CMD_RECLAIM, {self.targetUnit:ID()})
 		end
 	end
 end
@@ -157,5 +160,5 @@ end
 
 function ReclaimBehaviour:ResurrectionComplete()
 	self.resurrecting = false
-	ai.buildsitehandler:ClearMyPlans(self)
+	self.ai.buildsitehandler:ClearMyPlans(self)
 end
