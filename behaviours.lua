@@ -6,6 +6,7 @@ shard_include "wardbehaviour"
 shard_include "mexupgradebehaviour"
 shard_include "assistbehaviour"
 shard_include "reclaimbehaviour"
+shard_include "cleanerbehaviour"
 shard_include "defendbehaviour"
 shard_include "factoryregisterbehaviour"
 shard_include "scoutbehaviour"
@@ -34,6 +35,7 @@ function defaultBehaviours(unit, ai)
 	if nanoTurretList[un] then
 		table.insert(b, AssistBehaviour)
 		table.insert(b, WardBehaviour)
+		table.insert(b, CleanerBehaviour)
 	end
 
 	if unitTable[un].isBuilding then
