@@ -832,7 +832,12 @@ end
 function MapHandler:UnitCanGoHere(unit, position)
 	if unit == nil then return false end
 	if position == nil then return false end
-	if ShardSpringLua then return Spring.TestMoveOrder(unit:Type():ID(), position.x, position.y, position.z, nil, nil, nil, true, false) end
+	if ShardSpringLua then
+		-- first check if it's even a valid move order
+		if not Spring.TestMoveOrder(unit:Type():ID(), position.x, position.y, position.z, nil, nil, nil, true, false) then
+			return false
+		end
+	end
 	local mtype, unet = self:MobilityOfUnit(unit)
 	local pnet = self:MobilityNetworkHere(mtype, position)
 	if unet == pnet then
