@@ -168,6 +168,97 @@ local function Flood8Topology(x, z, mtype, network)
 	end
 end
 
+function MapHandler:SpotSimplyfier(metalSpots,geoSpots)
+	local spots = {}
+	local mirrorspots = {}
+	local limit = (map:MapDimensions())
+	local limit = limit.x/2  + limit.z/2
+	for i,v in pairs(metalSpots) do 
+		table.insert(spots,v)
+	end
+	for i,v in pairs(geoSpots) do 
+		table.insert(spots,v)
+	end
+	local spotscleaned={ }
+	EchoDebug(tostring(limit))
+	for index1,pos1 in pairs(spots) do 
+		if spots[index1] ~= false then
+			mirrorspots[index1] = {}
+			mirrorspots[index1][index1] = pos1
+			spots[index1] = false
+			--Spring.MarkerAddPoint(pos1.x,pos1.y,pos1.z, tostring(i))--uncomment this to draw the hotspot reducing system
+			for index2,pos2 in pairs(spots) do 
+				if spots[index2] ~= false then
+					local dist = Distance(pos1,pos2)
+					if dist < limit and dist > 0 and ((pos1.y > 0 and pos2.y > 0) or (pos1.y < 0 and pos2.y < 0)) then
+						mirrorspots[index1][index2] = pos2
+						--Spring.MarkerAddLine(pos1.x, pos1.y, pos1.z, pos2.x, pos2.y, pos2.z)--uncomment this to draw all the hotspot on map
+						spots[index2] = false
+					end
+				end
+			end
+		end
+	end
+	for i,v in pairs(mirrorspots) do
+		local items = 0
+		mirrorspots[i]={x=0,y=0,z=0}
+		for ii,vv in pairs(v) do
+			items = items+1
+			mirrorspots[i] = {x=mirrorspots[i].x+vv.x, y=mirrorspots[i].y+vv.y, z=mirrorspots[i].z+vv.z}
+		end
+		local x =mirrorspots[i].x/items
+		local z = mirrorspots[i].z/items
+		local y = Spring.GetGroundHeight(x,z)
+		mirrorspots[i]={x=x,y=y,z=z}
+	end
+	return mirrorspots
+end
+function MapHandler:SpotPathMobRank(spotscleaned)
+	local moveclass={}
+	local waypointstable={}
+	for id,unitDef in pairs(UnitDefs) do
+		if unitDef.moveDef.name  and unitDef.techLevel >=0 then 
+			if moveclass[unitDef.moveDef.name] ==   nil then
+				moveclass[unitDef.moveDef.name] = id
+			end
+		end
+	end
+	for mclass, number in pairs(moveclass) do
+		waypointstable[mclass] = 0
+		local alreadypath = {}
+		for index,pos1 in pairs(spotscleaned) do
+			alreadypath[index]={}
+			for index2,pos2 in pairs(spotscleaned) do
+				if Spring.TestMoveOrder(number,pos1.x,pos1.y,pos1.z) == true and Spring.TestMoveOrder(number,pos2.x,pos2.y,pos2.z) == true then
+					if alreadypath[index2] == nil  or alreadypath[index2][index] == nil then
+						if index2~=index then
+							alreadypath[index][index2] = true
+							local metapath = Spring.RequestPath(mclass, pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
+							if metapath then 
+								local waypoints, detpath =metapath:GetPathWayPoints()
+								local waypointsNumber = #waypoints
+								local dist  = Distance(pos1,pos2)
+								if waypointsNumber > 0 and dist > 0 then
+									waypointstable[mclass] = waypointstable[mclass] + (dist / waypointsNumber)
+									--Spring.MarkerAddLine(pos1.x, pos1.y, pos1.z, pos2.x, pos2.y, pos2.z)--uncomment this line to draw on screen all the calculated path
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	if DebugEnabled then
+		for pathType, rank in pairs(waypointstable) do
+			EchoDebug(pathType .. ' = ' ..rank)
+		end
+	end
+			
+	return waypointstable
+end
+
+
 local function MapMobility()
 	-- check for water map works like this:
 	-- the map is divided into sectors, then center of each sector is tested if specific unit can be built there (water, kbot, vehicle)
@@ -548,6 +639,8 @@ function MapHandler:Init()
 	local mobSpots, mobNetworks, mobNetworkCount
 	mobSpots, ai.mobNetworkMetals, mobNetworks, mobNetworkCount = MapSpotMobility(metalSpots, geoSpots)
 	ai.mobNetworks = mobNetworks
+	local hotSpot = self:SpotSimplyfier(metalSpots,geoSpots)
+	ai.spotPathMobRank = self:SpotPathMobRank(hotSpot)
 	for mtype, mspots in pairs(mobSpots) do
 		EchoDebug(mtype .. " spots: " .. #mspots)
 	end
