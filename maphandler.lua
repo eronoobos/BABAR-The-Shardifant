@@ -208,7 +208,8 @@ function MapHandler:SpotSimplyfier(metalSpots,geoSpots)
 		end
 		local x =mirrorspots[i].x/items
 		local z = mirrorspots[i].z/items
-		local y = Spring.GetGroundHeight(x,z)
+		local y = 0
+		if ShardSpringLua then y = Spring.GetGroundHeight(x,z) end
 		mirrorspots[i]={x=x,y=y,z=z}
 	end
 	return mirrorspots
@@ -639,8 +640,10 @@ function MapHandler:Init()
 	local mobSpots, mobNetworks, mobNetworkCount
 	mobSpots, ai.mobNetworkMetals, mobNetworks, mobNetworkCount = MapSpotMobility(metalSpots, geoSpots)
 	ai.mobNetworks = mobNetworks
-	local hotSpot = self:SpotSimplyfier(metalSpots,geoSpots)
-	ai.spotPathMobRank = self:SpotPathMobRank(hotSpot)
+	if ShardSpringLua then
+		local hotSpot = self:SpotSimplyfier(metalSpots,geoSpots)
+		ai.spotPathMobRank = self:SpotPathMobRank(hotSpot)
+	end
 	for mtype, mspots in pairs(mobSpots) do
 		EchoDebug(mtype .. " spots: " .. #mspots)
 	end
