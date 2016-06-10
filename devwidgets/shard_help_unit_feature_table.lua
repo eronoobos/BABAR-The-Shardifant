@@ -10,6 +10,8 @@ function widget:GetInfo()
 	}
 end
 
+-- BEGIN CODE BLOCK COPIED FROM getunitfeaturetable.lua
+
 local hoverplatform = {
 	armhp = 1,
 	armfhp = 1,
@@ -24,51 +26,7 @@ local fighter = {
 	corvamp = 1,
 }
 
-local function serialize (o, outfile, keylist, level)
-	keylist = keylist or ""
-	level = level or 0
-	if type(o) == "number" then
-		outfile:write(o)
-	elseif type(o) == "boolean" then
-		outfile:write(tostring(o))
-	elseif type(o) == "string" then
-		outfile:write(string.format("%q", o))
-	elseif type(o) == "table" then
-		level = level + 1
-		outfile:write("{\n")
-		for k,v in pairs(o) do
-			for i=1,level do outfile:write("  ") end
-			if type(k) == "string" and not string.find(k, '%W_') then
-				outfile:write(k .. " = ")
-			else
-				outfile:write("[")
-				serialize(k, outfile, nil, level)
-				outfile:write("] = ")
-			end
-			local newkeylist
-			if type(v) == "table" or type(v) == "userdata" then
-				if type(k) == "string" then
-					newkeylist = keylist .. "[\""  .. k .. "\"]"
-				elseif type(k) == "number" then
-					newkeylist = keylist .. "["  .. k .. "]"
-				end
-			end
-			serialize(v, outfile, newkeylist, level)
-			outfile:write(",\n")
-		end
-		if level > 1 then for i=1,level-1 do outfile:write("  ") end end
-		outfile:write("}")
-	else
-		error("cannot serialize a " .. type(o))
-	end
-end
-
-local function SaveTable(tableinput, tablename, filename)
-	local fileobj = io.open(filename, 'w')
-	fileobj:write(tablename .. " = ")
-	serialize(tableinput, fileobj)
-	fileobj:close()
-end
+local featureKeysToGet = { "metal" , "energy", "reclaimable", "blocking", }
 
 local function GetLongestWeaponRange(unitDefID, GroundAirSubmerged)
 	local weaponRange = 0
@@ -99,9 +57,8 @@ local function GetLongestWeaponRange(unitDefID, GroundAirSubmerged)
 	return weaponRange
 end
 
-function widget:Initialize()
+local function GetUnitTable()
 	local unitTable = {}
-	local featureTable = {}
 	local wrecks = {}
 	for unitDefID,unitDef in pairs(UnitDefs) do
 		-- Spring.Echo(unitDef.name, "build slope", unitDef.maxHeightDif)
@@ -178,9 +135,11 @@ function widget:Initialize()
 		wrecks[unitDef["wreckName"]] = unitDef["name"]
 		unitTable[unitDef.name] = utable
 	end
+	return unitTable, wrecks
+end
 
-	local featureKeysToGet = { "metal" , "energy", "reclaimable", "blocking", }
-
+local function GetFeatureTable(wrecks)
+	local featureTable = {}
 	-- feature defs
 	for featureDefID, featureDef in pairs(FeatureDefs) do
 		local ftable = {}
@@ -193,7 +152,60 @@ function widget:Initialize()
 		end
 		featureTable[featureDef.name] = ftable
 	end
+	return featureTable
+end
 
+-- END CODE BLOCK COPIED FROM getunitfeaturetable.lua
+
+local function serialize (o, outfile, keylist, level)
+	keylist = keylist or ""
+	level = level or 0
+	if type(o) == "number" then
+		outfile:write(o)
+	elseif type(o) == "boolean" then
+		outfile:write(tostring(o))
+	elseif type(o) == "string" then
+		outfile:write(string.format("%q", o))
+	elseif type(o) == "table" then
+		level = level + 1
+		outfile:write("{\n")
+		for k,v in pairs(o) do
+			for i=1,level do outfile:write("  ") end
+			if type(k) == "string" and not string.find(k, '%W_') then
+				outfile:write(k .. " = ")
+			else
+				outfile:write("[")
+				serialize(k, outfile, nil, level)
+				outfile:write("] = ")
+			end
+			local newkeylist
+			if type(v) == "table" or type(v) == "userdata" then
+				if type(k) == "string" then
+					newkeylist = keylist .. "[\""  .. k .. "\"]"
+				elseif type(k) == "number" then
+					newkeylist = keylist .. "["  .. k .. "]"
+				end
+			end
+			serialize(v, outfile, newkeylist, level)
+			outfile:write(",\n")
+		end
+		if level > 1 then for i=1,level-1 do outfile:write("  ") end end
+		outfile:write("}")
+	else
+		error("cannot serialize a " .. type(o))
+	end
+end
+
+local function SaveTable(tableinput, tablename, filename)
+	local fileobj = io.open(filename, 'w')
+	fileobj:write(tablename .. " = ")
+	serialize(tableinput, fileobj)
+	fileobj:close()
+end
+
+function widget:Initialize()
+	local unitTable, wrecks = GetUnitTable()
+	local featureTable = GetFeatureTable(wrecks)
 	SaveTable(unitTable, 'unitTable', 'unittable-' .. Game.gameShortName .. '.lua')
 	SaveTable(featureTable, 'featureTable', 'featuretable-' .. Game.gameShortName.. '.lua')
 end
