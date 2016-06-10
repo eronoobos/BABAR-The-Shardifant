@@ -1,5 +1,4 @@
-local unitTable = {}
-local featureTable = {}
+-- BEGIN CODE BLOCK TO COPY AND PASTE INTO shard_help_unit_feature_table.lua
 
 local hoverplatform = {
 	armhp = 1,
@@ -14,6 +13,8 @@ local fighter = {
 	armhawk = 1,
 	corvamp = 1,
 }
+
+local featureKeysToGet = { "metal" , "energy", "reclaimable", "blocking", }
 
 local function GetLongestWeaponRange(unitDefID, GroundAirSubmerged)
 	local weaponRange = 0
@@ -44,96 +45,107 @@ local function GetLongestWeaponRange(unitDefID, GroundAirSubmerged)
 	return weaponRange
 end
 
-local wrecks = {}
-for unitDefID,unitDef in pairs(UnitDefs) do
-	-- Spring.Echo(unitDef.name, "build slope", unitDef.maxHeightDif)
-	-- if unitDef.moveDef.maxSlope then
-		-- Spring.Echo(unitDef.name, "move slope", unitDef.moveDef.maxSlope)
-	-- end
-	local utable = {}
-	if unitDef["modCategories"]["weapon"] then
-		utable.isWeapon = true
-	else
-		utable.isWeapon = false
-	end
-	if unitDef["isBuilding"] then
-		utable.isBuilding = true
-	else
-		utable.isBuilding = false
-	end
-	utable.groundRange = GetLongestWeaponRange(unitDefID, 0)
-	utable.airRange = GetLongestWeaponRange(unitDefID, 1)
-	utable.submergedRange = GetLongestWeaponRange(unitDefID, 2)
-	if fighter[unitDef["name"]] then
-		utable.airRange = utable.groundRange
-	end
-	utable.radarRadius = unitDef["radarRadius"]
-	utable.airLosRadius = unitDef["airLosRadius"]
-	utable.losRadius = unitDef["losRadius"]
-	utable.sonarRadius = unitDef["sonarRadius"]
-	utable.jammerRadius = unitDef["jammerRadius"]
-	utable.stealth = unitDef["stealth"]
-	utable.metalCost = unitDef["metalCost"]
-	utable.energyCost = unitDef["energyCost"]
-	utable.buildTime = unitDef["buildTime"]
-	utable.totalEnergyOut = unitDef["totalEnergyOut"]
-	utable.extractsMetal = unitDef["extractsMetal"]
-	if unitDef["minWaterDepth"] > 0 then
-		utable.needsWater = true
-	else
-		utable.needsWater = false
-	end
-	utable.techLevel = unitDef["techLevel"]
-	if hoverplatform[unitDef["name"]] then
-		utable.techLevel = utable.techLevel - 0.5
-	end
-	if unitDef["canFly"] then
-		utable.mtype = "air"
-	elseif unitDef["modCategories"]["underwater"] or (unitDef["isBuilding"] and unitDef["minWaterDepth"] > 0 and unitDef["modCategories"]["surface"] and not unitDef["floatOnWater"]) then
-		utable.mtype = "sub"
-	elseif unitDef["modCategories"]["ship"] or (unitDef["isBuilding"] and unitDef["minWaterDepth"] > 0 and unitDef["modCategories"]["surface"] and unitDef["floatOnWater"]) then
-		utable.mtype = "shp"
-	elseif unitDef["modCategories"]["phib"] then
-		utable.mtype = "amp"
-	elseif unitDef["modCategories"]["hover"] then
-		utable.mtype = "hov"
-	elseif unitDef["modCategories"]["kbot"] then
-		utable.mtype = "bot"
-	else
-		utable.mtype = "veh"
-	end
-	if unitDef["isBuilder"] and #unitDef["buildOptions"] > 0 then
-		utable.buildOptions = true
-		utable.factoriesCanBuild = {}
-		for i, oid in pairs (unitDef["buildOptions"]) do
-			local buildDef = UnitDefs[oid]
-			if #buildDef["buildOptions"] > 0 and buildDef["isBuilding"] then
-				-- build option is a factory, add it to factories this unit can build
-				table.insert(utable.factoriesCanBuild, buildDef["name"])
+local function GetUnitTable()
+	local unitTable = {}
+	local wrecks = {}
+	for unitDefID,unitDef in pairs(UnitDefs) do
+		-- Spring.Echo(unitDef.name, "build slope", unitDef.maxHeightDif)
+		-- if unitDef.moveDef.maxSlope then
+			-- Spring.Echo(unitDef.name, "move slope", unitDef.moveDef.maxSlope)
+		-- end
+		local utable = {}
+		if unitDef["modCategories"]["weapon"] then
+			utable.isWeapon = true
+		else
+			utable.isWeapon = false
+		end
+		if unitDef["isBuilding"] then
+			utable.isBuilding = true
+		else
+			utable.isBuilding = false
+		end
+		utable.groundRange = GetLongestWeaponRange(unitDefID, 0)
+		utable.airRange = GetLongestWeaponRange(unitDefID, 1)
+		utable.submergedRange = GetLongestWeaponRange(unitDefID, 2)
+		if fighter[unitDef["name"]] then
+			utable.airRange = utable.groundRange
+		end
+		utable.radarRadius = unitDef["radarRadius"]
+		utable.airLosRadius = unitDef["airLosRadius"]
+		utable.losRadius = unitDef["losRadius"]
+		utable.sonarRadius = unitDef["sonarRadius"]
+		utable.jammerRadius = unitDef["jammerRadius"]
+		utable.stealth = unitDef["stealth"]
+		utable.metalCost = unitDef["metalCost"]
+		utable.energyCost = unitDef["energyCost"]
+		utable.buildTime = unitDef["buildTime"]
+		utable.totalEnergyOut = unitDef["totalEnergyOut"]
+		utable.extractsMetal = unitDef["extractsMetal"]
+		if unitDef["minWaterDepth"] > 0 then
+			utable.needsWater = true
+		else
+			utable.needsWater = false
+		end
+		utable.techLevel = unitDef["techLevel"]
+		if hoverplatform[unitDef["name"]] then
+			utable.techLevel = utable.techLevel - 0.5
+		end
+		if unitDef["canFly"] then
+			utable.mtype = "air"
+		elseif unitDef["modCategories"]["underwater"] or (unitDef["isBuilding"] and unitDef["minWaterDepth"] > 0 and unitDef["modCategories"]["surface"] and not unitDef["floatOnWater"]) then
+			utable.mtype = "sub"
+		elseif unitDef["modCategories"]["ship"] or (unitDef["isBuilding"] and unitDef["minWaterDepth"] > 0 and unitDef["modCategories"]["surface"] and unitDef["floatOnWater"]) then
+			utable.mtype = "shp"
+		elseif unitDef["modCategories"]["phib"] then
+			utable.mtype = "amp"
+		elseif unitDef["modCategories"]["hover"] then
+			utable.mtype = "hov"
+		elseif unitDef["modCategories"]["kbot"] then
+			utable.mtype = "bot"
+		else
+			utable.mtype = "veh"
+		end
+		if unitDef["isBuilder"] and #unitDef["buildOptions"] > 0 then
+			utable.buildOptions = true
+			utable.factoriesCanBuild = {}
+			for i, oid in pairs (unitDef["buildOptions"]) do
+				local buildDef = UnitDefs[oid]
+				if #buildDef["buildOptions"] > 0 and buildDef["isBuilding"] then
+					-- build option is a factory, add it to factories this unit can build
+					table.insert(utable.factoriesCanBuild, buildDef["name"])
+				end
 			end
 		end
+		utable.bigExplosion = unitDef["deathExplosion"] == "atomic_blast"
+		utable.xsize = unitDef["xsize"]
+		utable.zsize = unitDef["zsize"]
+		utable.wreckName = unitDef["wreckName"]
+		wrecks[unitDef["wreckName"]] = unitDef["name"]
+		unitTable[unitDef.name] = utable
 	end
-	utable.bigExplosion = unitDef["deathExplosion"] == "atomic_blast"
-	utable.xsize = unitDef["xsize"]
-	utable.zsize = unitDef["zsize"]
-	utable.wreckName = unitDef["wreckName"]
-	wrecks[unitDef["wreckName"]] = unitDef["name"]
-	unitTable[unitDef.name] = utable
+	return unitTable, wrecks
 end
 
-local featureKeysToGet = { "metal" , "energy", "reclaimable", "blocking", }
-
--- feature defs
-for featureDefID, featureDef in pairs(FeatureDefs) do
-	local ftable = {}
-	for i, k in pairs(featureKeysToGet) do
-		local v = featureDef[k]
-		ftable[k] = v
+local function GetFeatureTable(wrecks)
+	local featureTable = {}
+	-- feature defs
+	for featureDefID, featureDef in pairs(FeatureDefs) do
+		local ftable = {}
+		for i, k in pairs(featureKeysToGet) do
+			local v = featureDef[k]
+			ftable[k] = v
+		end
+		if wrecks[featureDef["name"]] then
+			ftable.unitName = wrecks[featureDef["name"]]
+		end
+		featureTable[featureDef.name] = ftable
 	end
-	if wrecks[featureDef["name"]] then
-		ftable.unitName = wrecks[featureDef["name"]]
-	end
-	featureTable[featureDef.name] = ftable
+	return featureTable
 end
+
+-- END CODE BLOCK TO COPY AND PASTE INTO shard_help_unit_feature_table.lua
+
+local unitTable, wrecks = GetUnitTable()
+local featureTable = GetFeatureTable(wrecks)
 
 return unitTable, featureTable
