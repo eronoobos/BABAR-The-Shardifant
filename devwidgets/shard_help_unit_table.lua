@@ -1,9 +1,9 @@
 function widget:GetInfo()
 	return {
-		name	= "Shard Help: Unit Table",
-		desc	= "from the unitdefs it creates a text file that is a lua table of unit characteristics to augment shard's interface",
+		name	= "Shard Help: Unit & Feature Table",
+		desc	= "from UnitDefs and FeatureDefs it creates lua files with tables unit and feature characteristics to augment Shard's interface",
 		author	= "eronoobos",
-		date 	= "November 28, 2013, updated June 2016",
+		date 	= "June 2016",
 		license	= "whatever",
 		layer 	= 0,
 		enabled	= false
@@ -38,9 +38,13 @@ local function serialize (o, outfile, keylist, level)
 		outfile:write("{\n")
 		for k,v in pairs(o) do
 			for i=1,level do outfile:write("  ") end
-			outfile:write("[")
-			serialize(k, outfile, nil, level)
-			outfile:write("] = ")
+			if type(k) == "string" and not string.find(k, '%W_') then
+				outfile:write(k .. " = ")
+			else
+				outfile:write("[")
+				serialize(k, outfile, nil, level)
+				outfile:write("] = ")
+			end
 			local newkeylist
 			if type(v) == "table" or type(v) == "userdata" then
 				if type(k) == "string" then
@@ -57,6 +61,13 @@ local function serialize (o, outfile, keylist, level)
 	else
 		error("cannot serialize a " .. type(o))
 	end
+end
+
+local function SaveTable(tableinput, tablename, filename)
+	local fileobj = io.open(filename, 'w')
+	fileobj:write(tablename .. " = ")
+	serialize(tableinput, fileobj)
+	fileobj:close()
 end
 
 local function GetLongestWeaponRange(unitDefID, GroundAirSubmerged)
@@ -183,12 +194,6 @@ function widget:Initialize()
 		featureTable[featureDef.name] = ftable
 	end
 
-	local unitFile = io.open('unittable.lua', 'w')
-	unitFile:write("unitTable = \n\n")
-	serialize(unitTable, unitFile)
-	unitFile:close()
-	local featureFile = io.open('featuretable.lua', 'w')
-	featureFile:write("featureTable = \n\n")
-	serialize(featureTable, featureFile)
-	featureFile:close()
+	SaveTable(unitTable, 'unitTable', 'unittable-' .. Game.gameShortName .. '.lua')
+	SaveTable(featureTable, 'featureTable', 'featuretable-' .. Game.gameShortName.. '.lua')
 end
