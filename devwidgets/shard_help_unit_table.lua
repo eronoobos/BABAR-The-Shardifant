@@ -3,7 +3,7 @@ function widget:GetInfo()
 		name	= "Shard Help: Unit Table",
 		desc	= "from the unitdefs it creates a text file that is a lua table of unit characteristics to augment shard's interface",
 		author	= "eronoobos",
-		date 	= "November 28, 2013",
+		date 	= "November 28, 2013, updated June 2016",
 		license	= "whatever",
 		layer 	= 0,
 		enabled	= false
@@ -23,6 +23,41 @@ local fighter = {
 	armhawk = 1,
 	corvamp = 1,
 }
+
+local function serialize (o, outfile, keylist, level)
+	keylist = keylist or ""
+	level = level or 0
+	if type(o) == "number" then
+		outfile:write(o)
+	elseif type(o) == "boolean" then
+		outfile:write(tostring(o))
+	elseif type(o) == "string" then
+		outfile:write(string.format("%q", o))
+	elseif type(o) == "table" then
+		level = level + 1
+		outfile:write("{\n")
+		for k,v in pairs(o) do
+			for i=1,level do outfile:write("  ") end
+			outfile:write("[")
+			serialize(k, outfile, nil, level)
+			outfile:write("] = ")
+			local newkeylist
+			if type(v) == "table" or type(v) == "userdata" then
+				if type(k) == "string" then
+					newkeylist = keylist .. "[\""  .. k .. "\"]"
+				elseif type(k) == "number" then
+					newkeylist = keylist .. "["  .. k .. "]"
+				end
+			end
+			serialize(v, outfile, newkeylist, level)
+			outfile:write(",\n")
+		end
+		if level > 1 then for i=1,level-1 do outfile:write("  ") end end
+		outfile:write("}")
+	else
+		error("cannot serialize a " .. type(o))
+	end
+end
 
 local function GetLongestWeaponRange(unitDefID, GroundAirSubmerged)
 	local weaponRange = 0
@@ -54,23 +89,24 @@ local function GetLongestWeaponRange(unitDefID, GroundAirSubmerged)
 end
 
 function widget:Initialize()
-	--io.output("AI/Skirmish/Shard/testing/ai/" .. Game.modShortName .. "/unittable.lua")
-	io.output("unittable.lua")
-	io.write("-- shard help unit table for " .. Game.modShortName .. "\n\n")
-	io.write("unitTable = {}\n\n")
+	local unitTable = {}
+	local featureTable = {}
 	local wrecks = {}
 	for unitDefID,unitDef in pairs(UnitDefs) do
+		-- Spring.Echo(unitDef.name, "build slope", unitDef.maxHeightDif)
+		-- if unitDef.moveDef.maxSlope then
+			-- Spring.Echo(unitDef.name, "move slope", unitDef.moveDef.maxSlope)
+		-- end
 		local utable = {}
-		utable.isWeapon = ""
 		if unitDef["modCategories"]["weapon"] then
-			utable.isWeapon = "true"
+			utable.isWeapon = true
 		else
-			utable.isWeapon = "false"
+			utable.isWeapon = false
 		end
 		if unitDef["isBuilding"] then
-			utable.isBuilding = "true"
+			utable.isBuilding = true
 		else
-			utable.isBuilding = "false"
+			utable.isBuilding = false
 		end
 		utable.groundRange = GetLongestWeaponRange(unitDefID, 0)
 		utable.airRange = GetLongestWeaponRange(unitDefID, 1)
@@ -83,16 +119,16 @@ function widget:Initialize()
 		utable.losRadius = unitDef["losRadius"]
 		utable.sonarRadius = unitDef["sonarRadius"]
 		utable.jammerRadius = unitDef["jammerRadius"]
-		utable.stealth = tostring(unitDef["stealth"])
+		utable.stealth = unitDef["stealth"]
 		utable.metalCost = unitDef["metalCost"]
 		utable.energyCost = unitDef["energyCost"]
 		utable.buildTime = unitDef["buildTime"]
 		utable.totalEnergyOut = unitDef["totalEnergyOut"]
 		utable.extractsMetal = unitDef["extractsMetal"]
 		if unitDef["minWaterDepth"] > 0 then
-			utable.needsWater = "true"
+			utable.needsWater = true
 		else
-			utable.needsWater = "false"
+			utable.needsWater = false
 		end
 		utable.techLevel = unitDef["techLevel"]
 		if hoverplatform[unitDef["name"]] then
@@ -113,9 +149,8 @@ function widget:Initialize()
 		else
 			utable.mtype = "veh"
 		end
-		utable.mtype = "\"" .. utable.mtype .. "\""
 		if unitDef["isBuilder"] and #unitDef["buildOptions"] > 0 then
-			utable.buildOptions = "true"
+			utable.buildOptions = true
 			utable.factoriesCanBuild = {}
 			for i, oid in pairs (unitDef["buildOptions"]) do
 				local buildDef = UnitDefs[oid]
@@ -125,35 +160,17 @@ function widget:Initialize()
 				end
 			end
 		end
-		utable.bigExplosion = tostring(unitDef["deathExplosion"] == "atomic_blast")
+		utable.bigExplosion = unitDef["deathExplosion"] == "atomic_blast"
 		utable.xsize = unitDef["xsize"]
 		utable.zsize = unitDef["zsize"]
-		utable.wreckName = "\"" .. unitDef["wreckName"] .. "\""
+		utable.wreckName = unitDef["wreckName"]
 		wrecks[unitDef["wreckName"]] = unitDef["name"]
-
-		io.write("unitTable\[\"", unitDef["name"], "\"\] = { ")
-		for k,v in pairs(utable) do
-			if k == "factoriesCanBuild" then
-				io.write(k .. " = { ")
-				for fk, fv in pairs(v) do
-					io.write("\"" .. fv .. "\", ")
-				end
-				io.write("}, ")
-			else
-				io.write(k .. " = " .. v .. ", ")
-			end
-		end
-		io.write("}", "\n")
-		-- Spring.Echo (unitDef["name"])
+		unitTable[unitDef.name] = utable
 	end
-	io.close()
 
 	local featureKeysToGet = { "metal" , "energy", "reclaimable", "blocking", }
 
 	-- feature defs
-	io.output("featuretable.lua")
-	io.write("-- shard help feature table for " .. Game.modShortName .. "\n\n")
-	io.write("featureTable = {}\n\n")
 	for featureDefID, featureDef in pairs(FeatureDefs) do
 		local ftable = {}
 		for i, k in pairs(featureKeysToGet) do
@@ -163,16 +180,15 @@ function widget:Initialize()
 		if wrecks[featureDef["name"]] then
 			ftable.unitName = wrecks[featureDef["name"]]
 		end
-		io.write("featureTable\[\"", featureDef["name"], "\"\] = { ")
-		for k,v in pairs(ftable) do
-			if type(v) == "boolean" then
-				v = tostring(v)
-			elseif type(v) == "string" then
-				v = "\"" .. v .. "\""
-			end
-			io.write(k .. " = " .. v .. ", ")
-		end
-		io.write("}", "\n")
+		featureTable[featureDef.name] = ftable
 	end
-	io.close()
+
+	local unitFile = io.open('unittable.lua', 'w')
+	unitFile:write("unitTable = \n\n")
+	serialize(unitTable, unitFile)
+	unitFile:close()
+	local featureFile = io.open('featuretable.lua', 'w')
+	featureFile:write("featureTable = \n\n")
+	serialize(featureTable, featureFile)
+	featureFile:close()
 end
