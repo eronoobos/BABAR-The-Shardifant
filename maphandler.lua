@@ -498,6 +498,123 @@ function MapHandler:GuessStartLocations(spots)
 	end
 end
 
+function MapHandler:factoriesRating()
+	local mtypesMapRatings = {}
+	local factoryRating = {}
+	ai.factoryBuilded = {}
+	ai.factoryBuilded['air'] = {}
+	for mtype, networks in pairs(ai.networkSize) do
+		ai.factoryBuilded[mtype] = {}
+		for network, size in pairs(networks) do
+			if size > ai.mobilityGridArea * 0.20 then --area too small
+				ai.factoryBuilded[mtype][network] = 0 
+			end
+		end
+	end
+	ai.factoryBuilded['air'][1] = 0
+	for mtype, unames in pairs(mobUnitNames) do
+		local realMetals = 0
+		local realSize = 0
+		local realGeos = 0
+		local spots = 0
+		local geos= 0
+		if ai.mobCount[mtype] ~= 0 then
+			realSize = ai.mobCount[mtype] / ai.mobilityGridArea --relative area occupable
+		end
+		
+		if #ai.landMetalSpots + #ai.UWMetalSpots ~= 0 then
+			for network, index in pairs(ai.mobNetworkMetals[mtype]) do
+				spots=spots + #index
+			end
+			realMetals = spots / (#ai.landMetalSpots + #ai.UWMetalSpots)--relative metals occupable
+		end
+		
+		if #ai.geoSpots ~= 0 and mtype ~= ('shp' or 'sub') then 
+			realGeos = math.min(0.1 * #ai.geoSpots,1) --if there are more then 10 geos is useless give it more weight on bestfactory type calculations
+		end 
+		
+		mtypesMapRatings[mtype] = ((realMetals + realSize + realGeos) / 3)
+		EchoDebug('mtypes map rating ' ..mtype .. ' = ' .. mtypesMapRatings[mtype])
+	end
+	mtypesMapRatings['air'] = math.min(0.1 * #ai.geoSpots,1)
+
+	local bestPath = 0
+	for factory,mtypes in pairs(factoryMobilities)do
+		local factoryPathRating = 0
+		local factoryMtypeRating = 0
+		if mtypes[1] ~='air' then
+			local count = 0
+			local maxPath = 0
+			local mediaPath = 0
+			for index, unit in pairs(unitTable[factory].unitsCanBuild) do 
+				count=count + 1
+				factoryMtypeRating = factoryMtypeRating + mtypesMapRatings[unitTable[unit].mtype]
+				if ShardSpringLua then
+					bestPath = math.max(maxPath,ai.spotPathMobRank[unitTable[unit].mclass])
+					maxPath=math.max(maxPath,ai.spotPathMobRank[unitTable[unit].mclass])
+					mediaPath = mediaPath + ai.spotPathMobRank[unitTable[unit].mclass]
+				end
+			end
+			factoryMtypeRating = factoryMtypeRating / count
+			if ShardSpringLua then
+				if maxPath == 0 then
+					mediaPath = 0
+				else
+					mediaPath = (mediaPath / count)/bestPath
+					maxPath = maxPath /bestPath
+					factoryPathRating = (maxPath + mediaPath) / 2
+				end
+			end
+		else
+			if #ai.landMetalSpots + #ai.UWMetalSpots == 0 then
+				factoryMtypeRating = mtypesMapRatings['air']
+				
+			elseif unitTable[factory].needsWater then
+				factoryMtypeRating = (mtypesMapRatings['air'] + (#ai.UWMetalSpots / (#ai.landMetalSpots + #ai.UWMetalSpots))) / 2
+			else
+				factoryMtypeRating = (mtypesMapRatings['air'] + (#ai.landMetalSpots / (#ai.landMetalSpots + #ai.UWMetalSpots))) / 2
+				
+			end
+		end
+		
+		Rating = ((factoryPathRating + factoryMtypeRating) /2) * unitTable[factory].techLevel
+		if factory == 'armfhp' or factory == 'corfhp' then 
+			Rating = Rating * 0.999 -- better a ground one, nanos around
+		end 
+		Rating = Rating * -1--reverse the value to get the right order
+		
+		if Rating ~= 0 then --useless add factory totally out of mode
+			factoryRating[factory] = Rating
+			EchoDebug('factory rating ' .. factory ..' = ' .. factoryRating[factory])
+		end
+		
+		
+	end
+	
+	local sorting = {}
+	local rank = {}
+	
+	for name, rating in pairs(factoryRating) do
+		if not rank[rating] then
+			rank[rating] = {}
+			table.insert(rank[rating],name)
+		else
+			table.insert(rank[rating],name)
+		end
+		table.insert(sorting, rating)
+	end
+	table.sort(sorting)
+	
+	local factoriesRanking = {}
+	for i,v in pairs(sorting) do
+		for ii, vv in pairs(rank[v]) do
+			table.insert(factoriesRanking,table.remove(rank[v],ii))
+			EchoDebug((i.. ' '..vv))
+		end
+	end
+	return factoriesRanking
+end
+
 function MapHandler:Name()
 	return "MapHandler"
 end
@@ -641,8 +758,8 @@ function MapHandler:Init()
 	mobSpots, ai.mobNetworkMetals, mobNetworks, mobNetworkCount = MapSpotMobility(metalSpots, geoSpots)
 	ai.mobNetworks = mobNetworks
 	if ShardSpringLua then
-		local hotSpot = self:SpotSimplyfier(metalSpots,geoSpots)
-		ai.spotPathMobRank = self:SpotPathMobRank(hotSpot)
+		ai.hotSpot = self:SpotSimplyfier(metalSpots,geoSpots)
+		ai.spotPathMobRank = self:SpotPathMobRank(ai.hotSpot)
 	end
 	for mtype, mspots in pairs(mobSpots) do
 		EchoDebug(mtype .. " spots: " .. #mspots)
@@ -732,6 +849,7 @@ function MapHandler:Init()
 
 	-- cleanup
 	mobMap = {}
+	ai.factoriesRanking = self:factoriesRating()
 
 end
 
