@@ -6,6 +6,17 @@ local function EchoDebug(inStr)
 	end
 end
 
+--Factory call
+function BuildAppropriateFactory()
+	local unitName = DummyUnitName
+	local factories = ai.factories ^ 2
+	if  ai.Metal.income > (factories * 10) + 3 and ai.Energy.income > (factories * 100) + 25 and
+			ai.Metal.reserves > 300 and ai.Energy.reserves > 600 then
+		unitName = FactoryUnitName
+	end
+	return unitName
+end
+--nano call
 function NanoTurret()
 	local unitName = DummyUnitName
 	if ai.mySide == CORESideName then

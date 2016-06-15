@@ -386,10 +386,6 @@ function CheckMySideIfNeeded()
 	end
 end
 
-function BuildAppropriateFactory()
-	return FactoryUnitName
-end
-
 function FactoryOrNano(self)
 	CheckForMapControl()
 	if ai.factories == 0 then return BuildAppropriateFactory() end
