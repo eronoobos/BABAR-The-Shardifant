@@ -579,12 +579,9 @@ function MapHandler:factoriesRating()
 		end
 		
 		Rating = ((factoryPathRating + factoryMtypeRating) /2) * unitTable[factory].techLevel
-		if unitTable[factory].needsWater then
+
+		if factoryMobilities[factory][1] == ('hov') then
 			Rating = Rating * (ai.mobCount['shp'] /ai.mobilityGridArea)
-		elseif factory == 'corhp' or factory == 'armhp' then
-			Rating = Rating * (ai.mobCount['shp'] /ai.mobilityGridArea)
-		else
-			Rating = Rating * (ai.mobCount['bot'] /ai.mobilityGridArea)
 		end
 		if factory == 'armfhp' or factory == 'corfhp' then 
 			Rating = Rating * 0.999 -- better a ground one, nanos around
