@@ -518,6 +518,7 @@ function MapHandler:factoriesRating()
 		local realGeos = 0
 		local spots = 0
 		local geos= 0
+		local realRating = ai.mobRating[mtype] / 100
 		if ai.mobCount[mtype] ~= 0 then
 			realSize = ai.mobCount[mtype] / ai.mobilityGridArea --relative area occupable
 		end
@@ -533,7 +534,7 @@ function MapHandler:factoriesRating()
 			realGeos = math.min(0.1 * #ai.geoSpots,1) --if there are more then 10 geos is useless give it more weight on bestfactory type calculations
 		end 
 		
-		mtypesMapRatings[mtype] = ((realMetals + realSize + realGeos) / 3)
+		mtypesMapRatings[mtype] = (( realMetals + realSize + realGeos) / 3) * realRating
 		EchoDebug('mtypes map rating ' ..mtype .. ' = ' .. mtypesMapRatings[mtype])
 	end
 	mtypesMapRatings['air'] = math.min(0.1 * #ai.geoSpots,1)
@@ -578,6 +579,13 @@ function MapHandler:factoriesRating()
 		end
 		
 		Rating = ((factoryPathRating + factoryMtypeRating) /2) * unitTable[factory].techLevel
+		if unitTable[factory].needsWater then
+			Rating = Rating * (ai.mobCount['shp'] /ai.mobilityGridArea)
+		elseif factory == 'corhp' or factory == 'armhp' then
+			Rating = Rating * (ai.mobCount['shp'] /ai.mobilityGridArea)
+		else
+			Rating = Rating * (ai.mobCount['bot'] /ai.mobilityGridArea)
+		end
 		if factory == 'armfhp' or factory == 'corfhp' then 
 			Rating = Rating * 0.999 -- better a ground one, nanos around
 		end 
