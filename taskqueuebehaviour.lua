@@ -420,6 +420,38 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 			EchoDebug("no factory found")
 			utype = nil
 		end
+	elseif (unitTable[value].isWeapon and unitTable[value].isBuilding and not nukeList[value] and not bigPlasmaList[value] and not littlePlasmaList[value]) then
+		EchoDebug("looking for least turtled positions")
+		local turtlePosList = ai.turtlehandler:LeastTurtled(builder, value)
+		if turtlePosList then
+			if #turtlePosList ~= 0 then
+				EchoDebug("found turtle positions")
+				for i, turtlePos in ipairs(turtlePosList) do
+					p = ai.buildsitehandler:ClosestBuildSpot(builder, turtlePos, utype)
+					if p ~= nil then break end
+				end
+			end
+		end
+		if p and Distance(p, builder:GetPosition()) > 300 then
+			-- HERE BECAUSE DEFENSE PLACEMENT SYSTEM SUCKS
+			-- this prevents cons from wasting time building defenses very far away
+			utype = nil
+			-- p = ai.buildsitehandler:ClosestBuildSpot(builder, builder:GetPosition(), utype)
+		end
+		for id,position in pairs(ai.groundDefense) do
+			if p and Distance(p, position) < unitTable[self.name].groundRange then
+				utype = nil 
+				break
+			end
+			
+		end
+		
+		if p == nil then
+			EchoDebug("did NOT find build spot near turtle position")
+			utype = nil
+		end
+
+		
 	elseif nukeList[value] or bigPlasmaList[value] or littlePlasmaList[value] then
 		-- bombarders
 		EchoDebug("seeking bombard build spot")
@@ -491,126 +523,116 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 	return utype, value, p
 end
 
+function TaskQueueBehaviour:BestFactoryDontBuild(factoryName)
+	local buildMe = true
+	local level = unitTable[factoryName].techLevel
+	local isAdvanced = advFactories[factoryName]
+	local isExperimental = expFactories[factoryName] or leadsToExpFactories[factoryName]	
+	local groundFactory = ('veh' or 'bot')
+	local mtype = factoryMobilities[factoryName][1]
+	if ai.needAdvanced and not ai.haveAdvFactory then
+	if not isAdvanced then buildMe = false end
+	end
+	if not ai.needAdvanced then
+		if isAdvanced then buildMe = false end
+	end
+	if ai.needExperimental and not ai.haveExpFactory then
+		if not isExperimental then buildMe = false end
+	end
+	if not ai.needExperimental then
+		if expFactories[factoryName] then buildMe = false end
+	end
+	if factoryMobilities[factoryName][1] == 'air' and ai.factoryBuilded['air'][1] >= 1 then
+		if level < 3 then buildMe = false end--dont build seaplane if we can place aap
+	end
+	if ai.factories == 1 and level < ai.maxFactoryLevel and  mtype == ('veh' or 'bot') then 
+		buildMe = false --dont build kbot if veh and revers before t2 step
+	end 
+	return buildMe
+	
+end
+
+function TaskQueueBehaviour:BestFactoryPosition(factoryName,utype,builder,builderPos,mtype)
+	local p
+	if p == nil then
+		EchoDebug("looking next to factory for position for " .. factoryName)
+		local factoryPos = ai.buildsitehandler:ClosestHighestLevelFactory(builderPos, 10000)
+		if factoryPos then
+			p = ai.buildsitehandler:ClosestBuildSpot(builder, factoryPos, utype)
+		end
+	end
+	if p == nil then
+		EchoDebug("looking for most turtled position for " .. factoryName)
+		local turtlePosList = ai.turtlehandler:MostTurtled(builder, factoryName)
+		if turtlePosList then
+			if #turtlePosList ~= 0 then
+				for i, turtlePos in ipairs(turtlePosList) do
+					p = ai.buildsitehandler:ClosestBuildSpot(builder, turtlePos, utype)
+					if p ~= nil then break end
+				end
+			end
+		end
+	end
+	if p == nil then
+		EchoDebug("trying near builder for " .. factoryName)
+		p = ai.buildsitehandler:ClosestBuildSpot(builder, builderPos, utype)
+	end
+	if p == nil then
+		EchoDebug('builfactory near hotSpot')
+		local place = false
+		local distance = 99999
+		for index, hotSpot in pairs(ai.hotSpot) do
+			if ai.maphandler:MobilityNetworkHere(mtype,hotSpot) then
+				
+				dist = math.min(distance, Distance(hotSpot,builderPos))
+				if dist < distance then 
+					place = hotSpot
+					distance  = dist
+				end
+					
+				
+			end
+		end
+		if place then
+			p = ai.buildsitehandler:ClosestBuildSpot(builder, place, utype)
+		end
+	end
+	return p
+end
+
 function TaskQueueBehaviour:BestFactory()
-	local bestScore = -99999
-	local bestName, bestPos
+	if ai.factoryUnderConstruction then return end
+	EchoDebug('no factory under construction')
 	local builder = self.unit:Internal()
 	local factoryNames = unitTable[self.name].factoriesCanBuild
 	if factoryNames ~= nil then
-		for i, factoryName in pairs(factoryNames) do
-			local buildMe = true
-			local isAdvanced = advFactories[factoryName]
-			local isExperimental = expFactories[factoryName] or leadsToExpFactories[factoryName]			
-			if ai.needAdvanced and not ai.haveAdvFactory then
-				if not isAdvanced then buildMe = false end
-			end
-			if not ai.needAdvanced then
-				if isAdvanced then buildMe = false end
-			end
-			if ai.needExperimental and not ai.haveExpFactory then
-				if not isExperimental then buildMe = false end
-			end
-			if not ai.needExperimental then
-				if expFactories[factoryName] then buildMe = false end
-			end
-			--[[
-			-- this probably isn't a good idea, there are better ways to use up excess metal
-			if ai.Metal.income > 10 and ai.Metal.extra > 5 and ai.Metal.full > 0.9 then
-				-- don't include built factories if we've got tons of metal
-				-- if we include factories we already have, this algo will tend to spit out subpar factories
-				if ai.nameCount[factoryName] > 0 then buildMe = false end
-			end
-			]]--
-			if buildMe then
-				local utype = game:GetTypeByName(factoryName)
-				local builderPos = builder:GetPosition()
-				local p
-				if p == nil then
-					EchoDebug("looking next to factory for position for " .. factoryName)
-					local factoryPos = ai.buildsitehandler:ClosestHighestLevelFactory(builderPos, 10000)
-					if factoryPos then
-						p = ai.buildsitehandler:ClosestBuildSpot(builder, factoryPos, utype)
-					end
-				end
-				if p == nil then
-					EchoDebug("looking for most turtled position for " .. factoryName)
-					local turtlePosList = ai.turtlehandler:MostTurtled(builder, factoryName)
-					if turtlePosList then
-						if #turtlePosList ~= 0 then
-							for i, turtlePos in ipairs(turtlePosList) do
-								p = ai.buildsitehandler:ClosestBuildSpot(builder, turtlePos, utype)
-								if p ~= nil then break end
-							end
-						end
-					end
-				end
-				if p == nil then
-					EchoDebug("trying near builder for " .. factoryName)
-					p = ai.buildsitehandler:ClosestBuildSpot(builder, builderPos, utype)
-				end
-				if p ~= nil then
-					EchoDebug("found spot for " .. factoryName)
-					for mi, mtype in pairs(factoryMobilities[factoryName]) do
-						if mtype == "air" or ai.mobRating[mtype] > ai.mobilityRatingFloor then
-							local network = ai.maphandler:MobilityNetworkHere(mtype, p)
-							if ai.scoutSpots[mtype][network] then
-								local numberOfSpots
-								if mtype == "air" then
-									if factoryName == "armplat" or factoryName == "corplat" then
-										-- seaplanes can only build on UW metal
-										numberOfSpots = #ai.UWMetalSpots
-									else
-										-- other aircraft can only build land metal spots and geospots
-										numberOfSpots = #ai.landMetalSpots + #ai.geoSpots
-									end
-								else
-									numberOfSpots = #ai.scoutSpots[mtype][network]
-								end
-								EchoDebug(numberOfSpots .. " spots for " .. factoryName)
-								if numberOfSpots > 5 then
-									local dist = Distance(builderPos, p)
-									local spotPercentage = numberOfSpots / #ai.scoutSpots["air"][1]
-									local score = (spotPercentage * ai.maxElmosDiag) - (dist * mobilitySlowMultiplier[mtype])
-									score = score * mobilityEffeciencyMultiplier[mtype]
-									EchoDebug(factoryName .. " " .. mtype .. " has enough spots (" .. numberOfSpots .. ") and a score of " .. score .. " (" .. spotPercentage .. " " .. dist .. ")")
-									if score > bestScore then
-										local okay = true
-										if okay then
-											if mtype == "veh" then
-												if ai.maphandler:OutmodedFactoryHere("veh", builderPos) and not ai.maphandler:OutmodedFactoryHere("bot", builderPos) then
-													-- don't build a not very useful vehicle plant if a bot factory can be built instead
-													okay = false
-												end
-											end
-										end
-										if okay then
-											if mtype == "bot" and not ai.needExperimental then
-												-- don't built a bot lab senselessly to slow us down
-												if not ai.maphandler:OutmodedFactoryHere("veh", builderPos) and (ai.nameCount["armvp"] >= 1 or ai.nameCount["corvp"] >= 1) then
-													okay = false
-												end
-											end
-										end
-										if okay then
-											bestScore = score
-											bestName = factoryName
-											bestPos = p
-										end
-									end
-								end
+		for index, Name in pairs(ai.factoriesRanking) do
+			for i, factoryName in pairs(factoryNames) do
+				if Name == factoryName then
+					EchoDebug('try to build factory '..factoryName)
+					local buildMe = self:BestFactoryDontBuild(factoryName)
+					if buildMe then
+						EchoDebug('buildMe')
+						local mtype = factoryMobilities[factoryName][1]
+						local builderPos = builder:GetPosition()
+						local utype = game:GetTypeByName(factoryName)
+						local p = self:BestFactoryPosition(factoryName,utype,builder,builderPos,mtype)
+						if p ~= nil then
+							EchoDebug("found spot for " .. factoryName)
+							local network = ai.maphandler:MobilityNetworkHere(mtype,p)
+							if ai.factoryBuilded[mtype] == nil or ai.factoryBuilded[mtype][network] == nil then
+								EchoDebug('area too small')
+								--Spring.MarkerAddPoint(p.x,p.y,p.z, tostring(mtype ))--uncomment this to draw the hotspot reducing system
+							elseif unitTable[factoryName].techLevel > ai.factoryBuilded[mtype][network] then
+								EchoDebug('place: ' ..factoryName .. ' on ' ..mtype ..'-' ..network )
+								return p, factoryName
 							end
 						end
 					end
 				end
 			end
-			-- DebugEnabled = false
 		end
 	end
-	if bestName ~= nil then
-		if ai.nameCount[bestName] > 0 then return nil, nil end
-		EchoDebug("best factory: " .. bestName)
-	end
-	return bestPos, bestName
 end
 
 function TaskQueueBehaviour:GetQueue()

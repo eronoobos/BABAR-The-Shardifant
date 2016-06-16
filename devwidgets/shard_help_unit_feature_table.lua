@@ -93,6 +93,8 @@ local function GetUnitTable()
 		utable.buildTime = unitDef["buildTime"]
 		utable.totalEnergyOut = unitDef["totalEnergyOut"]
 		utable.extractsMetal = unitDef["extractsMetal"]
+		utable.mclass = unitDef.moveDef.name
+		utable.speed = unitDef.speed
 		if unitDef["minWaterDepth"] > 0 then
 			utable.needsWater = true
 		else
@@ -119,12 +121,22 @@ local function GetUnitTable()
 		end
 		if unitDef["isBuilder"] and #unitDef["buildOptions"] > 0 then
 			utable.buildOptions = true
-			utable.factoriesCanBuild = {}
-			for i, oid in pairs (unitDef["buildOptions"]) do
+			if unitDef["isBuilding"] then
+				utable.unitsCanBuild = {}
+				for i, oid in pairs (unitDef["buildOptions"]) do
 				local buildDef = UnitDefs[oid]
-				if #buildDef["buildOptions"] > 0 and buildDef["isBuilding"] then
-					-- build option is a factory, add it to factories this unit can build
-					table.insert(utable.factoriesCanBuild, buildDef["name"])
+				-- if is a factory insert all the units that can build
+				table.insert(utable.unitsCanBuild, buildDef["name"])
+				end
+					
+			else
+				utable.factoriesCanBuild = {}
+				for i, oid in pairs (unitDef["buildOptions"]) do
+					local buildDef = UnitDefs[oid]
+					if #buildDef["buildOptions"] > 0 and buildDef["isBuilding"] then
+						-- build option is a factory, add it to factories this unit can build
+						table.insert(utable.factoriesCanBuild, buildDef["name"])
+					end
 				end
 			end
 		end

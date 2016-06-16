@@ -34,7 +34,10 @@ function FactoryRegisterBehaviour:UnitBuilt(unit)
 end
 
 function FactoryRegisterBehaviour:UnitCreated(unit)
-
+	if unit.engineID == self.unit.engineID then
+		ai.factoryUnderConstruction = self.id
+		EchoDebug('starting building of ' ..self.name)
+	end
 end
 
 function FactoryRegisterBehaviour:UnitIdle(unit)
@@ -58,6 +61,7 @@ end
 
 function FactoryRegisterBehaviour:UnitDead(unit)
 	if unit.engineID == self.unit.engineID then
+		if ai.factoryUnderConstruction == self.id then ai.factoryUnderConstruction = false end
 		-- game:SendToConsole("factory " .. self.name .. " died")
 		if self.finished then
 			self:Unregister()
@@ -85,6 +89,12 @@ function FactoryRegisterBehaviour:Unregister()
     end
     ai.maxFactoryLevel = maxLevel
 	-- game:SendToConsole(ai.factories .. " factories")
+	
+	if ai.factoryUnderConstruction == self.id then ai.factoryUnderConstruction = false end
+	local mtype = factoryMobilities[self.name][1]
+	local network = ai.maphandler:MobilityNetworkHere(mtype,self.position)
+	ai.factoryBuilded[mtype][network] = ai.factoryBuilded[mtype][network] - unitTable[self.name].techLevel
+	EchoDebug('factory '  ..self.name.. ' network '  .. mtype .. '-' .. network .. ' level ' .. ai.factoryBuilded[mtype][network] .. ' subtract tech '.. self.level)
 end
 
 function FactoryRegisterBehaviour:Register()
@@ -111,4 +121,10 @@ function FactoryRegisterBehaviour:Register()
 		ai.maxFactoryLevel = level
 	end
 	-- game:SendToConsole(ai.factories .. " factories")
+	
+	if ai.factoryUnderConstruction == self.id then ai.factoryUnderConstruction = false end
+	local mtype = factoryMobilities[self.name][1]
+	local network = ai.maphandler:MobilityNetworkHere(mtype,self.position)
+	ai.factoryBuilded[mtype][network] = ai.factoryBuilded[mtype][network] + self.level
+	EchoDebug('factory '  ..self.name.. ' network '  .. mtype .. '-' .. network .. ' level ' .. ai.factoryBuilded[mtype][network] .. ' adding tech '.. self.level)
 end
