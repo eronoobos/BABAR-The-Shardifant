@@ -129,7 +129,7 @@ end
 function TidalIfTidal()
 	local unitName = DummyUnitName
 	EchoDebug("tidal power is " .. tidalPower)
-	if tidalPower >= 10 then
+	if map:TidalStrength() >= 10 then
 		unitName = Tidal()
 	end
 	return unitName
@@ -512,7 +512,7 @@ function Economy1()
 		-- unitName = buildMstore1()
 	elseif ai.Energy.income > ai.Energy.usage * 1.5 and ai.Energy.full > 0.9 and ai.Energy.income > 200 and ai.Energy.income < 2000 and ai.Metal.full < 0.3 then
 		unitName = buildMconv1()
-	elseif (ai.Energy.full < 0.3 or ai.Energy.income < ai.Metal.usage) and ai.Metal.full > 0.1 then
+	elseif (ai.Energy.full < 0.3 or ai.Energy.income < ai.Energy.usage) and ai.Metal.full > 0.1 then
 		unitName = Energy1()
 	else
 		unitName = BuildMex()
@@ -523,15 +523,15 @@ end
 
 function EconomyUnderWater()
 	local unitName = DummyUnitName
-	if ai.Energy.full > 0.9 and ai.Energy.income > 100  and ai.Metal.reserves > 100 and ai.Energy.capacity < 7000 then
-		unitName = buildWEstore1()
-	elseif ai.Metal.full > 0.7 and ai.Metal.income > 10 and ai.Metal.capacity < 7000 then
-		unitName = buildWMstore1()
-	elseif ai.Energy.full > 0.8 and ai.Energy.income > 50 then
-		unitName = buildWMconv1()
+	-- if ai.Energy.full > 0.9 and ai.Energy.income > 100  and ai.Metal.reserves > 100 and ai.Energy.capacity < 7000 then
+		-- unitName = buildWEstore1()
+	-- elseif ai.Metal.full > 0.7 and ai.Metal.income > 10 and ai.Metal.capacity < 7000 then
+		-- unitName = buildWMstore1()
+	if ai.Energy.income > ai.Energy.usage * 1.5 and ai.Energy.full > 0.9 and ai.Energy.income > 200 and ai.Energy.income < 2000 and ai.Metal.full < 0.3 then
+		unitName = buildMconv1()
 	elseif ai.Energy.full > 0.1 and (ai.Metal.income < 1 or ai.Metal.full < 0.6) then
 		unitName = BuildUWMex()
-	elseif (ai.Energy.full < 0.3 or ai.Energy.income < ai.Metal.usage) and ai.Metal.income > 3 and ai.Metal.full > 0.1 then
+	elseif (ai.Energy.full < 0.3 or ai.Energy.income < ai.Energy.usage) and ai.Metal.income > 3 and ai.Metal.full > 0.1 then
 		unitName = TidalIfTidal()--this can get problems
 	else
 		unitName = BuildUWMex()
@@ -540,17 +540,17 @@ function EconomyUnderWater()
 	return unitName
 end
 function AdvEconomyUnderWater(self)
-	local unitName=DummyUnitName
-	if 	ai.Energy.full>0.9 and ai.Energy.income>1000 and ai.Metal.income>ai.Metal.usage and ai.Energy.capacity < 100000  then
-		unitName=buildEstore2(self)
-	elseif ai.Metal.full>0.7 and ai.Metal.income>30 and ai.Metal.capacity < 50000 then
-		unitName=buildMstore2(self)
-	elseif ai.Energy.full>0.8  then
-		unitName=buildMconv2UW(self)
+	local unitName = DummyUnitName
+	-- if 	ai.Energy.full>0.9 and ai.Energy.income>1000 and ai.Metal.income>ai.Metal.usage and ai.Energy.capacity < 100000  then
+		-- unitName=buildEstore2(self)
+	-- elseif ai.Metal.full>0.7 and ai.Metal.income>30 and ai.Metal.capacity < 50000 then
+		-- unitName=buildMstore2(self)
+	if ai.Energy.income > ai.Energy.usage * 1.5 and ai.Energy.full > 0.9 and ai.Energy.income > 2000 and ai.Metal.full < 0.3 then
+		unitName = buildMconv2UW(self)
 	elseif ai.Energy.full>0.2 then
-		unitName=BuildUWMohoMex()
-	elseif (ai.Energy.full<0.3 or ai.Energy.income<ai.Metal.usage) and ai.Metal.full>0.1 then
-		unitName=BuildUWFusion(self)
+		unitName = BuildUWMohoMex()
+	elseif (ai.Energy.full<0.3 or ai.Energy.income<ai.Energy.usage) and ai.Metal.full>0.1 then
+		unitName = BuildUWFusion(self)
 	end
 	EchoDebug('Economy under water level 2 '..unitName)
 	return unitName

@@ -423,7 +423,7 @@ local function ConsulAsFactory(self)
 	elseif 	rnd==4 then unitName=Lvl1AABot(self) 
 	elseif 	rnd==5 then unitName=Lvl2BotArty(self)
 	-- elseif 	rnd==6 then unitName=spiders(self)
-	elseif 	rnd==7 then unitName=Lv2BotMedium(self)
+	elseif 	rnd==7 then unitName=Lvl2BotMedium(self)
 	elseif 	rnd==8 then unitName=Lvl1ShipDestroyerOnly(self)
 	else unitName=DummyUnitName
 	end
@@ -440,7 +440,7 @@ local function FreakerAsFactory(self)
 	elseif 	rnd==3 then unitName=Lvl1BotRaider(self)
 	elseif 	rnd==4 then unitName=Lvl1AABot(self)
 	elseif 	rnd==5 then unitName=Lvl2BotRaider(self)
-	elseif 	rnd==6 then unitName=Lv2AmphBot(self)
+	elseif 	rnd==6 then unitName=Lvl2AmphBot(self)
 	elseif 	rnd==7 then unitName=Lvl1ShipDestroyerOnly(self)
 	-- elseif 	rnd==8 then unitName=Decoy(self)
 	else unitName = DummyUnitName
@@ -453,12 +453,13 @@ end
 function NavalEngineerAsFactory(self)
 	local unitName=DummyUnitName
 	local rnd= math.random(1,9)
+	EchoDebug(rnd)
 	if 	rnd==1 then unitName=ConShip(self)
 	elseif 	rnd==2 then unitName=ScoutShip(self)
 	elseif 	rnd==3 then unitName=Lvl1ShipDestroyerOnly(self)
 	elseif 	rnd==4 then unitName=Lvl1ShipRaider(self)
 	elseif 	rnd==5 then unitName=Lvl1ShipBattle(self)
-	elseif 	rnd==6 then unitName=Lv2AmphBot(self)
+	elseif 	rnd==6 then unitName=Lvl2AmphBot(self)
 	else 
 		unitName=DummyUnitName
 	end

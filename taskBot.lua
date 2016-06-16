@@ -166,7 +166,7 @@ function Lvl2BotRaider(self)
 	return BuildRaiderIfNeeded(unitName)
 end
 
-function Lv2BotAllTerrain(self)
+function Lvl2BotAllTerrain(self)
 	local unitName=DummyUnitName
 	if ai.mySide == CORESideName then
 		unitName = 'cortermite'
@@ -186,22 +186,24 @@ function Lvl2BotBattle(self)
 	return BuildBattleIfNeeded(unitName)
 end
 
-function Lv2BotMedium(self)
+function Lvl2BotMedium(self)
 	local unitName=DummyUnitName
 	if ai.mySide == CORESideName then
 		unitName = 'corcan'
 	else
 		unitName = "armmav"
 	end
+	return unitName
 end
 
-function Lv2AmphBot(self)
+function Lvl2AmphBot(self)
 	local unitName=DummyUnitName
 	if ai.mySide == CORESideName then
 		unitName = 'coramph'
 	else
 		unitName = 'armamph'
 	end
+	return unitName
 end
 
 function Lvl2AABot()
