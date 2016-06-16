@@ -49,7 +49,7 @@ end
 function Lvl1ShipBattle(self)
 	local unitName = ""
 	local r = 1
-	if mf>0.8 then r = 2 end -- only build destroyers if you've already got quite a few units (combat = scouts + raiders + battle)
+	if ai.combatCount > 12 then r = 2 end -- only build destroyers if you've already got quite a few units (combat = scouts + raiders + battle)
 	if r == 1 then
 		if ai.mySide == CORESideName then
 			unitName = "coresupp"
