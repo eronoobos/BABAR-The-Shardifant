@@ -1,4 +1,4 @@
-local DebugEnabled = true
+local DebugEnabled = false
 
 local function EchoDebug(inStr)
 	if DebugEnabled then
@@ -128,8 +128,9 @@ end
 
 function TidalIfTidal()
 	local unitName = DummyUnitName
+	local tidalPower = map:TidalStrength()
 	EchoDebug("tidal power is " .. tidalPower)
-	if map:TidalStrength() >= 10 then
+	if tidalPower >= 10 then
 		unitName = Tidal()
 	end
 	return unitName
@@ -486,23 +487,6 @@ function Economy0()
 	return unitName
 end
 
-function AdvEconomy(self)
-	local unitName=DummyUnitName
-	-- if ai.Energy.full > 0.9 and ai.Energy.income > 1000 and ai.Metal.income > ai.Metal.usage and ai.Energy.capacity < 40000 then
-		-- unitName = buildEstore2()
-	-- elseif ai.Metal.full > 0.8 and ai.Metal.income > 30 and ai.Metal.capacity < 20000 then
-		-- unitName = buildMstore2()
-	if ai.Energy.income > ai.Energy.usage * 1.5 and ai.Energy.full > 0.9 and ai.Energy.income > 2000 and ai.Metal.full < 0.3 then
-		unitName = buildMconv2()
-	elseif (ai.Energy.full < 0.3 or ai.Energy.income < ai.Energy.usage*1.1) and ai.Metal.full > 0.1 and ai.Metal.income > 18 then
-		unitName = BuildAdvEnergy(self)
-	else--if ai.Metal.full < 0.2 and ai.Energy.full > 0.1 then
-		unitName = BuildMohoMex()
-	end
-	EchoDebug('Economy level 3 '..unitName)
-	return unitName
-end
-
 function Economy1()
         local unitName=DummyUnitName
 	if ai.Energy.full > 0.5 and ai.Metal.full > 0.3 and ai.Metal.full < 0.7 and ai.Metal.income > 30 then
@@ -542,6 +526,24 @@ function EconomyUnderWater()
 	EchoDebug('Under water Economy level 1 '..unitName)
 	return unitName
 end
+
+function AdvEconomy(self)
+	local unitName=DummyUnitName
+	-- if ai.Energy.full > 0.9 and ai.Energy.income > 1000 and ai.Metal.income > ai.Metal.usage and ai.Energy.capacity < 40000 then
+		-- unitName = buildEstore2()
+	-- elseif ai.Metal.full > 0.8 and ai.Metal.income > 30 and ai.Metal.capacity < 20000 then
+		-- unitName = buildMstore2()
+	if ai.Energy.income > ai.Energy.usage * 1.5 and ai.Energy.full > 0.9 and ai.Energy.income > 2000 and ai.Metal.full < 0.3 then
+		unitName = buildMconv2()
+	elseif (ai.Energy.full < 0.3 or ai.Energy.income < ai.Energy.usage*1.1) and ai.Metal.full > 0.1 and ai.Metal.income > 18 then
+		unitName = BuildAdvEnergy(self)
+	else--if ai.Metal.full < 0.2 and ai.Energy.full > 0.1 then
+		unitName = BuildMohoMex()
+	end
+	EchoDebug('Economy level 3 '..unitName)
+	return unitName
+end
+
 function AdvEconomyUnderWater(self)
 	local unitName = DummyUnitName
 	-- if 	ai.Energy.full>0.9 and ai.Energy.income>1000 and ai.Metal.income>ai.Metal.usage and ai.Energy.capacity < 100000  then
