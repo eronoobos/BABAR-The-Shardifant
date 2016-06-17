@@ -123,6 +123,13 @@ function ScoutHandler:ClosestSpot(scoutbehaviour)
 	if pos ~= nil then
 		EchoDebug("and spot found")
 		pos.y = 0
+		-- uncomment to show scout movement plans
+		-- self.map:DrawLine(pos, position, {0, 1, 1}, nil, 2)
+		-- self.map:DrawPoint(position, {0, 0, 1}, nil, 2)
+		-- self.map:DrawPoint(pos, {0, 1, 0}, nil, 2)
+		if bestDistance then
+			-- self.map:DrawCircle(position, bestDistance, {0, 1, 1}, nil, nil, 2)
+		end
 	else
 		EchoDebug("but NO spot found")
 	end

@@ -2,8 +2,9 @@ shard_include "common"
 
 local DebugEnabled = false
 local DebugEnabledPlans = false
-local debugPlotBuildFile
+local DebugEnabledDraw = true
 
+local debugPlotDrawn = {}
 
 local function EchoDebug(inStr)
 	if DebugEnabled then
@@ -18,15 +19,21 @@ local function EchoDebugPlans(inStr)
 end
 
 local function PlotRectDebug(rect)
-	if DebugEnabledPlans then
+	if DebugEnabledDraw and not rect.drawn then
 		local label
+		local color
 		if rect.unitName then
 			label = "PLAN"
+			color = {0, 1, 0}
 		else
 			label = "NOBUILD"
+			color = {1, 0, 0}
 		end
-		local string = rect.x1 .. " " .. rect.z1 .. " " .. rect.x2 .. " " .. rect.z2 .. " " .. label .. "\n"
-		debugPlotBuildFile:write(string)
+		local pos1 = {x=rect.x1, y=0, z=rect.z1}
+		local pos2 = {x=rect.x2, y=0, z=rect.z2}
+		local id = map:DrawRectangle(pos1, pos2, color)
+		rect.drawn = label
+		debugPlotDrawn[#debugPlotDrawn+1] = rect
 	end
 end
 
@@ -540,14 +547,24 @@ function BuildSiteHandler:ResurrectionRepairedBy(unitID)
 end
 
 function BuildSiteHandler:PlotAllDebug()
-	if DebugEnabledPlans then
-		debugPlotBuildFile = assert(io.open("debugbuildplot",'w'), "Unable to write debugbuildplot")
+	if DebugEnabledDraw then
+		local isThere = {}
 		for i, plan in pairs(self.plans) do
 			PlotRectDebug(plan)
+			isThere[plan] = true
 		end
 		for i, rect in pairs(self.dontBuildRects) do
 			PlotRectDebug(rect)
+			isThere[rect] = true
 		end
-		debugPlotBuildFile:close()
+		for i = #debugPlotDrawn, 1, -1 do
+			local rect = debugPlotDrawn[i]
+			if not isThere[rect] then
+				local pos1 = {x=rect.x1, y=0, z=rect.z1}
+				local pos2 = {x=rect.x2, y=0, z=rect.z2}
+				self.map:EraseRectangle(pos1, pos2, nil, rect.drawn)
+				table.remove(debugPlotDrawn, i)
+			end
+		end
 	end
 end
