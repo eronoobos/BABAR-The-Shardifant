@@ -1,6 +1,7 @@
 shard_include "common"
 
 local DebugEnabled = false
+local DebugPlotEnabled = true
 
 
 local function EchoDebug(inStr)
@@ -10,7 +11,7 @@ local function EchoDebug(inStr)
 end
 
 local debugSquares = {}
--- local debugPlotFile
+local debugPoints = {}
 
 -- mobTypes = {}
 local mobUnitTypes = {}
@@ -79,32 +80,59 @@ local function EchoData(name, o)
 	EchoDebug("wrote " .. name)
 end
 
+local mapColors = {}
+mapColors["veh"] = { 1, 0, 0 }
+mapColors["bot"] = { 1, 0.5, 0 }
+mapColors["amp"] = { 0, 1, 0 }
+mapColors["hov"] = { 0, 1, 1 }
+mapColors["shp"] = { 0.5, 0.5, 1 }
+mapColors["sub"] = { 0, 0, 1 }
+mapColors["start"] = { 1, 1, 1 }
+mapColors["1"] = { 1, 1, 0 }
+mapColors["2"] = { 0, 0, 1 }
+mapColors["3"] = { 1, 0, 0 }
+mapColors["JAM"] = { 0, 0, 0 }
+mapColors["known"] = { 1, 1, 1 }
+mapColors["NOBUILD"] = { 1, 0, 0 }
+mapColors["PLAN"] = { 0, 1, 0 }
+mapColors["LIMB"] = { 0.5, 0, 0 }
+
+local function GetColorFromLabel(label)
+	local color = mapColors[label] or { 1, 1, 1 }
+	color[4] = 0.1
+	return color
+end
+
 local function PlotDebug(x, z, label)
-	if DebugEnabled then
+	if DebugPlotEnabled then
 		if label == nil then label= "nil" end
-		local string = math.ceil(x) .. " " .. math.ceil(z) .. " " .. label .. "\n"
-		-- debugPlotFile:write(string)
+		local pos = api.Position()
+		pos.x, pos.z = x, z
+		if debugPoints[x .. "  " .. z] then
+			pos.z = pos.z + (20 * debugPoints[x .. "  " .. z])
+		end
+		map:DrawPoint(pos, GetColorFromLabel(label), label, 4)
+		debugPoints[x .. "  " .. z] = (debugPoints[x .. "  " .. z] or 0) + 1
 	end
 end
 
 local function PlotSquareDebug(x, z, size, label)
-	if DebugEnabled then
+	if DebugPlotEnabled then
 		x = math.ceil(x)
 		z = math.ceil(z)
 		size = math.ceil(size)
-		-- if debugSquares[x .. "  " .. z .. " " .. size] == nil then
+		if debugSquares[x .. "  " .. z .. " " .. size] == nil then
 			if label == nil then label = "nil" end
-			local string = x .. " " .. z .. " " .. size .. " " .. label .. "\n"
-			-- debugPlotFile:write(string)
-			-- debugSquares[x .. "  " .. z .. " " .. size] = true
-		-- end
-	end
-end
-
-local function PlotLineDebug(pos1, pos2)
-	if DebugEnabled then
-		local string = math.ceil(pos1.x) .. " " .. math.ceil(pos1.z) .. " " .. math.ceil(pos2.x) .. " " .. math.ceil(pos2.z) .. "\n"
-		-- debugPlotFile:write(string)
+			local pos1 = api.Position()
+			local pos2 = api.Position()
+			local halfSize = size / 2
+			pos1.x = x - halfSize
+			pos1.z = z - halfSize
+			pos2.x = x + halfSize
+			pos2.z = z + halfSize
+			map:DrawRectangle(pos1, pos2, GetColorFromLabel(label), nil, true, 4)
+			debugSquares[x .. "  " .. z .. " " .. size] = true
+		end
 	end
 end
 
@@ -695,10 +723,6 @@ function MapHandler:Init()
 		return
 	end
 
-	-- if DebugEnabled then 
-		-- debugPlotFile = assert(io.open("debugplot",'w'), "Unable to write debugplot")
-	-- end
-
 	ai.mobilityGridSize = 256 -- will be recalculated by MapMobility()
 
 	for mtype, unames in pairs(mobUnitNames) do
@@ -847,8 +871,6 @@ function MapHandler:Init()
 			end
 		end
 	end
-
-	-- if DebugEnabled then debugPlotFile:close() end
 
 	-- self:SaveMapData()
 
@@ -1051,13 +1073,23 @@ end
 function MapHandler:UnitCanGoHere(unit, position)
 	if unit == nil then return false end
 	if position == nil then return false end
+	local mtype, unet = self:MobilityOfUnit(unit)
+	if mtype == 'air' then return true end
 	if ShardSpringLua then
 		-- first check if it's even a valid move order
-		if not Spring.TestMoveOrder(unit:Type():ID(), position.x, position.y, position.z, nil, nil, nil, true, false) then
+		local moveOrderTest = Spring.TestMoveOrder(unit:Type():ID(), position.x, position.y, position.z, nil, nil, nil, true, false)
+		-- if mtype == 'air' then
+		-- 	local newMoveOrderTest = Spring.TestMoveOrder(unit:Type():ID(), position.x, position.y, position.z)
+		-- 	if moveOrderTest or newMoveOrderTest then
+		-- 		Spring.Echo('air moveordertest', moveOrderTest, newMoveOrderTest)
+		-- 		self.map:DrawPoint(position, {0, 0.25, 1}, 'air', 3)
+		-- 	end
+		-- 	return true
+		-- end
+		if not moveOrderTest then
 			return false
 		end
 	end
-	local mtype, unet = self:MobilityOfUnit(unit)
 	local pnet = self:MobilityNetworkHere(mtype, position)
 	if unet == pnet then
 		return true
