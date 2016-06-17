@@ -44,12 +44,6 @@ lastSiegeCheckFrame = 0
 -- build ranges to check for things
 AreaCheckRange = 1500
 
-tidalPower = 0
-
-averageWind = 0
-needWind = false
-windRatio = 1
-
 needAmphibiousCons = false
 
 minDefenseNetworkSize = 100000
@@ -65,27 +59,7 @@ function CheckMySide(self)
 	EchoDebug("per-type construction unit limit: " .. ConUnitPerTypeLimit)
 	minDefenseNetworkSize = ai.mobilityGridArea / 4 
 	-- set the averageWind
-	if averageWind == 0 then
-		averageWind = map:AverageWind()
-		if averageWind > 11 then
-			needWind = true
-		else
-			needWind = false
-		end
-		local minWind = map:MinimumWindSpeed()
-		if minWind < 8 then
-			windRatio = minWind / 8
-		else
-			windRatio = 1
-		end
-		EchoDebug("wind/solar ratio: " .. windRatio)
-	end
 	-- set the tidal strength
-	if MapHasWater() then
-		if tidalPower == 0 then tidalPower = map:TidalStrength() end
-	else
-		tidalPower = 0
-	end
 	if ai.hasUWSpots and ai.mobRating["sub"] > ai.mobRating["bot"] * 0.75 then
 		needAmphibiousCons = true
 	end
@@ -309,18 +283,6 @@ function BuildBattleIfNeeded(unitName)
 	end
 end
 
-function Lvl2BotCorRaiderArmArty(self)
-	if ai.mySide == CORESideName then
-		return Lvl2BotRaider(self)
-	else
-		return Lvl2BotArty(self)
-	end
-end
-
-local function WindSolarTidal(self)
-	LandOrWater(self, WindSolar(), TidalIfTidal())
-end
-
 function CountOwnUnits(tmpUnitName)
 	if tmpUnitName == DummyUnitName then return 0 end -- don't count no-units
 	if ai.nameCount[tmpUnitName] == nil then return 0 end
@@ -341,20 +303,12 @@ function BuildWithLimitedNumber(tmpUnitName, minNumber)
 	end
 end
 
-
 function GroundDefenseIfNeeded(unitName, builder)
 	if not ai.needGroundDefense then
 		return DummyUnitName
 	else
 		return unitName
 	end
-end
-
-
-
-function corDebug(self)
-	game:SendToConsole("d")
-	return "corwin"
 end
 
 function BuildBomberIfNeeded(unitName)
@@ -386,21 +340,6 @@ function CheckMySideIfNeeded()
 	end
 end
 
-function FactoryOrNano(self)
-	CheckForMapControl()
-	if ai.factories == 0 then return BuildAppropriateFactory() end
-	EchoDebug("factories: " .. ai.factories .. "  combat units: " .. ai.combatCount)
-	local unitName = DummyUnitName
-	local attackCounter = ai.attackhandler:GetCounter()
-	local couldAttack = ai.couldAttack >= 2 or ai.couldBomb >= 2
-	if (ai.combatCount > attackCounter * 0.5 and couldAttack) or ai.needAdvanced then
-		unitName = BuildAppropriateFactory()
-	end
-	if unitName == DummyUnitName and ai.combatCount > attackCounter * 0.2 then
-		unitName = NanoTurret()
-	end
-	return unitName
-end
 
 function LandOrWater(self, landName, waterName)
 	local builder = self.unit:Internal()

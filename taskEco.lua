@@ -1,4 +1,4 @@
-local DebugEnabled = false
+local DebugEnabled = true
 
 local function EchoDebug(inStr)
 	if DebugEnabled then
@@ -135,18 +135,20 @@ function TidalIfTidal()
 	return unitName
 end
 
+function windLimit()
+	local minWind = map:MinimumWindSpeed()
+	local Wind = map:AverageWind()
+	EchoDebug('wind power = ' .. Wind)
+	if minWind >= 8 or Wind >= 10 then 
+		return Wind
+	else
+		return false
+	end
+end
+
 function WindSolar()
 	local unitName = DummyUnitName
-	local wind = false
-	if needWind then
-		if windRatio == 1 then
-			wind = true
-		else
-			local r = math.random()
-			if r < windRatio then wind = true end
-		end
-	end
-	if wind then
+	if windLimit() then
 		unitName = Wind()
 	else
 		unitName = Solar()
@@ -156,10 +158,11 @@ end
 
 function Energy1()
 	local unitName=DummyUnitName
-	local wind = needWind and ((windRatio == 1) or (math.random() < windRatio))
-	if ai.Energy.income > 150 then --and ai.Metal.reserves >50
+	local wind =0
+	if windLimit() then wind = windLimit() * 20 end
+	if ai.Energy.income > math.max(wind, 150) then --and ai.Metal.reserves >50
 		unitName = SolarAdv()
-	elseif wind then
+	elseif windLimit() then
 		unitName = Wind()
 	else
 		unitName = Solar()
