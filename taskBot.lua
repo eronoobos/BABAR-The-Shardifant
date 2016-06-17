@@ -166,6 +166,14 @@ function Lvl2BotRaider(self)
 	return BuildRaiderIfNeeded(unitName)
 end
 
+function Lvl2BotCorRaiderArmArty(self)
+	if ai.mySide == CORESideName then
+		return Lvl2BotRaider(self)
+	else
+		return Lvl2BotArty(self)
+	end
+end
+
 function Lvl2BotAllTerrain(self)
 	local unitName=DummyUnitName
 	if ai.mySide == CORESideName then
