@@ -23,16 +23,14 @@ local function PlotRectDebug(rect)
 		local label
 		local color
 		if rect.unitName then
-			label = "PLAN"
-			color = {0, 1, 0}
+			color = {0, 1, 0} -- plan
 		else
-			label = "NOBUILD"
-			color = {1, 0, 0}
+			color = {1, 0, 0} -- don't build here
 		end
 		local pos1 = {x=rect.x1, y=0, z=rect.z1}
 		local pos2 = {x=rect.x2, y=0, z=rect.z2}
 		local id = map:DrawRectangle(pos1, pos2, color)
-		rect.drawn = label
+		rect.drawn = color
 		debugPlotDrawn[#debugPlotDrawn+1] = rect
 	end
 end
@@ -562,7 +560,7 @@ function BuildSiteHandler:PlotAllDebug()
 			if not isThere[rect] then
 				local pos1 = {x=rect.x1, y=0, z=rect.z1}
 				local pos2 = {x=rect.x2, y=0, z=rect.z2}
-				self.map:EraseRectangle(pos1, pos2, nil, rect.drawn)
+				self.map:EraseRectangle(pos1, pos2, rect.drawn)
 				table.remove(debugPlotDrawn, i)
 			end
 		end
