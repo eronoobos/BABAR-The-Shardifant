@@ -11,7 +11,6 @@ local function EchoDebug(inStr)
 end
 
 local debugSquares = {}
-local debugPoints = {}
 
 -- mobTypes = {}
 local mobUnitTypes = {}
@@ -119,16 +118,12 @@ local function PlotDebug(x, z, label)
 		if label == nil then label= "nil" end
 		local pos = api.Position()
 		pos.x, pos.z = x, z
-		if debugPoints[pointString] then
-			pos.z = pos.z + (20 * debugPoints[x .. "  " .. z])
-		end
 		local color = GetColorFromLabel(label)
 		local channels = GetChannelsFromLabel(label)
 		for i = 1, #channels do
 			local channel = channels[i]
 			map:DrawPoint(pos, color, label, channel)
 		end
-		debugPoints[pointString] = (debugPoints[pointString] or 0) + 1
 	end
 end
 
@@ -137,28 +132,24 @@ local function PlotSquareDebug(x, z, size, label)
 		x = math.ceil(x)
 		z = math.ceil(z)
 		size = math.ceil(size)
-		local squareString = x .. "  " .. z .. "  " .. size .. "  " .. label
-		if not debugSquares[squareString] then
-			if label == nil then label = "nil" end
-			local pos1 = api.Position()
-			local pos2 = api.Position()
-			local halfSize = size / 2
-			pos1.x = x - halfSize
-			pos1.z = z - halfSize
-			pos2.x = x + halfSize
-			pos2.z = z + halfSize
-			local color = GetColorFromLabel(label)
-			local channels = GetChannelsFromLabel(label)
-			for i = 1, #channels do
-				local channel = channels[i]
-				local underSquareString = x .. "  " .. z .. "  " .. size .. "  " .. channel
-				if not debugSquares[underSquareString] then
-					map:DrawRectangle(pos1, pos2, {0, 0, 0, 1}, nil, true, channel)
-					debugSquares[underSquareString] = true
-				end
-				map:DrawRectangle(pos1, pos2, color, nil, 'add', channel)
+		if label == nil then label = "nil" end
+		local pos1 = api.Position()
+		local pos2 = api.Position()
+		local halfSize = size / 2
+		pos1.x = x - halfSize
+		pos1.z = z - halfSize
+		pos2.x = x + halfSize
+		pos2.z = z + halfSize
+		local color = GetColorFromLabel(label)
+		local channels = GetChannelsFromLabel(label)
+		for i = 1, #channels do
+			local channel = channels[i]
+			local underSquareString = x .. "  " .. z .. "  " .. size .. "  " .. channel
+			if not debugSquares[underSquareString] then
+				map:DrawRectangle(pos1, pos2, {0, 0, 0, 1}, nil, true, channel)
+				debugSquares[underSquareString] = true
 			end
-			debugSquares[squareString] = true
+			map:DrawRectangle(pos1, pos2, color, nil, 'add', channel)
 		end
 	end
 end
