@@ -2,7 +2,7 @@
 shard_include "common"
 
 local DebugEnabled = false
-local debugPlotLosFile
+local DebugDrawEnabled = false
 
 
 local function EchoDebug(inStr)
@@ -11,25 +11,43 @@ local function EchoDebug(inStr)
 	end
 end
 
+local mapColors = {
+	[1] = { 1, 1, 0 },
+	[2] = { 0, 0, 1 },
+	[3] = { 1, 0, 0 },
+	JAM = { 0, 0, 0 },
+	known = { 1, 1, 1 },
+}
+
+local function GetColorFromLabel(label)
+	local color = mapColors[label] or { 1, 1, 1 }
+	color[4] = color[4] or 0.5
+	return color
+end
+
 local function PlotDebug(x, z, label)
-	if DebugEnabled then
-		if label == nil then label= "nil" end
-		local string = math.ceil(x) .. " " .. math.ceil(z) .. " " .. label .. "\n"
-		debugPlotLosFile:write(string)
+	if DebugDrawEnabled then
+		x = math.ceil(x)
+		z = math.ceil(z)
+		local pos = api.Position()
+		pos.x, pos.z = x, z
+		map:DrawPoint(pos, GetColorFromLabel(label), label, 3)
 	end
 end
 
 local function PlotSquareDebug(x, z, size, label)
-	if DebugEnabled then
+	if DebugDrawEnabled then
 		x = math.ceil(x)
 		z = math.ceil(z)
 		size = math.ceil(size)
-		-- if debugSquares[x .. "  " .. z .. " " .. size] == nil then
-			if label == nil then label = "nil" end
-			local string = x .. " " .. z .. " " .. size .. " " .. label .. "\n"
-			debugPlotLosFile:write(string)
-			-- debugSquares[x .. "  " .. z .. " " .. size] = true
-		-- end
+		local pos1 = api.Position()
+		local pos2 = api.Position()
+		local halfSize = size / 2
+		pos1.x = x - halfSize
+		pos1.z = z - halfSize
+		pos2.x = x + halfSize
+		pos2.z = z + halfSize
+		map:DrawRectangle(pos1, pos2, GetColorFromLabel(label), label, false, 3)
 	end
 end
 
@@ -81,9 +99,6 @@ function LosHandler:Update()
 				self.ai.friendlyTeamID[teamID] = true
 			end
 		else
-			if DebugEnabled then 
-				debugPlotLosFile = assert(io.open("debuglosplot",'w'), "Unable to write debuglosplot")
-			end 
 			-- game:SendToConsole("updating los")
 			self.losGrid = {}
 			-- note: this could be more effecient by using a behaviour
@@ -138,7 +153,6 @@ function LosHandler:Update()
 		-- update known wrecks
 		self:UpdateWrecks()
 		ai.lastLOSUpdate = f
-		if DebugEnabled then debugPlotLosFile:close() end
 	end
 end
 
@@ -213,7 +227,7 @@ function LosHandler:UpdateEnemies(enemyList)
 				e.los = los
 				known[id] = los
 			end
-			if ai.knownEnemies[id] ~= nil and DebugEnabled then
+			if ai.knownEnemies[id] ~= nil and DebugDrawEnabled then
 				if known[id] == 2 and ai.knownEnemies[id].los == 2 then PlotDebug(pos.x, pos.z, "known") end
 			end
 		end
@@ -344,7 +358,7 @@ function LosHandler:HorizontalLine(x, z, tx, val, jam)
 		if jam then
 			if self.losGrid[ix] == nil then return end
 			if self.losGrid[ix][z] == nil then return end
-			if DebugEnabled then
+			if DebugDrawEnabled then
 				if self.losGrid[ix][z][val] == true then PlotSquareDebug(ix * losGridElmos, z * losGridElmos, losGridElmos, "JAM") end
 			end
 			if self.losGrid[ix][z][val] then self.losGrid[ix][z][val] = false end
@@ -353,7 +367,7 @@ function LosHandler:HorizontalLine(x, z, tx, val, jam)
 			if self.losGrid[ix][z] == nil then
 				self.losGrid[ix][z] = EmptyLosTable()
 			end
-			if self.losGrid[ix][z][val] == false and DebugEnabled then PlotSquareDebug(ix * losGridElmos, z * losGridElmos, losGridElmos, val) end
+			if self.losGrid[ix][z][val] == false and DebugDrawEnabled then PlotSquareDebug(ix * losGridElmos, z * losGridElmos, losGridElmos, val) end
 			self.losGrid[ix][z][val] = true
 		end
 	end
