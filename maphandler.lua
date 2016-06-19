@@ -80,39 +80,55 @@ local function EchoData(name, o)
 	EchoDebug("wrote " .. name)
 end
 
-local mapColors = {}
-mapColors["veh"] = { 1, 0, 0 }
-mapColors["bot"] = { 1, 0.5, 0 }
-mapColors["amp"] = { 0, 1, 0 }
-mapColors["hov"] = { 0, 1, 1 }
-mapColors["shp"] = { 0.5, 0.5, 1 }
-mapColors["sub"] = { 0, 0, 1 }
-mapColors["start"] = { 1, 1, 1 }
-mapColors["1"] = { 1, 1, 0 }
-mapColors["2"] = { 0, 0, 1 }
-mapColors["3"] = { 1, 0, 0 }
-mapColors["JAM"] = { 0, 0, 0 }
-mapColors["known"] = { 1, 1, 1 }
-mapColors["NOBUILD"] = { 1, 0, 0 }
-mapColors["PLAN"] = { 0, 1, 0 }
-mapColors["LIMB"] = { 0.5, 0, 0 }
+local mapColors = {
+	veh = { 1, 0, 0 },
+	bot = { 0, 1, 0 },
+	hov = { 0, 0, 1 },
+	shp = { 1, 0, 0 },
+	amp = { 0, 1, 0 },
+	sub = { 0, 0, 1 },
+	start = { 1, 1, 1, 1 },
+}
+
+local mapChannels = {
+	veh = { 4 },
+	bot = { 4 },
+	hov = { 4 },
+	sub = { 5 },
+	amp = { 5 },
+	shp = { 5 },
+	start = { 4, 5 },
+}
 
 local function GetColorFromLabel(label)
 	local color = mapColors[label] or { 1, 1, 1 }
-	color[4] = 0.1
+	color[4] = color[4] or 0.33
 	return color
+end
+
+local function GetChannelsFromLabel(label)
+	local channels = mapChannels[label] or {4}
+	return channels
 end
 
 local function PlotDebug(x, z, label)
 	if DebugPlotEnabled then
+		x = math.ceil(x)
+		z = math.ceil(z)
+		local pointString = x .. "  " .. z
 		if label == nil then label= "nil" end
 		local pos = api.Position()
 		pos.x, pos.z = x, z
-		if debugPoints[x .. "  " .. z] then
+		if debugPoints[pointString] then
 			pos.z = pos.z + (20 * debugPoints[x .. "  " .. z])
 		end
-		map:DrawPoint(pos, GetColorFromLabel(label), label, 4)
-		debugPoints[x .. "  " .. z] = (debugPoints[x .. "  " .. z] or 0) + 1
+		local color = GetColorFromLabel(label)
+		local channels = GetChannelsFromLabel(label)
+		for i = 1, #channels do
+			local channel = channels[i]
+			map:DrawPoint(pos, color, label, channel)
+		end
+		debugPoints[pointString] = (debugPoints[pointString] or 0) + 1
 	end
 end
 
@@ -121,7 +137,8 @@ local function PlotSquareDebug(x, z, size, label)
 		x = math.ceil(x)
 		z = math.ceil(z)
 		size = math.ceil(size)
-		if debugSquares[x .. "  " .. z .. " " .. size] == nil then
+		local squareString = x .. "  " .. z .. "  " .. size .. "  " .. label
+		if not debugSquares[squareString] then
 			if label == nil then label = "nil" end
 			local pos1 = api.Position()
 			local pos2 = api.Position()
@@ -130,8 +147,18 @@ local function PlotSquareDebug(x, z, size, label)
 			pos1.z = z - halfSize
 			pos2.x = x + halfSize
 			pos2.z = z + halfSize
-			map:DrawRectangle(pos1, pos2, GetColorFromLabel(label), nil, true, 4)
-			debugSquares[x .. "  " .. z .. " " .. size] = true
+			local color = GetColorFromLabel(label)
+			local channels = GetChannelsFromLabel(label)
+			for i = 1, #channels do
+				local channel = channels[i]
+				local underSquareString = x .. "  " .. z .. "  " .. size .. "  " .. channel
+				if not debugSquares[underSquareString] then
+					map:DrawRectangle(pos1, pos2, {0, 0, 0, 1}, nil, true, channel)
+					debugSquares[underSquareString] = true
+				end
+				map:DrawRectangle(pos1, pos2, color, nil, 'add', channel)
+			end
+			debugSquares[squareString] = true
 		end
 	end
 end
@@ -711,6 +738,9 @@ function MapHandler:Update()
 end
 
 function MapHandler:Init()
+	if DebugPlotEnabled then
+		self.map:EraseAll(4, 5)
+	end
 
 	ai.activeMobTypes = {}
 	ai.factoryListMap = {}
