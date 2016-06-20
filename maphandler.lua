@@ -1,7 +1,7 @@
 shard_include "common"
 
 local DebugEnabled = false
-local DebugPlotEnabled = true
+local DebugDrawEnabled = true
 
 
 local function EchoDebug(inStr)
@@ -99,6 +99,17 @@ local mapChannels = {
 	start = { 4, 5 },
 }
 
+local function AddColors(colorA, colorB)
+	local color = {}
+	for i = 1, 4 do
+		if colorA[i] or colorB[i] then
+			color[i] = (colorA[i] or 0) + (colorB[i] or 0)
+			color[i] = math.min(color[i], 1)
+		end
+	end
+	return color
+end
+
 local function GetColorFromLabel(label)
 	local color = mapColors[label] or { 1, 1, 1 }
 	color[4] = color[4] or 0.33
@@ -110,8 +121,8 @@ local function GetChannelsFromLabel(label)
 	return channels
 end
 
-local function PlotDebug(x, z, label)
-	if DebugPlotEnabled then
+local function PlotDebug(x, z, label, labelAdd)
+	if DebugDrawEnabled then
 		x = math.ceil(x)
 		z = math.ceil(z)
 		local pointString = x .. "  " .. z
@@ -120,36 +131,10 @@ local function PlotDebug(x, z, label)
 		pos.x, pos.z = x, z
 		local color = GetColorFromLabel(label)
 		local channels = GetChannelsFromLabel(label)
+		if labelAdd then label = label .. ' ' .. labelAdd end
 		for i = 1, #channels do
 			local channel = channels[i]
 			map:DrawPoint(pos, color, label, channel)
-		end
-	end
-end
-
-local function PlotSquareDebug(x, z, size, label)
-	if DebugPlotEnabled then
-		x = math.ceil(x)
-		z = math.ceil(z)
-		size = math.ceil(size)
-		if label == nil then label = "nil" end
-		local pos1 = api.Position()
-		local pos2 = api.Position()
-		local halfSize = size / 2
-		pos1.x = x - halfSize
-		pos1.z = z - halfSize
-		pos2.x = x + halfSize
-		pos2.z = z + halfSize
-		local color = GetColorFromLabel(label)
-		local channels = GetChannelsFromLabel(label)
-		for i = 1, #channels do
-			local channel = channels[i]
-			local underSquareString = x .. "  " .. z .. "  " .. size .. "  " .. channel
-			if not debugSquares[underSquareString] then
-				map:DrawRectangle(pos1, pos2, {0, 0, 0, 1}, nil, true, channel)
-				debugSquares[underSquareString] = true
-			end
-			map:DrawRectangle(pos1, pos2, color, nil, 'add', channel)
 		end
 	end
 end
@@ -188,7 +173,6 @@ local function Flood4Topology(x, z, mtype, network)
 	if actualValue and (actualValue == 0) and ai.topology[mtype][x][z] == nil then
 		ai.topology[mtype][x][z] = network
 		ai.networkSize[mtype][network] = ai.networkSize[mtype][network] + 1
-		PlotSquareDebug(x * ai.mobilityGridSize - ai.mobilityGridSizeHalf, z * ai.mobilityGridSize - ai.mobilityGridSizeHalf, ai.mobilityGridSize, mtype)
 		Flood4Topology(x+1,z,mtype,network)
 		Flood4Topology(x-1,z,mtype,network)
 		Flood4Topology(x,z+1,mtype,network)
@@ -202,7 +186,6 @@ local function Flood8Topology(x, z, mtype, network)
 	if actualValue and (actualValue == 0) and ai.topology[mtype][x][z] == nil then
 		ai.topology[mtype][x][z] = network
 		ai.networkSize[mtype][network] = ai.networkSize[mtype][network] + 1
-		PlotSquareDebug(x * ai.mobilityGridSize - ai.mobilityGridSizeHalf, z * ai.mobilityGridSize - ai.mobilityGridSizeHalf, ai.mobilityGridSize, mtype)
 		Flood8Topology(x+1,z,mtype,network)
 		Flood8Topology(x-1,z,mtype,network)
 		Flood8Topology(x,z+1,mtype,network)
@@ -433,7 +416,7 @@ local function MapSpotMobility(metals, geos)
 						mobNetworkCount[mtype][thisNetwork] = 1
 						ai.networkSize[mtype][thisNetwork] = 0
 						mobNetworkMetals[mtype][thisNetwork] = {}
-						PlotDebug(x * ai.mobilityGridSize - ai.mobilityGridSizeHalf, z * ai.mobilityGridSize - ai.mobilityGridSizeHalf, mtype)
+						PlotDebug(x * ai.mobilityGridSize - ai.mobilityGridSizeHalf, z * ai.mobilityGridSize - ai.mobilityGridSizeHalf, mtype, thisNetwork)
 						Flood4Topology(x, z, mtype, mobNetworks[mtype])
 					else
 						-- if topology isn't empty here, add this spot to its count
@@ -729,7 +712,7 @@ function MapHandler:Update()
 end
 
 function MapHandler:Init()
-	if DebugPlotEnabled then
+	if DebugDrawEnabled then
 		self.map:EraseAll(4, 5)
 	end
 
@@ -899,6 +882,61 @@ function MapHandler:Init()
 	mobMap = {}
 	ai.factoriesRanking = self:factoriesRating()
 
+	self:DebugDrawMobilities()
+end
+
+function MapHandler:DebugDrawMobilities()
+	if not DebugDrawEnabled then
+		return
+	end
+	local size = ai.mobilityGridSize
+	local halfSize = ai.mobilityGridSize / 2
+	local squares = {}
+	for mtype, xx in pairs(ai.topology) do
+		if mtype ~= 'air' then
+			for x, zz in pairs(xx) do
+				squares[x] = squares[x] or {}
+				for z, network in pairs(zz) do
+					squares[x][z] = squares[x][z] or {}
+					squares[x][z][#squares[x][z]+1] = {network=network, mtype=mtype}
+				end
+			end
+		end
+	end
+	for x, zz in pairs(squares) do
+		x = x * size
+		for z, square in pairs(zz) do
+			z = z * size
+			local colorA = {0, 0, 0}
+			local colorB = {0, 0, 0}
+			local channels = {}
+			for i = 1, #square do
+				local layer = square[i]
+				-- Spring.Echo(layer.mtype)
+				local channel = mapChannels[layer.mtype][1]
+				channels[channel] = true
+				if channel == 4 then
+					colorA = AddColors(colorA, mapColors[layer.mtype])
+				elseif channel == 5 then
+					colorB = AddColors(colorB, mapColors[layer.mtype])
+				end
+			end
+			local pos1 = api.Position()
+			local pos2 = api.Position()
+			pos1.x = x - size
+			pos1.z = z - size
+			pos2.x = x
+			pos2.z = z
+			-- Spring.Echo(x, z, colorA[1], colorA[2], colorA[3], colorA[4], channels[4])
+			colorA[4], colorB[4] = 0.33, 0.33
+			if channels[4] then
+				self.map:DrawRectangle(pos1, pos2, colorA, nil, true, 4)
+			end
+			if channels[5] then
+				self.map:DrawRectangle(pos1, pos2, colorB, nil, true, 5)
+			end
+		end
+	end
 end
 
 function MapHandler:SimplifyMetalSpots(metalSpots, number)
