@@ -1,6 +1,6 @@
 shard_include "common"
 
-local DebugEnabled = false
+local DebugEnabled = true
 local DebugDrawEnabled = true
 
 
@@ -622,6 +622,7 @@ function MapHandler:factoriesRating()
 				end
 			end
 		else
+			factoryPathRating = 1
 			if #ai.landMetalSpots + #ai.UWMetalSpots == 0 then
 				factoryMtypeRating = mtypesMapRatings['air']
 			elseif unitTable[factory].needsWater then
