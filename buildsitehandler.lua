@@ -2,7 +2,7 @@ shard_include "common"
 
 local DebugEnabled = false
 local DebugEnabledPlans = false
-local DebugEnabledDraw = true
+local DebugEnabledDraw = false
 
 local debugPlotDrawn = {}
 

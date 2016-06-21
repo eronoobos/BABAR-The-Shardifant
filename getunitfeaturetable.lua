@@ -98,7 +98,8 @@ local function GetUnitTable()
 			utable.mtype = "sub"
 		elseif unitDef["modCategories"]["ship"] or (unitDef["isBuilding"] and unitDef["minWaterDepth"] > 0 and unitDef["modCategories"]["surface"] and unitDef["floatOnWater"]) then
 			utable.mtype = "shp"
-		elseif unitDef["modCategories"]["phib"] then
+		-- elseif unitDef["modCategories"]["phib"] then
+		elseif unitDef.moveDef.name == 'atank3' then
 			utable.mtype = "amp"
 		elseif unitDef["modCategories"]["hover"] then
 			utable.mtype = "hov"

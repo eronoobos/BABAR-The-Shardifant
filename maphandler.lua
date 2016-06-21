@@ -1,7 +1,7 @@
 shard_include "common"
 
-local DebugEnabled = true
-local DebugDrawEnabled = true
+local DebugEnabled = false
+local DebugDrawEnabled = false
 
 
 local function EchoDebug(inStr)
@@ -572,9 +572,9 @@ function MapHandler:factoriesRating()
 		end 
 		
 		-- mtypesMapRatings[mtype] = (( realMetals + realSize + realGeos) / 3) * realRating
-		-- mtypesMapRatings[mtype] = (ai.mobRating[mtype] / 100) * mobilityEffeciencyMultiplier[mtype]
+		mtypesMapRatings[mtype] = (ai.mobRating[mtype] / ai.mobRating['air']) * mobilityEffeciencyMultiplier[mtype]
 		-- area is not as important as number of metal and geo
-		mtypesMapRatings[mtype] = (( realMetals + (realSize*0.5) + realGeos) / 2.5) * mobilityEffeciencyMultiplier[mtype]
+		-- mtypesMapRatings[mtype] = (( realMetals + (realSize*0.5) + realGeos) / 2.5) * mobilityEffeciencyMultiplier[mtype]
 		EchoDebug('mtypes map rating ' ..mtype .. ' = ' .. mtypesMapRatings[mtype])
 	end
 	mtypesMapRatings['air'] = mobilityEffeciencyMultiplier['air']
@@ -587,11 +587,16 @@ function MapHandler:factoriesRating()
 		if mtypes[1] ~='air' then
 			local factoryBuildsCons = false
 			for index, unit in pairs(unitTable[factory].unitsCanBuild) do
+				local mtype = unitTable[unit].mtype
 				if unitTable[unit].buildOptions then
-					factoryBuildsCons = true
-					break
+					if (ai.hasUWSpots and mtype ~= 'veh') or (not ai.hasUWSpots and mtype ~= 'amp') then
+					-- if ai.hasUWSpots or not (mtype == 'amp' and mtypes[1] == 'veh') then
+						factoryBuildsCons = true
+						break
+					end
 				end
 			end
+			EchoDebug(factory .. " builds cons: " .. tostring(factoryBuildsCons))
 			local count = 0
 			local maxPath = 0
 			local mediaPath = 0
@@ -599,7 +604,9 @@ function MapHandler:factoriesRating()
 				local mtype = unitTable[unit].mtype
 				local mclass = unitTable[unit].mclass
 				if unitTable[unit].buildOptions or not factoryBuildsCons then
-					if ai.hasUWSpots or not (mtype == 'amp' and mtypes[1] == 'veh') then
+					local ok = true
+					-- if ai.hasUWSpots or not (mtype == 'amp' and mtypes[1] == 'veh') then
+					if (ai.hasUWSpots and mtype ~= 'veh') or (not ai.hasUWSpots and mtype ~= 'amp') then
 						count = count + 1
 						factoryMtypeRating = factoryMtypeRating + mtypesMapRatings[mtype]
 						-- EchoDebug(factory .. ' ' .. unit .. ' ' .. unitTable[unit].mtype .. ' ' .. mtypesMapRatings[unitTable[unit].mtype])
@@ -874,8 +881,12 @@ function MapHandler:Init()
 	end
 
 	-- add in bechmark air rating
-	totalRating = totalRating + ((#ai.scoutSpots["air"][1] + (#ai.scoutSpots["air"][1] * 0.25)) * 0.5)
-	EchoDebug('air rating: ' .. ((#ai.scoutSpots["air"][1] + (#ai.scoutSpots["air"][1] * 0.25)) * 0.5))
+	-- local airRating = (#ai.scoutSpots["air"][1] + (#ai.scoutSpots["air"][1] * 0.25)) * 0.5
+	local airRating = #ai.scoutSpots["air"][1] + (#ai.scoutSpots["air"][1] * 0.25)
+	mobRating['air'] = airRating
+	totalRating = totalRating + airRating
+	numberOfRatings = numberOfRatings + 1
+	EchoDebug('air rating: ' .. airRating)
 	local avgRating = totalRating / numberOfRatings
 	local ratingFloor = avgRating * 0.65
 	EchoDebug('average rating: ' .. avgRating)
