@@ -124,7 +124,7 @@ function FactoryRegisterBehaviour:Register()
 	
 	if ai.factoryUnderConstruction == self.id then ai.factoryUnderConstruction = false end
 	local mtype = factoryMobilities[self.name][1]
-	local network = ai.maphandler:MobilityNetworkHere(mtype,self.position)
-	ai.factoryBuilded[mtype][network] = ai.factoryBuilded[mtype][network] + self.level
+	local network = ai.maphandler:MobilityNetworkHere(mtype,self.position) or 0
+	ai.factoryBuilded[mtype][network] = (ai.factoryBuilded[mtype][network] or 0) + self.level
 	EchoDebug('factory '  ..self.name.. ' network '  .. mtype .. '-' .. network .. ' level ' .. ai.factoryBuilded[mtype][network] .. ' adding tech '.. self.level)
 end

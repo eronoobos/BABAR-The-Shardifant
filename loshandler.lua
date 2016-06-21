@@ -145,7 +145,7 @@ function LosHandler:Update()
 					end
 				end
 				-- so that we only have to poll GetEnemies() once
-				table.insert(enemyList, { unitName = uname, position = upos, unitID = e:ID(), cloaked = e:IsCloaked(), beingBuilt = e:IsBeingBuilt(), health = e:GetHealth(), los = 0 })
+				table.insert(enemyList, { unit = e, unitName = uname, position = upos, unitID = e:ID(), cloaked = e:IsCloaked(), beingBuilt = e:IsBeingBuilt(), health = e:GetHealth(), los = 0 })
 			end
 			-- update known enemies
 			self:UpdateEnemies(enemyList)
@@ -228,7 +228,11 @@ function LosHandler:UpdateEnemies(enemyList)
 				known[id] = los
 			end
 			if ai.knownEnemies[id] ~= nil and DebugDrawEnabled then
-				if known[id] == 2 and ai.knownEnemies[id].los == 2 then PlotDebug(pos.x, pos.z, "known") end
+				if known[id] == 2 and ai.knownEnemies[id].los == 2 then
+					e.unit:DrawHighlight({1,0,0}, 'known', 3)
+					-- self.map:DrawUnit(id, {1,0,0}, 'known', 3)
+					-- PlotDebug(pos.x, pos.z, "known")
+				end
 			end
 		end
 	end
