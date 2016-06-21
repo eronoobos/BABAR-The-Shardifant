@@ -573,7 +573,8 @@ function MapHandler:factoriesRating()
 		
 		-- mtypesMapRatings[mtype] = (( realMetals + realSize + realGeos) / 3) * realRating
 		-- mtypesMapRatings[mtype] = (ai.mobRating[mtype] / 100) * mobilityEffeciencyMultiplier[mtype]
-		mtypesMapRatings[mtype] = (( realMetals + realSize + realGeos) / 3) * mobilityEffeciencyMultiplier[mtype]
+		-- area is not as important as number of metal and geo
+		mtypesMapRatings[mtype] = (( realMetals + (realSize*0.5) + realGeos) / 2.5) * mobilityEffeciencyMultiplier[mtype]
 		EchoDebug('mtypes map rating ' ..mtype .. ' = ' .. mtypesMapRatings[mtype])
 	end
 	mtypesMapRatings['air'] = mobilityEffeciencyMultiplier['air']
@@ -584,17 +585,30 @@ function MapHandler:factoriesRating()
 		local factoryPathRating = 0
 		local factoryMtypeRating = 0
 		if mtypes[1] ~='air' then
+			local factoryBuildsCons = false
+			for index, unit in pairs(unitTable[factory].unitsCanBuild) do
+				if unitTable[unit].buildOptions then
+					factoryBuildsCons = true
+					break
+				end
+			end
 			local count = 0
 			local maxPath = 0
 			local mediaPath = 0
-			for index, unit in pairs(unitTable[factory].unitsCanBuild) do 
-				count=count + 1
-				factoryMtypeRating = factoryMtypeRating + mtypesMapRatings[unitTable[unit].mtype]
-				-- EchoDebug(factory .. ' ' .. unit .. ' ' .. unitTable[unit].mtype .. ' ' .. mtypesMapRatings[unitTable[unit].mtype])
-				if ShardSpringLua then
-					bestPath = math.max(maxPath,ai.spotPathMobRank[unitTable[unit].mclass])
-					maxPath=math.max(maxPath,ai.spotPathMobRank[unitTable[unit].mclass])
-					mediaPath = mediaPath + ai.spotPathMobRank[unitTable[unit].mclass]
+			for index, unit in pairs(unitTable[factory].unitsCanBuild) do
+				local mtype = unitTable[unit].mtype
+				local mclass = unitTable[unit].mclass
+				if unitTable[unit].buildOptions or not factoryBuildsCons then
+					if ai.hasUWSpots or not (mtype == 'amp' and mtypes[1] == 'veh') then
+						count = count + 1
+						factoryMtypeRating = factoryMtypeRating + mtypesMapRatings[mtype]
+						-- EchoDebug(factory .. ' ' .. unit .. ' ' .. unitTable[unit].mtype .. ' ' .. mtypesMapRatings[unitTable[unit].mtype])
+						if ShardSpringLua then
+							bestPath = math.max(maxPath,ai.spotPathMobRank[mclass])
+							maxPath = math.max(maxPath,ai.spotPathMobRank[mclass])
+							mediaPath = mediaPath + ai.spotPathMobRank[mclass]
+						end
+					end
 				end
 			end
 			factoryMtypeRating = factoryMtypeRating / count
@@ -616,10 +630,12 @@ function MapHandler:factoriesRating()
 				factoryMtypeRating = mtypesMapRatings['air'] * (#ai.landMetalSpots / (#ai.landMetalSpots + #ai.UWMetalSpots))
 			end
 		end
+		EchoDebug(factory .. ' mtype rating: ' .. factoryMtypeRating)
 
 		local Rating
 		if ShardSpringLua then
-			Rating = ((factoryPathRating + factoryMtypeRating) /2) * unitTable[factory].techLevel
+			EchoDebug(factory .. ' path rating: ' .. factoryPathRating)
+			Rating = factoryPathRating * factoryMtypeRating * unitTable[factory].techLevel
 		else
 			Rating = factoryMtypeRating * unitTable[factory].techLevel
 		end
