@@ -550,7 +550,7 @@ function TaskQueueBehaviour:BestFactoryPrePositionFilter(factoryName)
 			buildMe = false 
 		end
 	end
-	if isExperimental and ai.Energy.income > 3000 and ai.Metal.income > 100 and 
+	if isExperimental and ai.Energy.income > 5000 and ai.Metal.income > 100 and 
 			ai.Metal.full > utn.metalCost / 2 and ai.combatCount > 50 and 
 			ai.factoryBuilded['air'][1] == 3 then
 		EchoDebug('i dont need it but economic situation permitted')
