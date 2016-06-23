@@ -524,31 +524,49 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 	return utype, value, p
 end
 
-function TaskQueueBehaviour:BestFactoryDontBuild(factoryName)
+
+function TaskQueueBehaviour:BestFactoryPrePositionFilter(factoryName)
 	local buildMe = true
-	local level = unitTable[factoryName].techLevel
+	local utn=unitTable[factoryName]
+	local level = utn.techLevel
 	local isAdvanced = advFactories[factoryName]
 	local isExperimental = expFactories[factoryName] or leadsToExpFactories[factoryName]	
-	local groundFactory = ('veh' or 'bot')
 	local mtype = factoryMobilities[factoryName][1]
+
 	if ai.needAdvanced and not ai.haveAdvFactory then
-	if not isAdvanced then buildMe = false end
-	end
-	if not ai.needAdvanced then
-		if isAdvanced then buildMe = false end
+		if not isAdvanced then
+			EchoDebug('not advanced when i need it')
+			buildMe = false 
+		end
 	end
 	if ai.needExperimental and not ai.haveExpFactory then
-		if not isExperimental then buildMe = false end
+		if not isExperimental then
+			EchoDebug('not Experimental when i need it')
+			buildMe = false 
+		end
 	end
 	if not ai.needExperimental then
-		if expFactories[factoryName] then buildMe = false end
+		if expFactories[factoryName] then 
+			EchoDebug('Experimental when i dont need it')
+			buildMe = false 
+		end
 	end
-	if factoryMobilities[factoryName][1] == 'air' and ai.factoryBuilded['air'][1] >= 1 then
-		if level < 3 then buildMe = false end--dont build seaplane if we can place aap
+	if isExperimental and ai.Energy.income > 3000 and ai.Metal.income > 100 and 
+			ai.Metal.full > utn.metalCost / 2 and ai.combatCount > 50 and
+			and ai.factoryBuilded['air'][1] == 3 then
+		EchoDebug('i dont need it but economic situation permitted')
+		buildMe = true
 	end
-	if ai.factories == 1 and level < ai.maxFactoryLevel and  mtype == ('veh' or 'bot') then 
-		buildMe = false --dont build kbot if veh and revers before t2 step
-	end 
+	if mtype == 'air' and ai.factoryBuilded['air'][1] >= 1 then
+		if level < 3 then 
+			EchoDebug('dont build seaplane if i have normal planes')
+			buildMe = false 
+		end
+	elseif mtype ~= 'air' and ai.haveAdvFactory and 
+			ai.factoryBuilded['air'][1] > 0 and ai.factoryBuilded['air'][1] < 3 then
+		EchoDebug('build t2 air if you have t1 air and a t2 of another type')
+		buildMe = false
+	end
 	return buildMe
 	
 end
@@ -556,10 +574,31 @@ end
 function TaskQueueBehaviour:BestFactoryPosition(factoryName,utype,builder,builderPos,mtype)
 	local p
 	if p == nil then
-		EchoDebug("looking next to factory for position for " .. factoryName)
+		EchoDebug("looking next to factory for " .. factoryName)
 		local factoryPos = ai.buildsitehandler:ClosestHighestLevelFactory(builderPos, 10000)
 		if factoryPos then
 			p = ai.buildsitehandler:ClosestBuildSpot(builder, factoryPos, utype)
+		end
+	end
+	if p == nil then
+		EchoDebug('builfactory near hotSpot')
+		local factoryPos = ai.buildsitehandler:ClosestHighestLevelFactory(builderPos, 10000)
+		local place = false
+		local distance = 99999
+		if factoryPos then
+			for index, hotSpot in pairs(ai.hotSpot) do
+				if ai.maphandler:MobilityNetworkHere(mtype,hotSpot) then
+					
+					dist = math.min(distance, Distance(hotSpot,factoryPos))
+					if dist < distance then 
+						place = hotSpot
+						distance  = dist
+					end
+				end
+			end
+		end
+		if place then
+			p = ai.buildsitehandler:ClosestBuildSpot(builder, place, utype)
 		end
 	end
 	if p == nil then
@@ -578,27 +617,33 @@ function TaskQueueBehaviour:BestFactoryPosition(factoryName,utype,builder,builde
 		EchoDebug("trying near builder for " .. factoryName)
 		p = ai.buildsitehandler:ClosestBuildSpot(builder, builderPos, utype)
 	end
-	if p == nil then
-		EchoDebug('builfactory near hotSpot')
-		local place = false
-		local distance = 99999
-		for index, hotSpot in pairs(ai.hotSpot) do
-			if ai.maphandler:MobilityNetworkHere(mtype,hotSpot) then
-				
-				dist = math.min(distance, Distance(hotSpot,builderPos))
-				if dist < distance then 
-					place = hotSpot
-					distance  = dist
-				end
-					
-				
-			end
+	return p
+end
+
+function TaskQueueBehaviour:BestFactoryPostPositionFilter(factoryName,p , mtype, network)
+	local buildMe = true
+	if ai.factoryBuilded[mtype] == nil or ai.factoryBuilded[mtype][network] == nil then
+		EchoDebug('area to small for ' .. factoryName)
+		return false
+	end
+	if unitTable[factoryName].techLevel <= ai.factoryBuilded[mtype][network] then
+		EchoDebug('Not enough tech level for '..factoryName)
+		buildMe = false
+	end
+	if mtype == 'bot' then
+		local vehNetwork = ai.factoryBuilded['veh'][ai.maphandler:MobilityNetworkHere('veh',p)]
+		if vehNetwork and vehNetwork > 0 and vehNetwork < 4 then
+			EchoDebug('dont build bot where are already veh not on top of tech level')
+			buildMe = false
 		end
-		if place then
-			p = ai.buildsitehandler:ClosestBuildSpot(builder, place, utype)
+	elseif mtype == 'veh' then
+		local botNetwork = ai.factoryBuilded['bot'][ai.maphandler:MobilityNetworkHere('bot',p)]
+		if botNetwork and botNetwork > 0 and botNetwork < 9 then
+			EchoDebug('dont build veh where are already bot not on top of tech level')
+			buildMe = false
 		end
 	end
-	return p
+	return buildMe
 end
 
 function TaskQueueBehaviour:BestFactory()
@@ -611,20 +656,18 @@ function TaskQueueBehaviour:BestFactory()
 			for i, factoryName in pairs(factoryNames) do
 				if Name == factoryName then
 					EchoDebug('try to build factory '..factoryName)
-					local buildMe = self:BestFactoryDontBuild(factoryName)
-					if buildMe then
+					local prePositionFilter = self:BestFactoryPrePositionFilter(factoryName)
+					if prePositionFilter then
 						EchoDebug('buildMe')
 						local mtype = factoryMobilities[factoryName][1]
 						local builderPos = builder:GetPosition()
 						local utype = game:GetTypeByName(factoryName)
 						local p = self:BestFactoryPosition(factoryName,utype,builder,builderPos,mtype)
 						if p ~= nil then
-							EchoDebug("found spot for " .. factoryName)
 							local network = ai.maphandler:MobilityNetworkHere(mtype,p)
-							if ai.factoryBuilded[mtype] == nil or ai.factoryBuilded[mtype][network] == nil then
-								EchoDebug('area too small')
-								--Spring.MarkerAddPoint(p.x,p.y,p.z, tostring(mtype ))--uncomment this to draw the hotspot reducing system
-							elseif unitTable[factoryName].techLevel > ai.factoryBuilded[mtype][network] then
+							EchoDebug("found spot for " .. factoryName)
+							local postPositionFilter = self:BestFactoryPostPositionFilter(factoryName, p, mtype, network)
+							if postPositionFilter then
 								EchoDebug('place: ' ..factoryName .. ' on ' ..mtype ..'-' ..network )
 								return p, factoryName
 							end
