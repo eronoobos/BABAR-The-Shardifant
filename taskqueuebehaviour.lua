@@ -532,7 +532,6 @@ function TaskQueueBehaviour:BestFactoryPrePositionFilter(factoryName)
 	local isAdvanced = advFactories[factoryName]
 	local isExperimental = expFactories[factoryName] or leadsToExpFactories[factoryName]	
 	local mtype = factoryMobilities[factoryName][1]
-
 	if ai.needAdvanced and not ai.haveAdvFactory then
 		if not isAdvanced then
 			EchoDebug('not advanced when i need it')
@@ -552,8 +551,8 @@ function TaskQueueBehaviour:BestFactoryPrePositionFilter(factoryName)
 		end
 	end
 	if isExperimental and ai.Energy.income > 3000 and ai.Metal.income > 100 and 
-			ai.Metal.full > utn.metalCost / 2 and ai.combatCount > 50 and
-			and ai.factoryBuilded['air'][1] == 3 then
+			ai.Metal.full > utn.metalCost / 2 and ai.combatCount > 50 and 
+			ai.factoryBuilded['air'][1] == 3 then
 		EchoDebug('i dont need it but economic situation permitted')
 		buildMe = true
 	end
@@ -567,8 +566,7 @@ function TaskQueueBehaviour:BestFactoryPrePositionFilter(factoryName)
 		EchoDebug('build t2 air if you have t1 air and a t2 of another type')
 		buildMe = false
 	end
-	return buildMe
-	
+	return buildMe	
 end
 
 function TaskQueueBehaviour:BestFactoryPosition(factoryName,utype,builder,builderPos,mtype)
