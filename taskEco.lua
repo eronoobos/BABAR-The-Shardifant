@@ -247,127 +247,6 @@ local function BuildUWFusion()
 	end
 end
 
--- build conversion or storage
-function DoSomethingForTheEconomy(self)
-	local highEnergy = ai.Energy.full > 0.9
-	local lowEnergy = ai.Energy.full < 0.1
-	local highMetal = ai.Metal.full > 0.9
-	local lowMetal = ai.Metal.full < 0.1
-	local isWater = unitTable[self.unit:Internal():Name()].needsWater
-	local unitName = DummyUnitName
-	-- maybe we need conversion?
-	if ai.Energy.extra > 80 and highEnergy and lowMetal and ai.Metal.extra < 0 and ai.Energy.income > 300 then
-		local converterLimit = math.min(math.floor(ai.Energy.income / 200), 4)
-		if isWater then
-			if ai.mySide == CORESideName then
-				unitName = BuildWithLimitedNumber("corfmkr", converterLimit)
-			else
-				unitName = BuildWithLimitedNumber("armfmkr", converterLimit)
-			end		
-		else
-			if ai.mySide == CORESideName then
-				unitName = BuildWithLimitedNumber("cormakr", converterLimit)
-			else
-				unitName = BuildWithLimitedNumber("armmakr", converterLimit)
-			end
-		end
-	end
-	-- maybe we need storage?
-	if unitName == DummyUnitName then
-		-- energy storage
-		if ai.Energy.extra > 150 and highEnergy and not lowMetal then
-			if isWater then
-				if ai.mySide == CORESideName then
-					unitName = BuildWithLimitedNumber("coruwes", 2)
-				else
-					unitName = BuildWithLimitedNumber("armuwes", 2)
-				end	
-			else
-				if ai.mySide == CORESideName then
-					unitName = BuildWithLimitedNumber("corestor", 2)
-				else
-					unitName = BuildWithLimitedNumber("armestor", 2)
-				end
-			end
-		end
-	end
-	if unitName == DummyUnitName then
-		-- metal storage
-		if ai.Metal.extra > 5 and highMetal and highEnergy then
-			if isWater then
-				if ai.mySide == CORESideName then
-					unitName = BuildWithLimitedNumber("coruwms", 2)
-				else
-					unitName = BuildWithLimitedNumber("armuwms", 2)
-				end	
-			else
-				if ai.mySide == CORESideName then
-					unitName = BuildWithLimitedNumber("cormstor", 2)
-				else
-					unitName = BuildWithLimitedNumber("armmstor", 2)
-				end
-			end
-		end
-	end
-
-	return unitName
-end
-
-
--- build advanced conversion or storage
-function DoSomethingAdvancedForTheEconomy(self)
-	local highEnergy = ai.Energy.full > 0.9
-	local lowEnergy = ai.Energy.full < 0.1
-	local highMetal = ai.Metal.full > 0.9
-	local lowMetal = ai.Metal.full < 0.1
-	local unitName = self.unit:Internal():Name()
-	local isWater = unitTable[unitName].needsWater or seaplaneConList[unitName]
-	local unitName = DummyUnitName
-	-- maybe we need conversion?
-	if ai.Energy.extra > 800 and highEnergy and lowMetal and ai.Metal.extra < 0 and ai.Energy.income > 2000 then
-		local converterLimit = math.floor(ai.Energy.income / 1000)
-		if isWater then
-			if ai.mySide == CORESideName then
-				unitName = BuildWithLimitedNumber("corfmmm", converterLimit)
-			else
-				unitName = BuildWithLimitedNumber("armfmmm", converterLimit)
-			end		
-		else
-			if ai.mySide == CORESideName then
-				unitName = BuildWithLimitedNumber("cormmkr", converterLimit)
-			else
-				unitName = BuildWithLimitedNumber("armmmkr", converterLimit)
-			end
-		end
-	end
-	-- building big storage is a waste
-	--[[
-	-- maybe we need storage?
-	if unitName == DummyUnitName then
-		-- energy storage
-		if ai.Energy.extra > 1500 and highEnergy and not lowMetal then
-			if ai.mySide == CORESideName then
-				unitName = BuildWithLimitedNumber("coruwadves", 1)
-			else
-				unitName = BuildWithLimitedNumber("armuwadves", 1)
-			end	
-		end
-	end
-	if unitName == DummyUnitName then
-		-- metal storage
-		if ai.Metal.extra > 25 and highMetal and highEnergy then
-			if ai.mySide == CORESideName then
-				unitName = BuildWithLimitedNumber("coruwadvms", 1)
-			else
-				unitName = BuildWithLimitedNumber("armuwadvms", 1)
-			end	
-		end
-	end
-	]]--
-
-	return unitName
-end
-
 function buildEstore1()
 	local unitName = DummyUnitName
 	if ai.mySide == CORESideName then
@@ -515,7 +394,7 @@ function EconomyUnderWater()
 	elseif ai.Metal.full > 0.7 and ai.Metal.income > 30 and ai.Metal.capacity < 4000 and ai.Energy.reserves > 600 then
 		unitName = buildWMstore1()
 	elseif ai.Energy.income > ai.Energy.usage * 1.1 and ai.Energy.full > 0.9 and ai.Energy.income > 200 and ai.Energy.income < 2000 and ai.Metal.full < 0.3 then
-		unitName = buildMconv1()
+		unitName = buildWMconv1()
 	elseif ai.Energy.full > 0.1 and (ai.Metal.income < 1 or ai.Metal.full < 0.6) then
 		unitName = BuildUWMex()
 	elseif (ai.Energy.full < 0.3 or ai.Energy.income < ai.Energy.usage) and ai.Metal.income > 3 and ai.Metal.full > 0.1 then
