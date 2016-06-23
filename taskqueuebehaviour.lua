@@ -1,7 +1,7 @@
 shard_include "common"
 
 
-local DebugEnabled = false
+local DebugEnabled = true
 
 
 local function EchoDebug(inStr)
@@ -524,14 +524,14 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 	return utype, value, p
 end
 
-
 function TaskQueueBehaviour:BestFactoryPrePositionFilter(factoryName)
 	local buildMe = true
 	local utn=unitTable[factoryName]
 	local level = utn.techLevel
 	local isAdvanced = advFactories[factoryName]
-	local isExperimental = expFactories[factoryName] or leadsToExpFactories[factoryName]	
+	local isExperimental = expFactories[factoryName] 
 	local mtype = factoryMobilities[factoryName][1]
+
 	if ai.needAdvanced and not ai.haveAdvFactory then
 		if not isAdvanced then
 			EchoDebug('not advanced when i need it')
@@ -550,23 +550,21 @@ function TaskQueueBehaviour:BestFactoryPrePositionFilter(factoryName)
 			buildMe = false 
 		end
 	end
-	if isExperimental and ai.Energy.income > 5000 and ai.Metal.income > 100 and 
-			ai.Metal.full > utn.metalCost / 2 and ai.combatCount > 50 and 
-			ai.factoryBuilded['air'][1] == 3 then
+	if isExperimental and ai.Energy.income > 5000 and ai.Metal.income > 100 and ai.Metal.reserves > utn.metalCost / 2 and ai.factoryBuilded['air'][1] > 2 and ai.combatCount > 40 then
 		EchoDebug('i dont need it but economic situation permitted')
 		buildMe = true
 	end
 	if mtype == 'air' and ai.factoryBuilded['air'][1] >= 1 then
-		if level < 3 then 
+		if utn.needsWater then 
 			EchoDebug('dont build seaplane if i have normal planes')
 			buildMe = false 
 		end
 	elseif mtype ~= 'air' and ai.haveAdvFactory and 
 			ai.factoryBuilded['air'][1] > 0 and ai.factoryBuilded['air'][1] < 3 then
-		EchoDebug('build t2 air if you have t1 air and a t2 of another type')
+		EchoDebug('force build t2 air if you have t1 air and a t2 of another type')
 		buildMe = false
 	end
-	return buildMe	
+	return buildMe
 end
 
 function TaskQueueBehaviour:BestFactoryPosition(factoryName,utype,builder,builderPos,mtype)
