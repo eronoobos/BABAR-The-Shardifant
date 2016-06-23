@@ -1,7 +1,7 @@
 shard_include "common"
 
 
-local DebugEnabled = true
+local DebugEnabled = false
 
 
 local function EchoDebug(inStr)
@@ -529,7 +529,7 @@ function TaskQueueBehaviour:BestFactoryPrePositionFilter(factoryName)
 	local utn=unitTable[factoryName]
 	local level = utn.techLevel
 	local isAdvanced = advFactories[factoryName]
-	local isExperimental = expFactories[factoryName] 
+	local isExperimental = expFactories[factoryName] or leadsToExpFactories
 	local mtype = factoryMobilities[factoryName][1]
 
 	if ai.needAdvanced and not ai.haveAdvFactory then
