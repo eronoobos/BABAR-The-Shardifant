@@ -631,6 +631,8 @@ cleanable = {
 	corfmkr = 'floating',
 	cormakr = 'ground',
 	armmakr = 'ground',
+	corwin = 'ground',
+	armwin = 'ground',
 }
 
 -- minimum, maximum, starting point units required to attack, bomb
