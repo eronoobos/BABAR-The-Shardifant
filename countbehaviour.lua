@@ -27,7 +27,9 @@ function CountBehaviour:Init()
 			end
 		end
 	self.level = uTn.techLevel
-	self.mtypedLv = tostring(uTn.mtype)..self.level
+	if not self.isBuilding then
+		self.mtypedLv = tostring(uTn.mtype)..self.level
+	end
 	if uTn.totalEnergyOut > 750 then self.isBigEnergy = true end
 	if uTn.extractsMetal > 0 then self.isMex = true end
 	if battleList[self.name] then self.isBattle = true end
