@@ -181,6 +181,12 @@ function IsWaterAttackNeeded()
 	return ai.areWaterTargets or ai.needSubmergedDefense
 end
 
+
+function GetMtypedLv(unitName)
+	return ai[unitTable[unitName].mtype .. tostring(unitTable[unitName].techLevel)]
+end
+
+
 function BuildAAIfNeeded(unitName)
 	if IsAANeeded() then
 		if not unitTable[unitName].isBuilding then
