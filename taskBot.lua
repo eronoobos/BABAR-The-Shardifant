@@ -12,21 +12,25 @@ end
 --LEVEL 1
 
 function ConBot()
+	local unitName = DummyUnitName
 	if ai.mySide == CORESideName then
-		return BuildWithLimitedNumber("corck", ConUnitPerTypeLimit)
+		unitName = "corck"
 	else
-		return BuildWithLimitedNumber("armck", ConUnitPerTypeLimit)
+		unitName = "armck"
 	end
+	local mtypedLv = GetMtypedLv(unitName) or 0
+	return BuildWithLimitedNumber(unitName, math.min(1, mtypedLv / 6, ConUnitPerTypeLimit))
 end
 
 function RezBot1(self)
-	local unitName
+	local unitName = DummyUnitName
 	if ai.mySide == CORESideName then
 		unitName = "cornecro"
 	else
 		unitName = "armrectr"
 	end
-	return BuildWithLimitedNumber(unitName, 1)
+	local mtypedLv = GetMtypedLv(unitName) or 0
+	return BuildWithLimitedNumber(unitName, math.min(1, mtypedLv / 8 , ConUnitPerTypeLimit))
 end
 
 function Lvl1BotRaider(self)
@@ -89,20 +93,26 @@ end
 --LEVEL 2
 
 function ConAdvBot()
+	local unitName = DummyUnitName
 	if ai.mySide == CORESideName then
-		return BuildWithLimitedNumber("corack", ConUnitAdvPerTypeLimit)
+		unitName = "corack"
 	else
-		return BuildWithLimitedNumber("armack", ConUnitAdvPerTypeLimit)
+		unitName = "armack"
 	end
+	local mtypedLv = GetMtypedLv(unitName) or 0
+	return BuildWithLimitedNumber(unitName, math.min(1, mtypedLv / 10, ConUnitAdvPerTypeLimit))
 end
 
 
 function Lvl2BotAssist()
+	unitName = DummyUnitName
 	if ai.mySide == CORESideName then
-		return "corfast"
+		unitName = "corfast"
 	else
-		return "armfark"
+		unitName = "armfark"
 	end
+	local mtypedLv = GetMtypedLv(unitName) or 0
+	return BuildWithLimitedNumber(unitName, math.min(mtypedLv / 8, ConUnitPerTypeLimit))
 end
 
 function NewCommanders(self)
