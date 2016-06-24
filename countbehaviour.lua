@@ -2,7 +2,7 @@ shard_include "common"
 
 CountBehaviour = class(Behaviour)
 
-local DebugEnabled = false
+local DebugEnabled = true
 
 
 local function EchoDebug(inStr)
@@ -17,18 +17,19 @@ function CountBehaviour:Init()
 	self.id = self.unit:Internal():ID()
 	local uTn = unitTable[self.name]
 	-- game:SendToConsole(self.name .. " " .. self.id .. " init")
-	if utn.isBuilding then
+	if uTn.isBuilding then
 			self.position = self.unit:Internal():GetPosition() -- buildings don't move
 		else
-			if utn.buildOptions then
+			if uTn.buildOptions then
 				self.isCon = true
-			elseif utn.isWeapon then
+			elseif uTn.isWeapon then
 				self.isCombat = true
 			end
 		end
-	self.level = utn.techLevel
-	if utn.totalEnergyOut > 750 then self.isBigEnergy = true end
-	if utn.extractsMetal > 0 then self.isMex = true end
+	self.level = uTn.techLevel
+	self.mtypedLv = tostring(uTn.mtype)..self.level
+	if uTn.totalEnergyOut > 750 then self.isBigEnergy = true end
+	if uTn.extractsMetal > 0 then self.isMex = true end
 	if battleList[self.name] then self.isBattle = true end
 	if breakthroughList[self.name] then self.isBreakthrough = true end
 	if self.isCombat and not battleList[self.name] and not breakthroughList[self.name] then
@@ -74,6 +75,12 @@ function CountBehaviour:UnitBuilt(unit)
 		ai.lastNameFinished[self.name] = game:Frame()
 		EchoDebug(ai.nameCountFinished[self.name] .. " " .. self.name .. " finished")
 		self.finished = true
+		--mtyped leveled counters
+		if ai[self.mtypedLv] == nil then 
+			ai[self.mtypedLv] = 1 
+		else
+			ai[self.mtypedLv] = ai[self.mtypedLv] + 1
+		end
 	end
 end
 
@@ -111,6 +118,8 @@ function CountBehaviour:UnitDead(unit)
 			if self.isAssist then ai.assistCount = ai.assistCount - 1 end
 			if self.isBigEnergy then ai.bigEnergyCount = ai.bigEnergyCount - 1 end
 			if self.isCleanable then ai.cleanable[unit.engineID] = nil end
+			ai[self.mtypedLv] = ai[self.mtypedLv] - 1
+			
 		end
 	end
 end
