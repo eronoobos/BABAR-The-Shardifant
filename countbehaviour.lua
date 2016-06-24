@@ -2,7 +2,7 @@ shard_include "common"
 
 CountBehaviour = class(Behaviour)
 
-local DebugEnabled = true
+local DebugEnabled = false
 
 
 local function EchoDebug(inStr)
