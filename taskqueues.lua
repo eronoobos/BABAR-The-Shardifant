@@ -183,6 +183,7 @@ end
 
 
 function GetMtypedLv(unitName)
+	EchoDebug('GetMtypedLv' .. ai[unitTable[unitName].mtype .. tostring(unitTable[unitName].techLevel)])
 	return ai[unitTable[unitName].mtype .. tostring(unitTable[unitName].techLevel)]
 end
 
