@@ -13,29 +13,30 @@ end
 
 function CountBehaviour:Init()
 	self.finished = false
-    self.name = self.unit:Internal():Name()
-    self.id = self.unit:Internal():ID()
-    -- game:SendToConsole(self.name .. " " .. self.id .. " init")
-    if unitTable[self.name].isBuilding then
-   		self.position = self.unit:Internal():GetPosition() -- buildings don't move
-   	else
-   		if unitTable[self.name].buildOptions then
-   			self.isCon = true
-   		elseif unitTable[self.name].isWeapon then
-   			self.isCombat = true
-   		end
-   	end
-    self.level = unitTable[self.name].techLevel
-    if unitTable[self.name].totalEnergyOut > 750 then self.isBigEnergy = true end
-    if unitTable[self.name].extractsMetal > 0 then self.isMex = true end
-    if battleList[self.name] then self.isBattle = true end
-    if breakthroughList[self.name] then self.isBreakthrough = true end
-    if self.isCombat and not battleList[self.name] and not breakthroughList[self.name] then
-    	self.isSiege = true
-    end
-    if reclaimerList[self.name] then self.isReclaimer = true end
-    if cleanable[self.name] then self.isCleanable = true end
-    if assistList[self.name] then self.isAssist = true end
+	self.name = self.unit:Internal():Name()
+	self.id = self.unit:Internal():ID()
+	local uTn = unitTable[self.name]
+	-- game:SendToConsole(self.name .. " " .. self.id .. " init")
+	if utn.isBuilding then
+			self.position = self.unit:Internal():GetPosition() -- buildings don't move
+		else
+			if utn.buildOptions then
+				self.isCon = true
+			elseif utn.isWeapon then
+				self.isCombat = true
+			end
+		end
+	self.level = utn.techLevel
+	if utn.totalEnergyOut > 750 then self.isBigEnergy = true end
+	if utn.extractsMetal > 0 then self.isMex = true end
+	if battleList[self.name] then self.isBattle = true end
+	if breakthroughList[self.name] then self.isBreakthrough = true end
+	if self.isCombat and not battleList[self.name] and not breakthroughList[self.name] then
+		self.isSiege = true
+	end
+	if reclaimerList[self.name] then self.isReclaimer = true end
+	if cleanable[self.name] then self.isCleanable = true end
+	if assistList[self.name] then self.isAssist = true end
 	if ai.nameCount[self.name] == nil then
 		ai.nameCount[self.name] = 1
 	else
