@@ -306,7 +306,8 @@ function TaskQueueBehaviour:GetHelp(value, position)
 			ai.assisthandler:Magnetize(builder, position)
 			return value
 		else
-			local hashelp = ai.assisthandler:Summon(builder, position, ai.factories)
+			EchoDebug("help for factory that need help")
+			local hashelp = ai.assisthandler:Summon(builder, position, unitTable[value].techLevel)
 			if hashelp then
 				ai.assisthandler:Magnetize(builder, position)
 				return value
