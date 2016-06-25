@@ -18,7 +18,7 @@ function ConBot()
 	else
 		unitName = "armck"
 	end
-	local mtypedLv = GetMtypedLv(unitName) or 0
+	local mtypedLv = GetMtypedLv(unitName)
 	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ConUnitPerTypeLimit))
 end
 
@@ -29,7 +29,7 @@ function RezBot1(self)
 	else
 		unitName = "armrectr"
 	end
-	local mtypedLv = GetMtypedLv(unitName) or 0
+	local mtypedLv = GetMtypedLv(unitName)
 	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1 , ConUnitPerTypeLimit))
 end
 
@@ -99,7 +99,7 @@ function ConAdvBot()
 	else
 		unitName = "armack"
 	end
-	local mtypedLv = GetMtypedLv(unitName) or 0
+	local mtypedLv = GetMtypedLv(unitName)
 	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 10) + 1, ConUnitAdvPerTypeLimit))
 end
 
@@ -111,7 +111,7 @@ function Lvl2BotAssist()
 	else
 		unitName = "armfark"
 	end
-	local mtypedLv = GetMtypedLv(unitName) or 0
+	local mtypedLv = GetMtypedLv(unitName)
 	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1, ConUnitPerTypeLimit))
 end
 

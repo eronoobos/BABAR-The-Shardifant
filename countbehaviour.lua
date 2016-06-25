@@ -27,7 +27,7 @@ function CountBehaviour:Init()
 			end
 		end
 	self.level = uTn.techLevel
-	if not self.isBuilding then
+	if not self.isBuilding and not self.isCon then
 		self.mtypedLv = tostring(uTn.mtype)..self.level
 	end
 	if uTn.totalEnergyOut > 750 then self.isBigEnergy = true end
@@ -78,10 +78,12 @@ function CountBehaviour:UnitBuilt(unit)
 		EchoDebug(ai.nameCountFinished[self.name] .. " " .. self.name .. " finished")
 		self.finished = true
 		--mtyped leveled counters
-		if ai[self.mtypedLv] == nil then 
-			ai[self.mtypedLv] = 1 
-		else
-			ai[self.mtypedLv] = ai[self.mtypedLv] + 1
+		if self.mtypedLv then
+			if ai.mtypeLvCount[self.mtypedLv] == nil then 
+				ai.mtypeLvCount[self.mtypedLv] = 1 
+			else
+				ai.mtypeLvCount[self.mtypedLv] = ai.mtypeLvCount[self.mtypedLv] + 1
+			end
 		end
 	end
 end
@@ -120,7 +122,9 @@ function CountBehaviour:UnitDead(unit)
 			if self.isAssist then ai.assistCount = ai.assistCount - 1 end
 			if self.isBigEnergy then ai.bigEnergyCount = ai.bigEnergyCount - 1 end
 			if self.isCleanable then ai.cleanable[unit.engineID] = nil end
-			ai[self.mtypedLv] = ai[self.mtypedLv] - 1
+			if self.mtypedLv then
+				ai.mtypeLvCount[self.mtypedLv] = ai.mtypeLvCount[self.mtypedLv] - 1
+			end
 			
 		end
 	end

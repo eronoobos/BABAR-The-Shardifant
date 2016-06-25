@@ -41,6 +41,8 @@ function CountHandler:Init()
 	ai.cleanable = {}
 	ai.assistCount = 0
 	
+	ai.mtypeLvCount= {}
+	
 	self:InitializeNameCounts()
 end
 

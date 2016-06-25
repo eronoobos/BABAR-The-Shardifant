@@ -181,10 +181,13 @@ function IsWaterAttackNeeded()
 	return ai.areWaterTargets or ai.needSubmergedDefense
 end
 
-
 function GetMtypedLv(unitName)
-	EchoDebug('GetMtypedLv' .. ai[unitTable[unitName].mtype .. tostring(unitTable[unitName].techLevel)])
-	return ai[unitTable[unitName].mtype .. tostring(unitTable[unitName].techLevel)]
+	local mtype = unitTable[unitName].mtype
+	local level = unitTable[unitName].techLevel
+	local mtypedLv = mtype .. tostring(level)
+	local counter = ai.mtypeLvCount[mtypedLv] or 0
+	EchoDebug('mtypedLvmtype ' .. mtype .. ' '.. level .. ' ' .. counter)
+	return counter
 end
 
 
