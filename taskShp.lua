@@ -15,7 +15,7 @@ function ConShip()
 		unitName = "armcs"
 	end
 	local mtypedLv = GetMtypedLv(unitName) + GetMtypedLv('correcl') --need count sub too
-	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 5) + 1, ConUnitPerTypeLimit))
+	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 5) + 2, ConUnitPerTypeLimit))
 end
 
 function RezSub1(self)
@@ -26,7 +26,7 @@ function RezSub1(self)
 		unitName = "armrecl"
 	end
 	local mtypedLv = GetMtypedLv(unitName) + GetMtypedLv('armpt') --need count shp too
-	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1, ConUnitPerTypeLimit))
+	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 2, ConUnitPerTypeLimit))
 end
 
 function Lvl1ShipRaider(self)
@@ -94,7 +94,7 @@ function ConAdvSub()
 		unitName = "armacsub"
 	end
 	local mtypedLv = GetMtypedLv(unitName) + GetMtypedLv('cormls') --need count shp too
-	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ConUnitPerTypeLimit))
+	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 2, ConUnitPerTypeLimit))
 end
 
 function Lvl2ShipAssist()
@@ -105,7 +105,7 @@ function Lvl2ShipAssist()
 		unitName = "armmls"
 	end
 	local mtypedLv = GetMtypedLv(unitName) + GetMtypedLv('coracsub') --need count sub too
-	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ConUnitPerTypeLimit))
+	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 2, ConUnitPerTypeLimit))
 end
 
 function Lvl2ShipBreakthrough(self)
