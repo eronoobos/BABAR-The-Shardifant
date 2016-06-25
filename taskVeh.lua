@@ -183,9 +183,9 @@ end
 
 
 function AmphibiousBattle(self)
-	local unitName = ""
+	local unitName = DummyUnitName
 	if ai.mySide == CORESideName then
-		if mf<0.5 then	
+		if ai.Metal.full < 0.5 then	
 			unitName = "corseal" 
 		else
 			unitName = "corparrow" 
