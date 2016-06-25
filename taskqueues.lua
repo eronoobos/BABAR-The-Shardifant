@@ -54,8 +54,6 @@ end
 
 function CheckMySide(self)
 	-- fix: moved here so map object is present when it's accessed
-	ConUnitPerTypeLimit = math.max(map:SpotCount() / 6, 4)
-	ConUnitAdvPerTypeLimit = math.max(map:SpotCount() / 8, 2)
 	EchoDebug("per-type construction unit limit: " .. ConUnitPerTypeLimit)
 	minDefenseNetworkSize = ai.mobilityGridArea / 4 
 	-- set the averageWind
@@ -94,8 +92,6 @@ end
 function CheckForMapControl()
 	local f = game:Frame()
 	if (lastSiegeCheckFrame + 240) < f then
-		ConUnitPerTypeLimit = math.max(map:SpotCount() / 6, 4)--add here cause map:spotcount not correctly load or so
-		ConUnitAdvPerTypeLimit = math.max(map:SpotCount() / 8, 2)
 		ai.haveAdvFactory = false
 		if ai.factoriesAtLevel[3] ~= nil then
 			ai.haveAdvFactory = #ai.factoriesAtLevel[3] ~= 0

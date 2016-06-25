@@ -754,7 +754,8 @@ function MapHandler:Init()
 	if DebugDrawEnabled then
 		self.map:EraseAll(4, 5)
 	end
-
+	ConUnitPerTypeLimit = math.max(map:SpotCount() / 6, 4)--add here cause map:spotcount not correctly load or so
+	ConUnitAdvPerTypeLimit = math.max(map:SpotCount() / 8, 2)
 	ai.activeMobTypes = {}
 	ai.factoryListMap = {}
 
