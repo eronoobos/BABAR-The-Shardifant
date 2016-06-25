@@ -16,8 +16,8 @@ function ConVehicleAmphibious()
 	else
 		unitName = "armbeaver"
 	end
-	local mtypedLvAmph = GetMtypedLv(unitName) or 0
-	local mtypedLvGround = GetMtypedLv('armcv') or 0
+	local mtypedLvAmph = GetMtypedLv(unitName)
+	local mtypedLvGround = GetMtypedLv('armcv')
 	local mtypedLv = math.max(mtypedLvAmph, mtypedLvGround) --workaround for get the best counter
 	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ConUnitPerTypeLimit))
 end
@@ -29,7 +29,7 @@ function ConGroundVehicle()
 	else
 		unitName = "armcv"
 	end
-	local mtypedLv = GetMtypedLv(unitName) or 0
+	local mtypedLv = GetMtypedLv(unitName)
 	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ConUnitPerTypeLimit))
 end
 
@@ -127,11 +127,11 @@ end
 function ConAdvVehicle()
 	local unitName = DummyUnitName
 	if ai.mySide == CORESideName then
-		local unitName = "coracv"
+		unitName = "coracv"
 	else
-		local unitName = "armacv"
+		unitName = "armacv"
 	end
-	local mtypedLv = GetMtypedLv(unitName) or 0
+	local mtypedLv = GetMtypedLv(unitName)
 	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 10) + 1, ConUnitAdvPerTypeLimit))
 end
 
@@ -139,8 +139,8 @@ function Lvl2VehAssist()
 	if ai.mySide == CORESideName then
 		return DummyUnitName
 	else
-		local unitName = 'consul'
-		local mtypedLv = GetMtypedLv(unitName) or 0
+		unitName = 'consul'
+		local mtypedLv = GetMtypedLv(unitName)
 		return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1, ConUnitPerTypeLimit))
 	end
 end
