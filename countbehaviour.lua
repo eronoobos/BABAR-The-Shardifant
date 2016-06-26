@@ -13,29 +13,33 @@ end
 
 function CountBehaviour:Init()
 	self.finished = false
-    self.name = self.unit:Internal():Name()
-    self.id = self.unit:Internal():ID()
-    -- game:SendToConsole(self.name .. " " .. self.id .. " init")
-    if unitTable[self.name].isBuilding then
-   		self.position = self.unit:Internal():GetPosition() -- buildings don't move
-   	else
-   		if unitTable[self.name].buildOptions then
-   			self.isCon = true
-   		elseif unitTable[self.name].isWeapon then
-   			self.isCombat = true
-   		end
-   	end
-    self.level = unitTable[self.name].techLevel
-    if unitTable[self.name].totalEnergyOut > 750 then self.isBigEnergy = true end
-    if unitTable[self.name].extractsMetal > 0 then self.isMex = true end
-    if battleList[self.name] then self.isBattle = true end
-    if breakthroughList[self.name] then self.isBreakthrough = true end
-    if self.isCombat and not battleList[self.name] and not breakthroughList[self.name] then
-    	self.isSiege = true
-    end
-    if reclaimerList[self.name] then self.isReclaimer = true end
-    if cleanable[self.name] then self.isCleanable = true end
-    if assistList[self.name] then self.isAssist = true end
+	self.name = self.unit:Internal():Name()
+	self.id = self.unit:Internal():ID()
+	local uTn = unitTable[self.name]
+	-- game:SendToConsole(self.name .. " " .. self.id .. " init")
+	if uTn.isBuilding then
+			self.position = self.unit:Internal():GetPosition() -- buildings don't move
+		else
+			if uTn.buildOptions then
+				self.isCon = true
+			elseif uTn.isWeapon then
+				self.isCombat = true
+			end
+		end
+	self.level = uTn.techLevel
+	if not self.isBuilding and not self.isCon then
+		self.mtypedLv = tostring(uTn.mtype)..self.level
+	end
+	if uTn.totalEnergyOut > 750 then self.isBigEnergy = true end
+	if uTn.extractsMetal > 0 then self.isMex = true end
+	if battleList[self.name] then self.isBattle = true end
+	if breakthroughList[self.name] then self.isBreakthrough = true end
+	if self.isCombat and not battleList[self.name] and not breakthroughList[self.name] then
+		self.isSiege = true
+	end
+	if reclaimerList[self.name] then self.isReclaimer = true end
+	if cleanable[self.name] then self.isCleanable = true end
+	if assistList[self.name] then self.isAssist = true end
 	if ai.nameCount[self.name] == nil then
 		ai.nameCount[self.name] = 1
 	else
@@ -73,6 +77,14 @@ function CountBehaviour:UnitBuilt(unit)
 		ai.lastNameFinished[self.name] = game:Frame()
 		EchoDebug(ai.nameCountFinished[self.name] .. " " .. self.name .. " finished")
 		self.finished = true
+		--mtyped leveled counters
+		if self.mtypedLv then
+			if ai.mtypeLvCount[self.mtypedLv] == nil then 
+				ai.mtypeLvCount[self.mtypedLv] = 1 
+			else
+				ai.mtypeLvCount[self.mtypedLv] = ai.mtypeLvCount[self.mtypedLv] + 1
+			end
+		end
 	end
 end
 
@@ -110,6 +122,10 @@ function CountBehaviour:UnitDead(unit)
 			if self.isAssist then ai.assistCount = ai.assistCount - 1 end
 			if self.isBigEnergy then ai.bigEnergyCount = ai.bigEnergyCount - 1 end
 			if self.isCleanable then ai.cleanable[unit.engineID] = nil end
+			if self.mtypedLv then
+				ai.mtypeLvCount[self.mtypedLv] = ai.mtypeLvCount[self.mtypedLv] - 1
+			end
+			
 		end
 	end
 end

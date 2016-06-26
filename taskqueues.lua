@@ -54,8 +54,6 @@ end
 
 function CheckMySide(self)
 	-- fix: moved here so map object is present when it's accessed
-	ConUnitPerTypeLimit = math.max(map:SpotCount() / 6, 4)
-	ConUnitAdvPerTypeLimit = math.max(map:SpotCount() / 8, 2)
 	EchoDebug("per-type construction unit limit: " .. ConUnitPerTypeLimit)
 	minDefenseNetworkSize = ai.mobilityGridArea / 4 
 	-- set the averageWind
@@ -180,6 +178,16 @@ end
 function IsWaterAttackNeeded()
 	return ai.areWaterTargets or ai.needSubmergedDefense
 end
+
+function GetMtypedLv(unitName)
+	local mtype = unitTable[unitName].mtype
+	local level = unitTable[unitName].techLevel
+	local mtypedLv = mtype .. tostring(level)
+	local counter = ai.mtypeLvCount[mtypedLv] or 0
+	EchoDebug('mtypedLvmtype ' .. mtype .. ' '.. level .. ' ' .. counter)
+	return counter
+end
+
 
 function BuildAAIfNeeded(unitName)
 	if IsAANeeded() then

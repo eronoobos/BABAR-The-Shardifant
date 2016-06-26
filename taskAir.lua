@@ -9,11 +9,14 @@ end
 --LEVEL 1
 
 function ConAir()
+	unitName = DummyUnitName
 	if ai.mySide == CORESideName then
-		return BuildWithLimitedNumber("corca", ConUnitPerTypeLimit)
+		unitName = "corca"
 	else
-		return BuildWithLimitedNumber("armca", ConUnitPerTypeLimit)
+		unitName = "armca"
 	end
+	local mtypedLv = GetMtypedLv(unitName)
+	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ConUnitPerTypeLimit))
 end
 
 function Lvl1AirRaider(self)
@@ -58,11 +61,14 @@ end
 
 --LEVEL 2
 function ConAdvAir()
+	unitName = DummyUnitName
 	if ai.mySide == CORESideName then
-		return BuildWithLimitedNumber("coraca", ConUnitAdvPerTypeLimit)
+		unitName = "coraca"
 	else
-		return BuildWithLimitedNumber("armaca", ConUnitAdvPerTypeLimit)
+		unitName = "armaca"
 	end
+	local mtypedLv = GetMtypedLv(unitName)
+	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1, ConUnitAdvPerTypeLimit))
 end
 
 function Lvl2Fighter()
@@ -133,11 +139,14 @@ end
 
 --SEAPLANE
 function ConSeaAir()
+	unitName = DummyUnitName
 	if ai.mySide == CORESideName then
-		return BuildWithLimitedNumber("corcsa", ConUnitPerTypeLimit)
+		unitName = "corcsa"
 	else
-		return BuildWithLimitedNumber("armcsa", ConUnitPerTypeLimit)
+		unitName = "armcsa"
 	end
+	local mtypedLv = GetMtypedLv(unitName)
+	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 9) + 1, ConUnitAdvPerTypeLimit))
 end
 
 function SeaBomber()

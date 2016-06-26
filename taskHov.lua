@@ -6,6 +6,16 @@ local function EchoDebug(inStr)
 	end
 end
 
+function ConHover()
+	if ai.mySide == CORESideName then
+		unitName = "corch"
+	else
+		unitName = "armch"
+	end
+	local mtypedLv = GetMtypedLv(unitName)
+	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ConUnitPerTypeLimit))
+end
+
 function HoverMerl(self)
 	local unitName = ""
 	if ai.mySide == CORESideName then
@@ -51,14 +61,6 @@ function AAHover()
 		return BuildAAIfNeeded("corah")
 	else
 		return BuildAAIfNeeded("armah")
-	end
-end
-
-function ConHover()
-	if ai.mySide == CORESideName then
-		return BuildWithLimitedNumber("corch", ConUnitPerTypeLimit)
-	else
-		return BuildWithLimitedNumber("armch", ConUnitPerTypeLimit)
 	end
 end
 

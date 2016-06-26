@@ -8,21 +8,25 @@ end
 --LEVEL 1
 
 function ConShip()
+	local unitName = DummyUnitName
 	if ai.mySide == CORESideName then
-		return BuildWithLimitedNumber("corcs", ConUnitPerTypeLimit)
+		unitName = "corcs"
 	else
-		return BuildWithLimitedNumber("armcs", ConUnitPerTypeLimit)
+		unitName = "armcs"
 	end
+	local mtypedLv = GetMtypedLv(unitName) + GetMtypedLv('correcl') --need count sub too
+	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 5) + 2, ConUnitPerTypeLimit))
 end
 
 function RezSub1(self)
-	local unitName
+	local unitName = DummyUnitName
 	if ai.mySide == CORESideName then
 		unitName = "correcl"
 	else
 		unitName = "armrecl"
 	end
-	return BuildWithLimitedNumber(unitName, 1)
+	local mtypedLv = GetMtypedLv(unitName) + GetMtypedLv('armpt') --need count shp too
+	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 2, ConUnitPerTypeLimit))
 end
 
 function Lvl1ShipRaider(self)
@@ -83,19 +87,25 @@ end
 
 --LEVEL 2
 function ConAdvSub()
+	local unitName = DummyUnitName
 	if ai.mySide == CORESideName then
-		return BuildWithLimitedNumber("coracsub", ConUnitAdvPerTypeLimit)
+		unitName = "coracsub"
 	else
-		return BuildWithLimitedNumber("armacsub", ConUnitAdvPerTypeLimit)
+		unitName = "armacsub"
 	end
+	local mtypedLv = GetMtypedLv(unitName) + GetMtypedLv('cormls') --need count shp too
+	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 2, ConUnitPerTypeLimit))
 end
 
 function Lvl2ShipAssist()
+	local unitName = DummyUnitName
 	if ai.mySide == CORESideName then
-		return "cormls"
+		unitName = "cormls"
 	else
-		return "armmls"
+		unitName = "armmls"
 	end
+	local mtypedLv = GetMtypedLv(unitName) + GetMtypedLv('coracsub') --need count sub too
+	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 2, ConUnitPerTypeLimit))
 end
 
 function Lvl2ShipBreakthrough(self)

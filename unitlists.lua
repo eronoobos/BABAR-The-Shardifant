@@ -653,10 +653,6 @@ minRaidCounter = 0
 maxRaidCounter = 8
 baseRaidCounter = 5
 
--- how many mobile con units of one type is allowed
-ConUnitPerTypeLimit = 4 --max(map:SpotCount() / 10, 2)
-ConUnitAdvPerTypeLimit = 4
-
 -- Taskqueuebehaviour was modified to skip this name
 DummyUnitName = "skipthisorder"
 

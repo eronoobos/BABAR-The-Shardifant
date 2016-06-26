@@ -10,30 +10,37 @@ end
 --LEVEL 1
 
 function ConVehicleAmphibious()
+	local unitName = DummyUnitName
 	if ai.mySide == CORESideName then
 		unitName = "cormuskrat"
 	else
 		unitName = "armbeaver"
 	end
-	return BuildWithLimitedNumber(unitName, ConUnitAdvPerTypeLimit)
+	local mtypedLvAmph = GetMtypedLv(unitName)
+	local mtypedLvGround = GetMtypedLv('armcv')
+	local mtypedLv = math.max(mtypedLvAmph, mtypedLvGround) --workaround for get the best counter
+	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ConUnitPerTypeLimit))
+end
+
+function ConGroundVehicle()
+	local unitName = DummyUnitName
+	if ai.mySide == CORESideName then
+		unitName = "corcv"
+	else
+		unitName = "armcv"
+	end
+	local mtypedLv = GetMtypedLv(unitName)
+	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ConUnitPerTypeLimit))
 end
 
 function ConVehicle()
-	local unitName
+	local unitName = DummyUnitName
 	if needAmphibiousCons then
-		if ai.mySide == CORESideName then
-			unitName = "cormuskrat"
-		else
-			unitName = "armbeaver"
-		end
+		unitName = ConVehicleAmphibious()
 	else
-		if ai.mySide == CORESideName then
-			unitName = "corcv"
-		else
-			unitName = "armcv"
-		end
+		unitName = ConGroundVehicle()
 	end
-	return BuildWithLimitedNumber(unitName, ConUnitPerTypeLimit)
+	return unitName
 end
 
 function Lvl1VehBreakthrough(self)
@@ -118,19 +125,23 @@ end
 --LEVEL 2
 
 function ConAdvVehicle()
+	local unitName = DummyUnitName
 	if ai.mySide == CORESideName then
-		return BuildWithLimitedNumber("coracv", ConUnitAdvPerTypeLimit)
+		unitName = "coracv"
 	else
-		return BuildWithLimitedNumber("armacv", ConUnitAdvPerTypeLimit)
+		unitName = "armacv"
 	end
+	local mtypedLv = GetMtypedLv(unitName)
+	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 10) + 1, ConUnitAdvPerTypeLimit))
 end
 
 function Lvl2VehAssist()
 	if ai.mySide == CORESideName then
 		return DummyUnitName
 	else
-		local number=math.ceil(ai.combatCount/6)+1
-		return BuildWithLimitedNumber("consul", number)
+		unitName = 'consul'
+		local mtypedLv = GetMtypedLv(unitName)
+		return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1, ConUnitPerTypeLimit))
 	end
 end
 
@@ -172,9 +183,9 @@ end
 
 
 function AmphibiousBattle(self)
-	local unitName = ""
+	local unitName = DummyUnitName
 	if ai.mySide == CORESideName then
-		if mf<0.5 then	
+		if ai.Metal.full < 0.5 then	
 			unitName = "corseal" 
 		else
 			unitName = "corparrow" 

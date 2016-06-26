@@ -153,40 +153,8 @@ function TaskQueueBehaviour:CategoryEconFilter(value)
 		if unitTable[value].buildOptions ~= nil then
 			-- construction unit
 			EchoDebug("  construction unit")
-			if advConList[value] then
-				-- advanced construction unit
-				if (ai.nameCount[value] == nil or ai.nameCount[value] == 0) then
-					-- build at least one of each advanced con (a mex upgrader)
-					if metalTooLow or energyTooLow or (farTooFewCombats and not self.outmodedFactory) then
-						value = DummyUnitName
-					end
-				elseif ai.nameCount[value] == 1 then
-					-- build another fairly easily
-					if metalTooLow or energyTooLow or ai.Metal.income < 18 or (farTooFewCombats and not self.outmodedFactory) then
-						value = DummyUnitName
-					end
-				else
-					if metalBelowHalf or energyTooLow or ai.nameCount[value] > ai.conCount + ai.assistCount / 3 or notEnoughCombats then
-						value = DummyUnitName
-					end
-				end
-			elseif (ai.nameCount[value] == nil or ai.nameCount[value] == 0) and metalOkay and energyOkay and (self.outmodedFactory or not farTooFewCombats) then
-				-- build at least one of each type
-			elseif assistList[value] then
-				-- build enough assistants
-				if metalBelowHalf or energyTooLow or ai.assistCount > ai.Metal.income * 0.125 then
-					value = DummyUnitName
-				end
-			elseif value == "corcv" and ai.nameCount["coracv"] ~= 0 and ai.nameCount["coracv"] ~= nil and (ai.nameCount["coralab"] == 0 or ai.nameCount["coralab"] == nil) then
-				-- core doesn't have consuls, so treat lvl1 con vehicles like assistants, if there are no other alternatives
-				if metalBelowHalf or energyTooLow or ai.conCount > ai.Metal.income * 0.15 then
-					value = DummyUnitName
-				end
-			else
-				EchoDebug(ai.combatCount .. " " .. ai.conCount .. " " .. tostring(metalBelowHalf) .. " " .. tostring(energyTooLow))
-				if metalBelowHalf or energyTooLow or (ai.combatCount < ai.conCount * 4 and not self.outmodedFactory and not self.isAirFactory and not self.isShipyard) then
-					value = DummyUnitName
-				end
+			if ai.Energy.full > 0.1 and ai.Metal.full > 0.05 then
+				return value 
 			end
 		elseif unitTable[value].isWeapon then
 			-- combat unit
@@ -338,7 +306,8 @@ function TaskQueueBehaviour:GetHelp(value, position)
 			ai.assisthandler:Magnetize(builder, position)
 			return value
 		else
-			local hashelp = ai.assisthandler:Summon(builder, position, ai.factories)
+			EchoDebug("help for factory that need help")
+			local hashelp = ai.assisthandler:Summon(builder, position, unitTable[value].techLevel)
 			if hashelp then
 				ai.assisthandler:Magnetize(builder, position)
 				return value
@@ -628,13 +597,13 @@ function TaskQueueBehaviour:BestFactoryPostPositionFilter(factoryName,p , mtype,
 	end
 	if mtype == 'bot' then
 		local vehNetwork = ai.factoryBuilded['veh'][ai.maphandler:MobilityNetworkHere('veh',p)]
-		if vehNetwork and vehNetwork > 0 and vehNetwork < 4 then
+		if vehNetwork and vehNetwork > 0 and vehNetwork < 4 and ai.factoryBuilded['air'][1] > 0 then
 			EchoDebug('dont build bot where are already veh not on top of tech level')
 			buildMe = false
 		end
 	elseif mtype == 'veh' then
 		local botNetwork = ai.factoryBuilded['bot'][ai.maphandler:MobilityNetworkHere('bot',p)]
-		if botNetwork and botNetwork > 0 and botNetwork < 9 then
+		if botNetwork and botNetwork > 0 and botNetwork < 9 and ai.factoryBuilded['air'][1] > 0 then
 			EchoDebug('dont build veh where are already bot not on top of tech level')
 			buildMe = false
 		end
