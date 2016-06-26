@@ -19,7 +19,7 @@ function ConVehicleAmphibious()
 	local mtypedLvAmph = GetMtypedLv(unitName)
 	local mtypedLvGround = GetMtypedLv('armcv')
 	local mtypedLv = math.max(mtypedLvAmph, mtypedLvGround) --workaround for get the best counter
-	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ConUnitPerTypeLimit))
+	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ai.conUnitPerTypeLimit))
 end
 
 function ConGroundVehicle()
@@ -30,7 +30,7 @@ function ConGroundVehicle()
 		unitName = "armcv"
 	end
 	local mtypedLv = GetMtypedLv(unitName)
-	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ConUnitPerTypeLimit))
+	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ai.conUnitPerTypeLimit))
 end
 
 function ConVehicle()
@@ -132,7 +132,7 @@ function ConAdvVehicle()
 		unitName = "armacv"
 	end
 	local mtypedLv = GetMtypedLv(unitName)
-	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 10) + 1, ConUnitAdvPerTypeLimit))
+	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 10) + 1, ai.conUnitAdvPerTypeLimit))
 end
 
 function Lvl2VehAssist()
@@ -141,7 +141,7 @@ function Lvl2VehAssist()
 	else
 		unitName = 'consul'
 		local mtypedLv = GetMtypedLv(unitName)
-		return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1, ConUnitPerTypeLimit))
+		return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1, ai.conUnitPerTypeLimit))
 	end
 end
 

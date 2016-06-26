@@ -244,6 +244,7 @@ function MapHandler:SpotSimplyfier(metalSpots,geoSpots)
 		mirrorspots[i].x = x
 		mirrorspots[i].y = y
 		mirrorspots[i].z = z
+		if DebugDrawEnabled then self.map:DrawPoint(mirrorspots[i], {1,0,1}, 'hotspot', 6) end
 	end
 	return mirrorspots
 end
@@ -754,8 +755,8 @@ function MapHandler:Init()
 	if DebugDrawEnabled then
 		self.map:EraseAll(4, 5)
 	end
-	ConUnitPerTypeLimit = math.max(map:SpotCount() / 6, 4)--add here cause map:spotcount not correctly load or so
-	ConUnitAdvPerTypeLimit = math.max(map:SpotCount() / 8, 2)
+	ai.conUnitPerTypeLimit = math.max(map:SpotCount() / 6, 4)--add here cause map:spotcount not correctly load or so
+	ai.conUnitAdvPerTypeLimit = math.max(map:SpotCount() / 8, 2)
 	ai.activeMobTypes = {}
 	ai.factoryListMap = {}
 

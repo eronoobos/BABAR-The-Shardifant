@@ -19,7 +19,7 @@ function ConBot()
 		unitName = "armck"
 	end
 	local mtypedLv = GetMtypedLv(unitName)
-	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ConUnitPerTypeLimit))
+	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ai.conUnitPerTypeLimit))
 end
 
 function RezBot1(self)
@@ -30,7 +30,7 @@ function RezBot1(self)
 		unitName = "armrectr"
 	end
 	local mtypedLv = GetMtypedLv(unitName)
-	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1 , ConUnitPerTypeLimit))
+	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1 , ai.conUnitPerTypeLimit))
 end
 
 function Lvl1BotRaider(self)
@@ -100,7 +100,7 @@ function ConAdvBot()
 		unitName = "armack"
 	end
 	local mtypedLv = GetMtypedLv(unitName)
-	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 10) + 1, ConUnitAdvPerTypeLimit))
+	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 10) + 1, ai.conUnitAdvPerTypeLimit))
 end
 
 
@@ -112,7 +112,7 @@ function Lvl2BotAssist()
 		unitName = "armfark"
 	end
 	local mtypedLv = GetMtypedLv(unitName)
-	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1, ConUnitPerTypeLimit))
+	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1, ai.conUnitPerTypeLimit))
 end
 
 function NewCommanders(self)

@@ -54,7 +54,7 @@ end
 
 function CheckMySide(self)
 	-- fix: moved here so map object is present when it's accessed
-	EchoDebug("per-type construction unit limit: " .. ConUnitPerTypeLimit)
+	EchoDebug("per-type construction unit limit: " .. ai.conUnitPerTypeLimit)
 	minDefenseNetworkSize = ai.mobilityGridArea / 4 
 	-- set the averageWind
 	-- set the tidal strength

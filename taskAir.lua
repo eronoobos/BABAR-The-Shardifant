@@ -16,7 +16,7 @@ function ConAir()
 		unitName = "armca"
 	end
 	local mtypedLv = GetMtypedLv(unitName)
-	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ConUnitPerTypeLimit))
+	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, ai.conUnitPerTypeLimit))
 end
 
 function Lvl1AirRaider(self)
@@ -68,7 +68,7 @@ function ConAdvAir()
 		unitName = "armaca"
 	end
 	local mtypedLv = GetMtypedLv(unitName)
-	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1, ConUnitAdvPerTypeLimit))
+	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1, ai.conUnitAdvPerTypeLimit))
 end
 
 function Lvl2Fighter()
@@ -146,7 +146,7 @@ function ConSeaAir()
 		unitName = "armcsa"
 	end
 	local mtypedLv = GetMtypedLv(unitName)
-	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 9) + 1, ConUnitAdvPerTypeLimit))
+	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 9) + 1, ai.conUnitAdvPerTypeLimit))
 end
 
 function SeaBomber()
@@ -212,5 +212,5 @@ function AirRepairPadIfNeeded()
 		end
 	end
 	
-	return BuildWithLimitedNumber(tmpUnitName, ConUnitPerTypeLimit)
+	return BuildWithLimitedNumber(tmpUnitName, ai.conUnitPerTypeLimit)
 end

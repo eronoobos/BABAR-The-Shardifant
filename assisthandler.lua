@@ -38,7 +38,7 @@ function AssistHandler:Update()
 		if ai.Metal.full > 0.33 then
 			ai.nonAssistantsPerName = math.max(ai.nonAssistantsPerName - 1, 2)
 		elseif ai.Metal.tics < 2 or ai.Metal.full < 0.1 then
-			ai.nonAssistantsPerName = math.min(ai.nonAssistantsPerName + 1, ConUnitPerTypeLimit)
+			ai.nonAssistantsPerName = math.min(ai.nonAssistantsPerName + 1, ai.conUnitPerTypeLimit)
 			for fi, asstbehaviour in pairs(self.free) do
 				if ai.IDByName[asstbehaviour.id] == nil then self:AssignIDByName(asstbehaviour) end
 				if ai.IDByName[asstbehaviour.id] <= ai.nonAssistantsPerName then
