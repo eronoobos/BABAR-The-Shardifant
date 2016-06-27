@@ -619,7 +619,11 @@ function MapHandler:factoriesRating()
 					end
 				end
 			end
-			factoryMtypeRating = factoryMtypeRating / count
+			if count == 0 then 
+				factoryMtypeRating = 0
+			else
+				factoryMtypeRating = factoryMtypeRating / count
+			end
 			if ShardSpringLua then
 				if maxPath == 0 then
 					mediaPath = 0
