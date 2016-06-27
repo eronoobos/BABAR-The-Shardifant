@@ -92,21 +92,27 @@ local function GetUnitTable()
 		if hoverplatform[unitDef["name"]] then
 			utable.techLevel = utable.techLevel - 0.5
 		end
-		if unitDef["canFly"] then
+		if utable.techLevel < 0 then
+			utable.mtype = 'chk'
+		elseif unitDef["canFly"] then
 			utable.mtype = "air"
-		elseif unitDef["modCategories"]["underwater"] or (unitDef["isBuilding"] and unitDef["minWaterDepth"] > 0 and unitDef["modCategories"]["surface"] and not unitDef["floatOnWater"]) then
-			utable.mtype = "sub"
-		elseif unitDef["modCategories"]["ship"] or (unitDef["isBuilding"] and unitDef["minWaterDepth"] > 0 and unitDef["modCategories"]["surface"] and unitDef["floatOnWater"]) then
-			utable.mtype = "shp"
-		-- elseif unitDef["modCategories"]["phib"] then
-		elseif unitDef.moveDef.name == 'atank3' then
-			utable.mtype = "amp"
-		elseif unitDef["modCategories"]["hover"] then
-			utable.mtype = "hov"
-		elseif unitDef["modCategories"]["kbot"] then
-			utable.mtype = "bot"
-		else
-			utable.mtype = "veh"
+		elseif 	unitDef.moveDef.name == 'hkbot5' or unitDef.moveDef.name == 'tkbot2' or unitDef.moveDef.name == 'tkbot3' or 			unitDef.moveDef.name == 'hkbot4' or unitDef.moveDef.name == 'kbot2' or unitDef.moveDef.name == 'kbot1' or 			unitDef.moveDef.name == 'hkbot3' or unitDef.moveDef.name == 'hkbot4' or unitDef.moveDef.name == 'htkbot4' then
+			utable.mtype = 'bot'
+		elseif 	unitDef.moveDef.name == 'htank3' or unitDef.moveDef.name == 'tank2' or unitDef.moveDef.name == 'tank3' or 			unitDef.moveDef.name == 'htank4' then
+			utable.mtype = 'veh'
+		elseif  unitDef.moveDef.name == 'hover4' or unitDef.moveDef.name == 'hover3' then
+			utable.mtype = 'hov'
+		elseif 	unitDef.moveDef.name == 'hakbot4' or unitDef.moveDef.name == 'vkbot5' or unitDef.moveDef.name == 'akbotbomb2' or 		unitDef.moveDef.name == 'akbot2' or unitDef.moveDef.name == 'atank3' or unitDef.moveDef.name == 'hakbot4' or 			unitDef.moveDef.name == 'vkbot3' then
+			utable.mtype = 'amp'
+		elseif 	unitDef.moveDef.name == 'boat5' or unitDef.moveDef.name == 'boat4' or unitDef.moveDef.name == 'dboat6' then
+			utable.mtype = 'shp'
+		elseif 	unitDef.moveDef.name == 'uboat3' then
+			utable.mtype = 'sub'
+		elseif	utable.isBuilding and utable.needsWater then
+			utable.mtype = 'sub'
+		elseif	utable.isBuilding and not utable.needsWater then
+			utable.mtype = 'veh'
+		else utable.mtype = 'veh' --nano and pop-up t1 ground turrets
 		end
 		if unitDef["isBuilder"] and #unitDef["buildOptions"] > 0 then
 			utable.buildOptions = true
