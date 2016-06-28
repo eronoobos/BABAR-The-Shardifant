@@ -2,7 +2,7 @@
 shard_include "common"
 
 local DebugEnabled = false
-local debugPlotTargetFile
+local DebugDrawEnabled = true
 
 
 local function EchoDebug(inStr)
@@ -12,24 +12,28 @@ local function EchoDebug(inStr)
 end
 
 local function PlotDebug(x, z, label)
-	if DebugEnabled then
+	if DebugDrawEnabled then
 		if label == nil then label= "nil" end
-		local string = math.ceil(x) .. " " .. math.ceil(z) .. " " .. label .. "\n"
-		debugPlotTargetFile:write(string)
+		local pos = api.Position()
+		pos.x, pos.z = x, z
+		pos.y = 0
+		if ShardSpringLua then
+			pos.y = Spring.GetGroundHeight(x, z)
+		end
+		map:DrawPoint(pos, {1,1,1}, label, 8)
 	end
 end
 
-local function PlotSquareDebug(x, z, size, label)
-	if DebugEnabled then
+local function PlotSquareDebug(x, z, size, color, label, filled)
+	if DebugDrawEnabled then
 		x = math.ceil(x)
 		z = math.ceil(z)
 		size = math.ceil(size)
-		-- if debugSquares[x .. "  " .. z .. " " .. size] == nil then
-			if label == nil then label = "nil" end
-			local string = x .. " " .. z .. " " .. size .. " " .. label .. "\n"
-			debugPlotTargetFile:write(string)
-			-- debugSquares[x .. "  " .. z .. " " .. size] = true
-		-- end
+		local halfSize = size / 2
+		local pos1, pos2 = api.Position(), api.Position()
+		pos1.x, pos1.z = x, z
+		pos2.x, pos2.z = x + size, z + size
+		map:DrawRectangle(pos1, pos2, color, label, filled, 8)
 	end
 end
 
@@ -391,7 +395,7 @@ local function InitializeDangers()
 	dangers["longrange"] = NewDangerLayer()
 end
 
-local function UpdateDangers()
+function TargetHandler:UpdateDangers()
 	local f = game:Frame()
 
 	for layer, danger in pairs(dangers) do
@@ -407,23 +411,23 @@ local function UpdateDangers()
 		end
 	end
 
-	ai.areWaterTargets = dangers.watertarget.present
-	ai.areLandTargets = dangers.landtarget.present or not dangers.watertarget.present
-	ai.needGroundDefense = dangers.ground.present or (not dangers.air.present and not dangers.submerged.present) -- don't turn off ground defense if there aren't air or submerged dangers
-	ai.needAirDefense = dangers.air.present
-	ai.needSubmergedDefense = dangers.submerged.present
-	ai.needShields = dangers.plasma.present
-	ai.needAntinuke = dangers.nuke.present
-	ai.canNuke = not dangers.antinuke.present
-	ai.needJammers = dangers.longrange.present or dangers.air.present or dangers.nuke.present or dangers.plasma.present
+	self.ai.areWaterTargets = dangers.watertarget.present
+	self.ai.areLandTargets = dangers.landtarget.present or not dangers.watertarget.present
+	self.ai.needGroundDefense = dangers.ground.present or (not dangers.air.present and not dangers.submerged.present) -- don't turn off ground defense if there aren't air or submerged dangers
+	self.ai.needAirDefense = dangers.air.present
+	self.ai.needSubmergedDefense = dangers.submerged.present
+	self.ai.needShields = dangers.plasma.present
+	self.ai.needAntinuke = dangers.nuke.present
+	self.ai.canNuke = not dangers.antinuke.present
+	self.ai.needJammers = dangers.longrange.present or dangers.air.present or dangers.nuke.present or dangers.plasma.present
 end
 
-local function UpdateEnemies()
-	ai.enemyMexSpots = {}
+function TargetHandler:UpdateEnemies()
+	self.ai.enemyMexSpots = {}
 	-- where is/are the party/parties tonight?
 	local highestValue = minNukeValue
 	local highestValueCell
-	for unitID, e in pairs(ai.knownEnemies) do
+	for unitID, e in pairs(self.ai.knownEnemies) do
 		local los = e.los
 		local ghost = e.ghost
 		local name = e.unitName
@@ -455,7 +459,7 @@ local function UpdateEnemies()
 				DangerCheck(name, e.unitID)
 				local value = Value(name)
 				if unitTable[name].extractsMetal ~= 0 then
-					table.insert(ai.enemyMexSpots, { position = pos, unit = e })
+					table.insert(self.ai.enemyMexSpots, { position = pos, unit = e })
 				end
 				if unitTable[name].isBuilding then
 					table.insert(cell.buildingIDs, e.unitID)
@@ -517,14 +521,14 @@ local function UpdateEnemies()
 	end
 	if highestValueCell then
 		enemyBaseCell = highestValueCell
-		ai.enemyBasePosition = highestValueCell.pos
+		self.ai.enemyBasePosition = highestValueCell.pos
 	else
 		enemyBaseCell = nil
-		ai.enemyBasePosition = nil
+		self.ai.enemyBasePosition = nil
 	end
 end
 
-local function UpdateBadPositions()
+function TargetHandler:UpdateBadPositions()
 	local f = game:Frame()
 	for i, r in pairs(badPositions) do
 		if cells[r.px] then
@@ -540,9 +544,9 @@ local function UpdateBadPositions()
 	end
 end
 
-local function UpdateWrecks()
+function TargetHandler:UpdateWrecks()
 	-- figure out where all the wrecks are
-	for id, w in pairs(ai.knownWrecks) do
+	for id, w in pairs(self.ai.knownWrecks) do
 		-- will need to check if reclaimer can get to wreck later
 		local pos = w.position
 		local cell = GetOrCreateCellHere(pos)
@@ -568,7 +572,7 @@ local function UpdateWrecks()
 	end
 end
 
-local function UpdateFronts(number)
+function TargetHandler:UpdateFronts(number)
 	local highestCells = {}
 	local highestResponses = {}
 	for n = 1, number do
@@ -600,20 +604,35 @@ local function UpdateFronts(number)
 		highestResponses[n] = highestResponse
 		highestCells[n] = highestCell
 	end
-	ai.defendhandler:FindFronts(highestCells)
+	self.ai.defendhandler:FindFronts(highestCells)
 end
 
 local function UpdateDebug()
-	if DebugEnabled then 
-		debugPlotTargetFile = assert(io.open("debugtargetplot",'w'), "Unable to write debugtargetplot")
-		for i, cell in pairs(cellList) do
+	if DebugDrawEnabled then
+		map:EraseAll(8)
+		local maxThreat = 0
+		local maxValue = 0
+		for i = 1, #cellList do
+			local cell = cellList[i]
+			local value, threat = CellValueThreat("ALL", cell)
+			if threat > maxThreat then maxThreat = threat end
+			if value > maxValue then maxValue = value end
+		end
+		for i = 1, #cellList do
+			local cell = cellList[i]
 			local x = cell.x * cellElmos - cellElmosHalf
 			local z = cell.z * cellElmos - cellElmosHalf
-			PlotSquareDebug(x, z, cellElmos, tostring(cell.value))
-			local threat = cell.groundThreat + cell.airThreat + cell.submergedThreat
-			PlotSquareDebug(x, z, cellElmos, tostring(-threat))
+			local value, threat = CellValueThreat("ALL", cell)
+			if value > 0 then
+				local g = value / maxValue
+				local b = 1 - g
+				PlotSquareDebug(x, z, cellElmos, {0,g,b}, tostring(value), false)
+			end
+			if threat > 0 then
+				local g = 1 - (threat / maxThreat)
+				PlotSquareDebug(x, z, cellElmos, {1,g,0}, tostring(threat), true)
+			end
 		end
-		debugPlotTargetFile:close()
 	end
 end
 
@@ -630,17 +649,17 @@ end
 ]]--
 
 function TargetHandler:Init()
-	ai.enemyMexSpots = {}
+	self.ai.enemyMexSpots = {}
 	currentEnemyThreatCount = 0
 	currentEnemyImmobileThreatCount = 0
 	currentEnemyMobileThreatCount = 0
 	enemyAlreadyCounted = {}
-	ai.totalEnemyThreat = 10000
-	ai.totalEnemyImmobileThreat = 5000
-	ai.totalEnemyMobileThreat = 5000
-	ai.needGroundDefense = true
-	ai.areLandTargets = true
-	ai.canNuke = true
+	self.ai.totalEnemyThreat = 10000
+	self.ai.totalEnemyImmobileThreat = 5000
+	self.ai.totalEnemyMobileThreat = 5000
+	self.ai.needGroundDefense = true
+	self.ai.areLandTargets = true
+	self.ai.canNuke = true
 	InitializeDangers()
 	self.lastEnemyThreatUpdateFrame = 0
 	self.feints = {}
@@ -654,9 +673,9 @@ function TargetHandler:Update()
 		-- store and reset the threat count
 		-- EchoDebug(currentEnemyThreatCount .. " enemy threat last 2000 frames")
 		EchoDebug(currentEnemyThreatCount)
-		ai.totalEnemyThreat = currentEnemyThreatCount
-		ai.totalEnemyImmobileThreat = currentEnemyImmobileThreatCount
-		ai.totalEnemyMobileThreat = currentEnemyMobileThreatCount
+		self.ai.totalEnemyThreat = currentEnemyThreatCount
+		self.ai.totalEnemyImmobileThreat = currentEnemyImmobileThreatCount
+		self.ai.totalEnemyMobileThreat = currentEnemyMobileThreatCount
 		currentEnemyThreatCount = 0
 		currentEnemyImmobileThreatCount = 0
 		currentEnemyMobileThreatCount = 0
@@ -688,16 +707,15 @@ function TargetHandler:AddBadPosition(position, mtype, threat, duration)
 end
 
 function TargetHandler:UpdateMap()
-	if ai.lastLOSUpdate > self.lastUpdateFrame then
+	if self.ai.lastLOSUpdate > self.lastUpdateFrame then
 		self.raiderCounted = {}
 		cells = {}
 		cellList = {}
-		UpdateEnemies()
-		UpdateDangers()
-		-- UpdateFriendlies()
-		UpdateBadPositions()
-		UpdateWrecks()
-		UpdateFronts(3)
+		self:UpdateEnemies()
+		self:UpdateDangers()
+		self:UpdateBadPositions()
+		self:UpdateWrecks()
+		self:UpdateFronts(3)
 		UpdateDebug()
 		self.lastUpdateFrame = game:Frame()
 	end
@@ -771,7 +789,7 @@ function TargetHandler:GetBestRaidCell(representative)
 		threat = threat - threatReduction
 		-- EchoDebug(value .. " " .. threat)
 		if value > 0 and threat <= maxThreat then
-			if ai.maphandler:UnitCanGoHere(representative, cell.pos) then
+			if self.ai.maphandler:UnitCanGoHere(representative, cell.pos) then
 				local mod = value - (threat * 3)
 				local dist = Distance(rpos, cell.pos) - mod
 				if dist < bestDist then
@@ -803,7 +821,7 @@ function TargetHandler:GetBestAttackCell(representative)
 	local lowestDist = 100000
 	for i, cell in pairs(cellList) do
 		if cell.pos then
-			if ai.maphandler:UnitCanGoHere(representative, cell.pos) or longrange then
+			if self.ai.maphandler:UnitCanGoHere(representative, cell.pos) or longrange then
 				local value, threat = CellValueThreat(name, cell)
 				local dist = Distance(rpos, cell.pos)
 				if dist > highestDist then highestDist = dist end
@@ -964,7 +982,7 @@ function TargetHandler:GetBestReclaimCell(representative, lookForEnergy)
 	for i, cell in pairs(cellList) do
 		local value, threat, gas = CellValueThreat(rname, cell)
 		if threat == 0 and cell.pos then
-			if ai.maphandler:UnitCanGoHere(representative, cell.pos) then
+			if self.ai.maphandler:UnitCanGoHere(representative, cell.pos) then
 				local mod
 				if lookForEnergy then
 					mod = cell.energy
@@ -997,7 +1015,7 @@ function TargetHandler:WreckToResurrect(representative)
 		if #cell.resurrectables ~= 0 then
 			local value, threat, gas = CellValueThreat(rname, cell)
 			if threat == 0 and cell.pos then
-				if ai.maphandler:UnitCanGoHere(representative, cell.pos) then
+				if self.ai.maphandler:UnitCanGoHere(representative, cell.pos) then
 					local dist = Distance(rpos, cell.pos)
 					if dist < bestDist then
 						best = cell
@@ -1046,7 +1064,7 @@ function TargetHandler:NearestVulnerableCell(representative)
 	for i, cell in pairs(cellList) do
 		local value, threat, gas = CellValueThreat(rname, cell)
 		if threat == 0 and cell.pos then
-			if ai.maphandler:UnitCanGoHere(representative, cell.pos) then
+			if self.ai.maphandler:UnitCanGoHere(representative, cell.pos) then
 				if CellVulnerable(cell, gas, weapons) ~= nil then
 					local dist = Distance(rpos, cell.pos)
 					if dist < bestDist then
@@ -1149,7 +1167,7 @@ function TargetHandler:BestAdjacentPosition(unit, targetPosition)
 						cells[x][z].pos.z = z * cellElmos - cellElmosHalf
 						cells[x][z].pos.y = 0
 					end
-					if ai.maphandler:UnitCanGoHere(unit, cells[x][z].pos) then
+					if self.ai.maphandler:UnitCanGoHere(unit, cells[x][z].pos) then
 						best = cells[x][z]
 					end
 				end
