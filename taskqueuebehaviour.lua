@@ -193,7 +193,7 @@ function TaskQueueBehaviour:Init()
 	self.name = u:Name()
 	if commanderList[self.name] then self.isCommander = true end
 	self.id = u:ID()
-	EchoDebug(self.name .. " initializing...")
+	EchoDebug(self.name .. " " .. self.id .. " initializing...")
 
 	-- register if factory is going to use outmoded queue
 	if factoryMobilities[self.name] ~= nil then
@@ -677,10 +677,12 @@ function TaskQueueBehaviour:GetQueue()
 end
 
 function TaskQueueBehaviour:ConstructionBegun(unitID, unitName, position)
+	EchoDebug(self.name .. " " .. self.id .. " began constructing " .. unitName .. " " .. unitID)
 	self.constructing = { unitID = unitID, unitName = unitName, position = position }
 end
 
 function TaskQueueBehaviour:ConstructionComplete()
+	EchoDebug(self.name .. " " .. self.id .. " completed construction of " .. self.constructing.unitName .. " " .. self.constructing.unitID)
 	self.constructing = nil
 end
 
@@ -721,6 +723,7 @@ function TaskQueueBehaviour:Update()
 end
 
 function TaskQueueBehaviour:ProgressQueue()
+	EchoDebug(self.name .. " " .. self.id .. " progress queue")
 	self.lastWatchdogCheck = game:Frame()
 	self.constructing = false
 	self.progress = false
@@ -802,6 +805,7 @@ function TaskQueueBehaviour:ProgressQueue()
 									local helpValue = self:GetHelp(value, p)
 									if helpValue ~= nil and helpValue ~= DummyUnitName then
 										EchoDebug(utype:Name() .. " has help")
+										ai.buildsitehandler:NewPlan(value, p, self)
 										success = self.unit:Internal():Build(utype, p)
 									end
 								end
@@ -816,6 +820,7 @@ function TaskQueueBehaviour:ProgressQueue()
 			end
 			-- DebugEnabled = false -- debugging plasma
 			if success then
+				EchoDebug(self.name .. " " .. self.id .. " successful build command for " .. utype:Name())
 				if self.isFactory then
 					if not self.outmodedTechLevel then
 						-- factories take up idle assistants
@@ -827,8 +832,6 @@ function TaskQueueBehaviour:ProgressQueue()
 					self.currentProject = value
 					if value == "ReclaimEnemyMex" then
 						self.watchdogTimeout = self.watchdogTimeout + 450 -- give it 15 more seconds to reclaim it
-					else
-						ai.buildsitehandler:NewPlan(value, p, self)
 					end
 				end
 				self.released = false
