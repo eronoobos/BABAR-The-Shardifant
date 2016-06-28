@@ -2,7 +2,7 @@
 shard_include "common"
 
 local DebugEnabled = false
-local DebugDrawEnabled = false
+local DebugDrawEnabled = true
 
 
 local function EchoDebug(inStr)
@@ -31,8 +31,8 @@ local function PlotSquareDebug(x, z, size, color, label, filled)
 		size = math.ceil(size)
 		local halfSize = size / 2
 		local pos1, pos2 = api.Position(), api.Position()
-		pos1.x, pos1.z = x, z
-		pos2.x, pos2.z = x + size, z + size
+		pos1.x, pos1.z = x - halfSize, z - halfSize
+		pos2.x, pos2.z = x + halfSize, z + halfSize
 		map:DrawRectangle(pos1, pos2, color, label, filled, 8)
 	end
 end
@@ -109,7 +109,15 @@ local function NewCell(px, pz)
 	local threat = { ground = 0, air = 0, submerged = 0 } -- threats (including buildings) by what they hurt
 	local response = { ground = 0, air = 0, submerged = 0 } -- count mobile threat by what can hurt it
 	local preresponse = { ground = 0, air = 0, submerged = 0 } -- count where mobile threat will probably be by what can hurt it 
-	local newcell = { value = 0, explosionValue = 0, values = values, threat = threat, response = response, buildingIDs = {}, targets = targets, vulnerables = vulnerables, resurrectables = {}, lastDisarmThreat = 0, metal = 0, energy = 0, x = px, z = pz }
+	local position = api.Position()
+	local x = px * cellElmos - cellElmosHalf
+	local z = pz * cellElmos - cellElmosHalf
+	position.x, position.z = x, z
+	position.y = 0
+	if ShardSpringLua then
+		position.y = Spring.GetGroundHeight(x, z)
+	end
+	local newcell = { value = 0, explosionValue = 0, values = values, threat = threat, response = response, buildingIDs = {}, targets = targets, vulnerables = vulnerables, resurrectables = {}, lastDisarmThreat = 0, metal = 0, energy = 0, x = px, z = pz, pos = position }
 	return newcell
 end
 
@@ -213,7 +221,6 @@ local function HorizontalLine(x, z, tx, threatResponse, groundAirSubmerged, val)
 		if cells[ix][z] == nil then
 			-- EchoDebug("new cell" .. ix .. "," .. z)
 			cells[ix][z] = NewCell(ix, z)
-			if DebugEnabled then table.insert(cellList, cells[ix][z]) end
 		end
 		cells[ix][z][threatResponse][groundAirSubmerged] = cells[ix][z][threatResponse][groundAirSubmerged] + val
 	end
@@ -612,25 +619,27 @@ local function UpdateDebug()
 		map:EraseAll(8)
 		local maxThreat = 0
 		local maxValue = 0
-		for i = 1, #cellList do
-			local cell = cellList[i]
-			local value, threat = CellValueThreat("ALL", cell)
-			if threat > maxThreat then maxThreat = threat end
-			if value > maxValue then maxValue = value end
-		end
-		for i = 1, #cellList do
-			local cell = cellList[i]
-			local x = cell.x * cellElmos - cellElmosHalf
-			local z = cell.z * cellElmos - cellElmosHalf
-			local value, threat = CellValueThreat("ALL", cell)
-			if value > 0 then
-				local g = value / maxValue
-				local b = 1 - g
-				PlotSquareDebug(x, z, cellElmos, {0,g,b}, tostring(value), false)
+		for cx, czz in pairs(cells) do
+			for cz, cell in pairs(czz) do
+				local value, threat = CellValueThreat("ALL", cell)
+				if threat > maxThreat then maxThreat = threat end
+				if value > maxValue then maxValue = value end
 			end
-			if threat > 0 then
-				local g = 1 - (threat / maxThreat)
-				PlotSquareDebug(x, z, cellElmos, {1,g,0}, tostring(threat), true)
+		end
+		for cx, czz in pairs(cells) do
+			for cz, cell in pairs(czz) do
+				local x = cell.x * cellElmos - cellElmosHalf
+				local z = cell.z * cellElmos - cellElmosHalf
+				local value, threat = CellValueThreat("ALL", cell)
+				if value > 0 then
+					local g = value / maxValue
+					local b = 1 - g
+					PlotSquareDebug(x, z, cellElmos, {0,g,b}, tostring(value), false)
+				end
+				if threat > 0 then
+					local g = 1 - (threat / maxThreat)
+					PlotSquareDebug(x, z, cellElmos, {1,g,0}, tostring(threat), true)
+				end
 			end
 		end
 	end
