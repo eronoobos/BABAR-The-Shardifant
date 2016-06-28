@@ -874,7 +874,7 @@ end
 
 function TaskQueueBehaviour:Deactivate()
 	self.active = false
-	ai.buildsitehandler:ClearMyPlans()
+	ai.buildsitehandler:ClearMyPlans(self)
 end
 
 function TaskQueueBehaviour:Priority()

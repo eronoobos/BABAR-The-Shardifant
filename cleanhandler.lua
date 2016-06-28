@@ -21,6 +21,7 @@ end
 
 function CleanHandler:Init()
 	self.cleanables = {}
+	self.isBeingCleanedBy = {}
 	self.bigEnergyCount = 0
 end
 
@@ -36,17 +37,29 @@ function CleanHandler:UnitBuilt(unit)
 	end
 end
 
-function CleanHandler:UnitDestroyed(unit)
+function CleanHandler:UnitDead(unit)
 	if unit:Team() == self.ai.id then
-		self:RemoveCleanable(unit:ID())
+		if self:IsBigEnergy(unit) then
+			self.bigEnergyCount = self.bigEnergyCount - 1
+		else
+			for cleanableUnitID, clnrbehavior in pairs(self.isBeingCleanedBy) do
+				if clnrbehavior.unit.engineID == unit:ID() then
+					self.isBeingCleanedBy[cleanableUnitID] = nil
+					break
+				end
+			end
+			self:RemoveCleanable(unit)
+		end
 	end
 end
 
-function CleanHandler:RemoveCleanable(unitID)
+function CleanHandler:RemoveCleanable(unit)
+	local unitID = unit:ID()
 	for i = #self.cleanables, 1, -1 do
 		local cleanable = self.cleanables[i]
 		if cleanable:ID() == unitID then
 			EchoDebug("remove cleanable " .. cleanable:Name())
+			self.isBeingCleanedBy[unitID] = nil
 			table.remove(self.cleanables, i)
 			return
 		end
@@ -62,6 +75,14 @@ function CleanHandler:IsBigEnergy(unit)
 	if ut then
 		return (ut.totalEnergyOut > 750)
 	end
+end
+
+function CleanHandler:AmCleaning(clnrbehavior, unit)
+	self.isBeingCleanedBy[unit:ID()] = clnrbehavior
+end
+
+function CleanHandler:IsBeingCleaned(unit)
+	return self.isBeingCleanedBy[unit:ID()]
 end
 
 function CleanHandler:GetCleanables()
@@ -88,7 +109,7 @@ function CleanHandler:ClosestCleanable(unit)
 				bestDist = dist
 			end
 		else
-			self:RemoveCleanable(cleanable:ID())
+			self:RemoveCleanable(cleanable)
 		end
 	end
 	return bestCleanable
