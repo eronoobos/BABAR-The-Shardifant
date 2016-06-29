@@ -50,10 +50,10 @@ end
 
 function BuildSiteHandler:Init()
 	local mapSize = map:MapDimensions()
-	ai.maxElmosX = mapSize.x * 8
-	ai.maxElmosZ = mapSize.z * 8
-	ai.maxElmosDiag = sqrt(ai.maxElmosX^2 + ai.maxElmosZ^2)
-	ai.lvl1Mexes = 1 -- this way mexupgrading doesn't revert to taskqueuing before it has a chance to find mexes to upgrade
+	self.ai.maxElmosX = mapSize.x * 8
+	self.ai.maxElmosZ = mapSize.z * 8
+	self.ai.maxElmosDiag = sqrt(self.ai.maxElmosX^2 + self.ai.maxElmosZ^2)
+	self.ai.lvl1Mexes = 1 -- this way mexupgrading doesn't revert to taskqueuing before it has a chance to find mexes to upgrade
 	self.resurrectionRepair = {}
 	self.dontBuildRects = {}
 	self.plans = {}
@@ -88,7 +88,7 @@ function BuildSiteHandler:LandWaterFilter(pos, unitTypeToBuild, builder)
 	end
 	-- where is the con?
 	local builderPos = builder:GetPosition()
-	local water = ai.maphandler:MobilityNetworkHere("shp", builderPos)
+	local water = self.ai.maphandler:MobilityNetworkHere("shp", builderPos)
 	-- is this a land or a water unit we're building?
 	local waterBuildOrder = unitTable[unitName].needsWater
 	-- if this is a movement from land to water or water to land, check the distance
@@ -309,12 +309,12 @@ end
 function BuildSiteHandler:ClosestHighestLevelFactory(builderPos, maxDist)
 	if not builderPos then return end
 	local minDist = maxDist
-	local maxLevel = ai.maxFactoryLevel
+	local maxLevel = self.ai.maxFactoryLevel
 	EchoDebug(maxLevel .. " max factory level")
 	local factoryPos = nil
-	if ai.factoriesAtLevel[maxLevel] ~= nil then
-		for i, factory in pairs(ai.factoriesAtLevel[maxLevel]) do
-			if not ai.outmodedFactoryID[factory.id] then
+	if self.ai.factoriesAtLevel[maxLevel] ~= nil then
+		for i, factory in pairs(self.ai.factoriesAtLevel[maxLevel]) do
+			if not self.ai.outmodedFactoryID[factory.id] then
 				local dist = Distance(builderPos, factory.position)
 				if dist < minDist then
 					minDist = dist
@@ -353,7 +353,7 @@ function BuildSiteHandler:DoBuildRectangleByUnitID(unitID)
 end
 
 function BuildSiteHandler:DontBuildOnMetalOrGeoSpots()
-	local spots = ai.scoutSpots["air"][1]
+	local spots = self.ai.scoutSpots["air"][1]
 	for i, p in pairs(spots) do
 		self:DontBuildRectangle(p.x-40, p.z-40, p.x+40, p.z+40)
 	end
@@ -376,7 +376,7 @@ function BuildSiteHandler:UnitCreated(unit)
 				if unitTable[unitName].isBuilding then
 					-- so that oversized factory lane rectangles will overlap with existing buildings
 					self:DontBuildRectangle(plan.x1, plan.z1, plan.x2, plan.z2, unitID)
-					ai.turtlehandler:PlanCreated(plan, unitID)
+					self.ai.turtlehandler:PlanCreated(plan, unitID)
 				end
 				-- tell the builder behaviour that construction has begun
 				plan.behaviour:ConstructionBegun(unitID, plan.unitName, plan.position)
@@ -395,7 +395,7 @@ function BuildSiteHandler:UnitCreated(unit)
 		local rect = { position = position, unitName = unitName }
 		self:CalculateRect(rect)
 		self:DontBuildRectangle(rect.x1, rect.z1, rect.x2, rect.z2, unitID)
-		ai.turtlehandler:NewUnit(unitName, position, unitID)
+		self.ai.turtlehandler:NewUnit(unitName, position, unitID)
 	end
 	self:PlotAllDebug()
 end
@@ -489,7 +489,7 @@ function BuildSiteHandler:NewPlan(unitName, position, behaviour, resurrect)
 	local plan = {unitName = unitName, position = position, behaviour = behaviour, resurrect = resurrect}
 	self:CalculateRect(plan)
 	if not resurrect and unitTable[unitName].isBuilding then
-		ai.turtlehandler:NewUnit(unitName, position, plan)
+		self.ai.turtlehandler:NewUnit(unitName, position, plan)
 	end
 	table.insert(self.plans, plan)
 	self:PlotAllDebug()
@@ -499,7 +499,7 @@ function BuildSiteHandler:ClearMyPlans(behaviour)
 	for i, plan in pairs(self.plans) do
 		if plan.behaviour == behaviour then
 			if not plan.resurrect and unitTable[plan.unitName].isBuilding then
-				ai.turtlehandler:PlanCancelled(plan)
+				self.ai.turtlehandler:PlanCancelled(plan)
 			end
 			table.remove(self.plans, i)
 		end

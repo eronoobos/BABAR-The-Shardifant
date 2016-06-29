@@ -20,35 +20,35 @@ function CountHandler:internalName()
 end
 
 function CountHandler:Init()
-	ai.factories = 0
-	ai.maxFactoryLevel = 0
-	ai.factoriesAtLevel = {}
-	ai.outmodedFactoryID = {}
+	self.ai.factories = 0
+	self.ai.maxFactoryLevel = 0
+	self.ai.factoriesAtLevel = {}
+	self.ai.outmodedFactoryID = {}
 
-	ai.nameCount = {}
-	ai.nameCountFinished = {}
-	ai.lastNameCreated = {}
-	ai.lastNameFinished = {}
-	ai.lastNameDead = {}
-	ai.mexCount = 0
-	ai.conCount = 0
-	ai.combatCount = 0
-	ai.battleCount = 0
-	ai.breakthroughCount = 0
-	ai.siegeCount = 0
-	ai.reclaimerCount = 0
-	ai.bigEnergyCount = 0
-	ai.cleanable = {}
-	ai.assistCount = 0
+	self.ai.nameCount = {}
+	self.ai.nameCountFinished = {}
+	self.ai.lastNameCreated = {}
+	self.ai.lastNameFinished = {}
+	self.ai.lastNameDead = {}
+	self.ai.mexCount = 0
+	self.ai.conCount = 0
+	self.ai.combatCount = 0
+	self.ai.battleCount = 0
+	self.ai.breakthroughCount = 0
+	self.ai.siegeCount = 0
+	self.ai.reclaimerCount = 0
+	self.ai.bigEnergyCount = 0
+	self.ai.cleanable = {}
+	self.ai.assistCount = 0
 	
-	ai.mtypeLvCount= {}
+	self.ai.mtypeLvCount= {}
 	
 	self:InitializeNameCounts()
 end
 
 function CountHandler:InitializeNameCounts()
 	for name, t in pairs(unitTable) do
-		ai.nameCount[name] = 0
+		self.ai.nameCount[name] = 0
 	end
 end
 
