@@ -597,13 +597,13 @@ function TaskQueueBehaviour:BestFactoryPostPositionFilter(factoryName,p , mtype,
 	end
 	if mtype == 'bot' then
 		local vehNetwork = ai.factoryBuilded['veh'][ai.maphandler:MobilityNetworkHere('veh',p)]
-		if vehNetwork and vehNetwork > 0 and vehNetwork < 4 and ai.factoryBuilded['air'][1] > 0 then
+		if (vehNetwork and vehNetwork > 0) and (vehNetwork < 4 or ai.factoryBuilded['air'][1] < 1) then
 			EchoDebug('dont build bot where are already veh not on top of tech level')
 			buildMe = false
 		end
 	elseif mtype == 'veh' then
 		local botNetwork = ai.factoryBuilded['bot'][ai.maphandler:MobilityNetworkHere('bot',p)]
-		if botNetwork and botNetwork > 0 and botNetwork < 9 and ai.factoryBuilded['air'][1] > 0 then
+		if (botNetwork and botNetwork > 0) and (botNetwork < 9 or ai.factoryBuilded['air'][1] < 1) then
 			EchoDebug('dont build veh where are already bot not on top of tech level')
 			buildMe = false
 		end
