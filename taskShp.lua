@@ -25,12 +25,12 @@ function RezSub1(self)
 	else
 		unitName = "armrecl"
 	end
-	local mtypedLv = GetMtypedLv(unitName) + GetMtypedLv('armpt') --need count shp too
+	local mtypedLv = GetMtypedLv(unitName) + GetMtypedLv('armcs') --need count shp too
 	return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 2, ai.conUnitPerTypeLimit))
 end
 
 function Lvl1ShipRaider(self)
-	local unitName = ""
+	local unitName = DummyUnitName
 	if ai.mySide == CORESideName then
 		unitName = "corsub"
 	else
@@ -40,21 +40,19 @@ function Lvl1ShipRaider(self)
 end
 
 function Lvl1ShipDestroyerOnly(self)
-	if ai.combatCount > 12 then
-		if ai.mySide == CORESideName then
-			unitName = "corroy"
-		else
-			unitName = "armroy"
-		end
-		return BuildBattleIfNeeded(unitName)
+	local unitName = DummyUnitName
+	if ai.mySide == CORESideName then
+		unitName = "corroy"
+	else
+		unitName = "armroy"
 	end
+	local mtypedLv = GetMtypedLv(unitName) + GetMtypedLv('armcs')
+	return BuildWithLimitedNumber(unitName,mtypedLv * 0.7)
 end
 
 function Lvl1ShipBattle(self)
 	local unitName = ""
-	local r = 1
-	if ai.combatCount > 12 then r = 2 end -- only build destroyers if you've already got quite a few units (combat = scouts + raiders + battle)
-	if r == 1 then
+	if ai.Metal.full < 0.5 then
 		if ai.mySide == CORESideName then
 			unitName = "coresupp"
 		else
@@ -149,15 +147,15 @@ function Lvl2ShipRaider(self)
 	return BuildRaiderIfNeeded(unitName)
 end
 
-function Lvl2SubLight(self)
-	local unitName = ""
+function Lvl2SubWar(self)
+	local unitName = DummyUnitName
 		if ai.mySide == CORESideName then
 			unitName = "corssub"
 		else
 			unitName = "tawf009"
 		end
 
-	return BuildRaiderIfNeeded(unitName)
+	return BuildBattleIfNeeded(unitName)
 end
 
 function Lvl2ShipBattle(self)

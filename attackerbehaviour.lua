@@ -22,7 +22,7 @@ end
 AttackerBehaviour = class(Behaviour)
 
 function AttackerBehaviour:Init()
-	local mtype, network = ai.maphandler:MobilityOfUnit(self.unit:Internal())
+	local mtype, network = self.ai.maphandler:MobilityOfUnit(self.unit:Internal())
 	self.mtype = mtype
 	self.name = self.unit:Internal():Name()
 	local ut = unitTable[self.name]
@@ -43,7 +43,7 @@ end
 function AttackerBehaviour:UnitBuilt(unit)
 	if unit.engineID == self.unit.engineID then
 		self.attacking = false
-		ai.attackhandler:AddRecruit(self)
+		self.ai.attackhandler:AddRecruit(self)
 	end
 end
 
@@ -61,9 +61,9 @@ function AttackerBehaviour:OwnerDied()
 	self.attacking = nil
 	self.active = nil
 	self.unit = nil
-	ai.attackhandler:NeedMore(self)
-	ai.attackhandler:RemoveRecruit(self)
-	ai.attackhandler:RemoveMember(self)
+	self.ai.attackhandler:NeedMore(self)
+	self.ai.attackhandler:RemoveRecruit(self)
+	self.ai.attackhandler:RemoveMember(self)
 end
 
 function AttackerBehaviour:UnitIdle(unit)
@@ -118,7 +118,7 @@ function AttackerBehaviour:Congregate(pos)
 	else
 		local unit = self.unit:Internal()
 		self.target = pos
-		if ai.maphandler:UnitCanGoHere(unit, pos) then
+		if self.ai.maphandler:UnitCanGoHere(unit, pos) then
 			self.attacking = true
 			self.congregating = true
 			if self.active then

@@ -29,12 +29,12 @@ factoryMobilities = {
 	armsy = {"shp", "sub"},
 	corasy = {"shp", "sub"},
 	armasy = {"shp", "sub"},
-	csubpen = {"sub", "amp"},
-	asubpen = {"sub", "amp"},
+	csubpen = {"amp","sub"},
+	asubpen = {"amp","sub"},
 	corgant = {"bot"},
 	armshltx = {"bot"},
-	corgantuw = {"bot"},
-	armshltxuw = {"bot"},
+	corgantuw = {"amp"},
+	armshltxuw = {"amp"},
 }
 
 -- for calculating what factories to build
@@ -47,18 +47,6 @@ mobilityEffeciencyMultiplier = {
 	hov = 0.7,
 	amp = 0.4,
 	air = 0.55,
-}
-
--- for calculating what factories to build
--- higher values mean slower
-mobilitySlowMultiplier = {
-	veh = 1,
-	shp = 1,
-	sub = 1.3,
-	bot = 1.3,
-	hov = 0.75,
-	amp = 1.5,
-	air = 0.25,
 }
 
 factoryExitSides = {
@@ -341,6 +329,8 @@ attackerlist = {
 	"armcrus",
 	"corblackhy",
 	"aseadragon",
+	"tawf009",
+	"corssub",
 	-- hover
 	"corsnap",
 	"armanac",
@@ -501,7 +491,7 @@ raiderList = {
 	"corsub",
 	"armsub",
 	"armsubk",
-	"corsubk",
+	"corshark",
 }
 
 raiderDisarms = {

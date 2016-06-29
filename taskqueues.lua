@@ -674,6 +674,7 @@ local anyLvl2ShipYard = {
 	Lvl2ShipBreakthrough,
 	Lvl2ShipMerl,
 	Lvl2ShipAssist,
+	Lvl2SubWar,
 	MegaShip,
 }
 

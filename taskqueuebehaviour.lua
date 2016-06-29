@@ -43,13 +43,7 @@ function TaskQueueBehaviour:CategoryEconFilter(value)
 	if Eco1[value] or Eco2[value] then
 		return value
 	end
-	if nanoTurretList[value] then
-		-- nano turret
-		EchoDebug(" nano turret")
-		if metalBelowHalf or energyTooLow or farTooFewCombats then
-			value = DummyUnitName
-		end
-	elseif reclaimerList[value] then
+	if reclaimerList[value] then
 		-- dedicated reclaimer
 		EchoDebug(" dedicated reclaimer")
 		if metalAboveHalf or energyTooLow or farTooFewCombats then
@@ -58,64 +52,22 @@ function TaskQueueBehaviour:CategoryEconFilter(value)
 	elseif unitTable[value].isBuilding then
 		-- buildings
 		EchoDebug(" building")
-		if unitTable[value].extractsMetal > 0 then
-			-- metal extractor
-			EchoDebug("  mex")
-			if energyTooLow and ai.Metal.income > 3 then
-				value = DummyUnitName
-			end
-		elseif value == "corwin" or value == "armwin" or value == "cortide" or value == "armtide" or (unitTable[value].totalEnergyOut > 0 and not unitTable[value].buildOptions) then
-			-- energy plant
-			EchoDebug("  energy plant")
-			if bigEnergyList[uname] then
-				-- big energy plant
-				EchoDebug("   big energy plant")
-				-- don't build big energy plants until we have the resources to do so
-				if energyOkay or metalTooLow or ai.Energy.income < 400 or ai.Metal.income < 35 then
-					value = DummyUnitName
-				end
-				if self.name == "coracv" and value == "corfus" and ai.Energy.income > 4000 then
-					-- build advanced fusion
-					value = "cafus"
-				elseif self.name == "armacv" and value == "armfus" and ai.Energy.income > 4000 then
-					-- build advanced fusion
-					value = "aafus"
-				end
-				-- don't build big energy plants less than fifteen seconds from one another
-				if ai.lastNameFinished[value] ~= nil then
-					if game:Frame() < ai.lastNameFinished[value] + 450 then
-						value = DummyUnitName
-					end
-				end
-			else
-				if energyOkay or metalTooLow then
-					value = DummyUnitName
-				end
-			end
-		elseif unitTable[value].buildOptions ~= nil then
+		if unitTable[value].buildOptions ~= nil then
 			-- factory
 			EchoDebug("  factory")
 			EchoDebug(ai.factories)
 			if ai.factories - ai.outmodedFactories <= 0 and metalOkay and energyOkay and ai.Metal.income > 3 and ai.Metal.reserves > unitTable[value].metalCost * 0.7 then
 				EchoDebug("   first factory")
 				-- build the first factory
-			elseif advFactories[value] and metalOkay and energyOkay then
-				-- build advanced factory
-			elseif expFactories[value] and metalOkay and energyOkay then
-				-- build experimental factory
+			elseif advFactories[value] and ai.needAdvanced and not ai.haveAdvFactory and (ai.couldAttack >= 1 or ai.couldBomb >= 1) then
+				EchoDebug('build advanced')
 			else
-				if ai.couldAttack >= 1 or ai.couldBomb >= 1 then
-					-- other factory after attack
-					if metalTooLow or ai.Metal.income < (ai.factories - ai.outmodedFactories) * 8 or energyTooLow or (ai.needAdvanced and not ai.haveAdvFactory) then
-						value = DummyUnitName
-					end
-				else
-					-- other factory before attack more stringent
-					if metalBelowHalf or ai.Metal.income < (ai.factories - ai.outmodedFactories) * 12 or energyTooLow or (ai.needAdvanced and not ai.haveAdvFactory) then
-						value = DummyUnitName
-					end
+				if ai.Metal.reserves > unitTable[value].metalCost * 0.5 and ai.Energy.reserves > unitTable[value].energyCost *0.3 then
+					EchoDebug('build others factories')
 				end
 			end
+					
+			
 		elseif unitTable[value].isWeapon then
 			-- defense
 			EchoDebug("  defense")
@@ -137,7 +89,7 @@ function TaskQueueBehaviour:CategoryEconFilter(value)
 		elseif unitTable[value].radarRadius > 0 then
 			-- radar
 			EchoDebug("  radar")
-			if metalTooLow or energyTooLow or ai.factories == 0 then
+			if metalTooLow or energyTooLow or ai.factories == 0 or ai.Energy.full < 0.5 then
 				value = DummyUnitName
 			end
 		else
@@ -153,31 +105,30 @@ function TaskQueueBehaviour:CategoryEconFilter(value)
 		if unitTable[value].buildOptions ~= nil then
 			-- construction unit
 			EchoDebug("  construction unit")
-			if ai.Energy.full > 0.1 and ai.Metal.full > 0.05 then
+			if ai.Energy.full > 0.1 and ai.Metal.full > 0.1 then
 				return value 
 			end
 		elseif unitTable[value].isWeapon then
 			-- combat unit
 			EchoDebug("  combat unit")
-			if metalTooLow or energyTooLow then
-				value = DummyUnitName
+			if ai.Energy.full > 0.2 and ai.Metal.full > 0.2 then
+				return value 
 			end
 		elseif value == "armpeep" or value == "corfink" then
 			-- scout planes have no weapons
-			if metalTooLow or energyTooLow then
-				value = DummyUnitName
+			if ai.Energy.full > 0.3 and ai.Metal.full > 0.3 then
+				return value 
 			end
 		else
 			-- other unit
 			EchoDebug("  other unit")
-			if notEnoughCombats or metalBelowHalf or energyTooLow then
+			if notEnoughCombats or ai.Energy.full < 0.3 or ai.Metal.full < 0.3 then
 				value = DummyUnitName
 			end
 		end
 	end
 	return value
 end
-
 function TaskQueueBehaviour:Init()
 	shard_include "taskqueues"
 	if ai.outmodedFactories == nil then ai.outmodedFactories = 0 end
@@ -290,16 +241,12 @@ function TaskQueueBehaviour:GetHelp(value, position)
 	if Eco1[value] then
 		return value
 	end
-	-- if Eco2[value] then
-	-- 	local hashelp = ai.assisthandler:PersistantSummon(builder, position, math.ceil(unitTable[value].buildTime/10000), 0)
-	-- 	return value
-	-- end
-	if helpList[value] then
-		local hashelp = ai.assisthandler:PersistantSummon(builder, position, helpList[value], 1)
-		if hashelp then
-			return value
-		end
-	elseif unitTable[value].isBuilding and unitTable[value].buildOptions then
+	if Eco2[value] then
+		local hashelp = ai.assisthandler:PersistantSummon(builder, position, math.ceil(unitTable[value].buildTime/10000), 0)
+		return value
+	end
+	
+	if unitTable[value].isBuilding and unitTable[value].buildOptions then
 		if ai.factories - ai.outmodedFactories <= 0 or advFactories[value] then
 			EchoDebug("can get help to build factory but don't need it")
 			ai.assisthandler:Summon(builder, position)
@@ -315,9 +262,11 @@ function TaskQueueBehaviour:GetHelp(value, position)
 		end
 	else
 		local number
-		if self.isFactory then
+		if self.isFactory and not unitTable[value].needsWater then
 			-- factories have more nano output
 			number = math.floor((unitTable[value].metalCost + 1000) / 1500)
+		elseif self.isFactory and unitTable[value].needsWater then
+			number = math.floor((unitTable[value].metalCost + 1000) / 500)
 		else
 			number = math.floor((unitTable[value].metalCost + 750) / 1000)
 		end
