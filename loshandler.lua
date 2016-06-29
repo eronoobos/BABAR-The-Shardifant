@@ -78,13 +78,13 @@ end
 
 function LosHandler:Init()
 	self.losGrid = {}
-	ai.knownEnemies = {}
-	ai.knownWrecks = {}
-	ai.wreckCount = 0
-	ai.enemyList = {}
-	ai.blips = {}
-	ai.lastLOSUpdate = 0
-	ai.friendlyTeamID = {}
+	self.ai.knownEnemies = {}
+	self.ai.knownWrecks = {}
+	self.ai.wreckCount = 0
+	self.ai.enemyList = {}
+	self.ai.blips = {}
+	self.ai.lastLOSUpdate = 0
+	self.ai.friendlyTeamID = {}
 	self:Update()
 end
 
@@ -106,11 +106,11 @@ function LosHandler:Update()
 			-- if the unit moves, the behaviours can be polled rather than GetFriendlies()
 			-- except for allies' units
 			local friendlies = game:GetFriendlies()
-			ai.friendlyTeamID = {}
-			ai.friendlyTeamID[game:GetTeamID()] = true
+			self.ai.friendlyTeamID = {}
+			self.ai.friendlyTeamID[game:GetTeamID()] = true
 			if friendlies ~= nil then
 				for _, unit in pairs(friendlies) do
-					ai.friendlyTeamID[unit:Team()] = true -- because I can't get allies' teamIDs directly
+					self.ai.friendlyTeamID[unit:Team()] = true -- because I can't get allies' teamIDs directly
 					local uname = unit:Name()
 					local utable = unitTable[uname]
 					local upos = unit:GetPosition()
@@ -152,7 +152,7 @@ function LosHandler:Update()
 		end
 		-- update known wrecks
 		self:UpdateWrecks()
-		ai.lastLOSUpdate = f
+		self.ai.lastLOSUpdate = f
 	end
 end
 
@@ -212,23 +212,23 @@ function LosHandler:UpdateEnemies(enemyList)
 				persist = true
 			elseif los == 2 then
 				known[id] = los
-				ai.knownEnemies[id] = e
+				self.ai.knownEnemies[id] = e
 				e.los = los
 			end
 			if persist == true then
-				if ai.knownEnemies[id] ~= nil then
-					if ai.knownEnemies[id].los == 2 then
-						known[id] = ai.knownEnemies[id].los
+				if self.ai.knownEnemies[id] ~= nil then
+					if self.ai.knownEnemies[id].los == 2 then
+						known[id] = self.ai.knownEnemies[id].los
 					end
 				end
 			end
 			if los == 1 then
-				ai.knownEnemies[id] = e
+				self.ai.knownEnemies[id] = e
 				e.los = los
 				known[id] = los
 			end
-			if ai.knownEnemies[id] ~= nil and DebugDrawEnabled then
-				if known[id] == 2 and ai.knownEnemies[id].los == 2 then
+			if self.ai.knownEnemies[id] ~= nil and DebugDrawEnabled then
+				if known[id] == 2 and self.ai.knownEnemies[id].los == 2 then
 					e.unit:DrawHighlight({1,0,0}, 'known', 3)
 					-- self.map:DrawUnit(id, {1,0,0}, 'known', 3)
 					-- PlotDebug(pos.x, pos.z, "known")
@@ -241,30 +241,30 @@ function LosHandler:UpdateEnemies(enemyList)
 	-- also populate moving blips (whether in radar or in sight) for analysis
 	local blips = {}
 	local f = game:Frame()
-	for id, e in pairs(ai.knownEnemies) do
+	for id, e in pairs(self.ai.knownEnemies) do
 		if not exists[id] then
 			-- enemy died
-			if ai.IDsWeAreAttacking[id] then
-				ai.attackhandler:TargetDied(ai.IDsWeAreAttacking[id])
+			if self.ai.IDsWeAreAttacking[id] then
+				self.ai.attackhandler:TargetDied(self.ai.IDsWeAreAttacking[id])
 			end
-			if ai.IDsWeAreRaiding[id] then
-				ai.raidhandler:TargetDied(ai.IDsWeAreRaiding[id])
+			if self.ai.IDsWeAreRaiding[id] then
+				self.ai.raidhandler:TargetDied(self.ai.IDsWeAreRaiding[id])
 			end
 			EchoDebug("enemy " .. e.unitName .. " died!")	
 			local mtypes = UnitWeaponMtypeList(e.unitName)
 			for i, mtype in pairs(mtypes) do
-				ai.raidhandler:NeedMore(mtype)
-				ai.attackhandler:NeedLess(mtype)
-				if mtype == "air" then ai.bomberhandler:NeedLess() end
+				self.ai.raidhandler:NeedMore(mtype)
+				self.ai.attackhandler:NeedLess(mtype)
+				if mtype == "air" then self.ai.bomberhandler:NeedLess() end
 			end
-			ai.knownEnemies[id] = nil
+			self.ai.knownEnemies[id] = nil
 		elseif not known[id] then
 			if not e.ghost then
 				e.ghost = { frame = f, position = e.position }
 			else
 				-- expire ghost
 				if f > e.ghost.frame + 600 then
-					ai.knownEnemies[id] = nil
+					self.ai.knownEnemies[id] = nil
 				end
 			end
 		else
@@ -284,17 +284,17 @@ function LosHandler:UpdateEnemies(enemyList)
 		end
 	end
 	-- send blips off for analysis
-	ai.tacticalhandler:NewEnemyPositions(blips)
+	self.ai.tacticalhandler:NewEnemyPositions(blips)
 end
 
 function LosHandler:UpdateWrecks()
 	local wrecks = game.map:GetMapFeatures()
 	if wrecks == nil then
-		ai.knownWrecks = {}
+		self.ai.knownWrecks = {}
 		return
 	end
 	if #wrecks == 0 then
-		ai.knownWrecks = {}
+		self.ai.knownWrecks = {}
 		return
 	end
 	-- game:SendToConsole("updating known wrecks")
@@ -329,11 +329,11 @@ function LosHandler:UpdateWrecks()
 					persist = true
 				elseif los == 2 then
 					known[id] = true
-					ai.knownWrecks[id] = wreck
+					self.ai.knownWrecks[id] = wreck
 				end
 				if persist == true then
-					if ai.knownWrecks[id] ~= nil then
-						if ai.knownWrecks[id].los == 2 then
+					if self.ai.knownWrecks[id] ~= nil then
+						if self.ai.knownWrecks[id].los == 2 then
 							known[id] = true
 						end
 					end
@@ -341,15 +341,15 @@ function LosHandler:UpdateWrecks()
 			end
 		end
 	end
-	ai.wreckCount = 0
+	self.ai.wreckCount = 0
 	-- remove wreck ghosts that aren't there anymore
-	for id, los in pairs(ai.knownWrecks) do
+	for id, los in pairs(self.ai.knownWrecks) do
 		-- game:SendToConsole("known enemy " .. id .. " " .. los)
 		if known[id] == nil then
 			-- game:SendToConsole("removed")
-			ai.knownWrecks[id] = nil
+			self.ai.knownWrecks[id] = nil
 		else
-			ai.wreckCount = ai.wreckCount + 1
+			self.ai.wreckCount = self.ai.wreckCount + 1
 		end
 	end
 	-- cleanup
@@ -430,7 +430,7 @@ function LosHandler:GroundLos(upos)
 	elseif self.losGrid[gx][gz] == nil then
 		return 0
 	else
-		if ai.maphandler:IsUnderWater(upos) then
+		if self.ai.maphandler:IsUnderWater(upos) then
 			if self.losGrid[gx][gz][3] then
 				return 3
 			else
@@ -476,8 +476,8 @@ end
 
 function LosHandler:IsKnownEnemy(unit)
 	local id = unit:ID()
-	if ai.knownEnemies[id] then
-		return ai.knownEnemies[id].los
+	if self.ai.knownEnemies[id] then
+		return self.ai.knownEnemies[id].los
 	else
 		return 0
 	end
@@ -485,8 +485,8 @@ end
 
 function LosHandler:IsKnownWreck(feature)
 	local id = feature:ID()
-	if ai.knownWrecks[id] then
-		return ai.knownWrecks[id]
+	if self.ai.knownWrecks[id] then
+		return self.ai.knownWrecks[id]
 	else
 		return 0
 	end
@@ -494,9 +494,9 @@ end
 
 function LosHandler:GhostPosition(unit)
 	local id = unit:ID()
-	if ai.knownEnemies[id] then
-		if ai.knownEnemies[id].ghost then
-			return ai.knownEnemies[id].position
+	if self.ai.knownEnemies[id] then
+		if self.ai.knownEnemies[id].ghost then
+			return self.ai.knownEnemies[id].position
 		end
 	end
 	return nil
