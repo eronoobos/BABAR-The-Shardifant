@@ -40,13 +40,13 @@ function CountBehaviour:Init()
 	if reclaimerList[self.name] then self.isReclaimer = true end
 	if cleanable[self.name] then self.isCleanable = true end
 	if assistList[self.name] then self.isAssist = true end
-	if ai.nameCount[self.name] == nil then
-		ai.nameCount[self.name] = 1
+	if self.ai.nameCount[self.name] == nil then
+		self.ai.nameCount[self.name] = 1
 	else
-		ai.nameCount[self.name] = ai.nameCount[self.name] + 1
+		self.ai.nameCount[self.name] = self.ai.nameCount[self.name] + 1
 	end
-	EchoDebug(ai.nameCount[self.name] .. " " .. self.name .. " created")
-	ai.lastNameCreated[self.name] = game:Frame()
+	EchoDebug(self.ai.nameCount[self.name] .. " " .. self.name .. " created")
+	self.ai.lastNameCreated[self.name] = game:Frame()
 	self.unit:ElectBehaviour()
 end
 
@@ -59,30 +59,30 @@ end
 function CountBehaviour:UnitBuilt(unit)
 	if unit.engineID == self.unit.engineID then
 		-- game:SendToConsole(self.name .. " " .. self.id .. " built")
-		if ai.nameCountFinished[self.name] == nil then
-			ai.nameCountFinished[self.name] = 1
+		if self.ai.nameCountFinished[self.name] == nil then
+			self.ai.nameCountFinished[self.name] = 1
 		else
-			ai.nameCountFinished[self.name] = ai.nameCountFinished[self.name] + 1
+			self.ai.nameCountFinished[self.name] = self.ai.nameCountFinished[self.name] + 1
 		end
-		if self.isMex then ai.mexCount = ai.mexCount + 1 end
-		if self.isCon then ai.conCount = ai.conCount + 1 end
-		if self.isCombat then ai.combatCount = ai.combatCount + 1 end
-		if self.isBattle then ai.battleCount = ai.battleCount + 1 end
-		if self.isBreakthrough then ai.breakthroughCount = ai.breakthroughCount + 1 end
-		if self.isSiege then ai.siegeCount = ai.siegeCount + 1 end
-		if self.isReclaimer then ai.reclaimerCount = ai.reclaimerCount + 1 end
-		if self.isAssist then ai.assistCount = ai.assistCount + 1 end
-		if self.isBigEnergy then ai.bigEnergyCount = ai.bigEnergyCount + 1 end
-		if self.isCleanable then ai.cleanable[unit.engineID] = self.position end
-		ai.lastNameFinished[self.name] = game:Frame()
-		EchoDebug(ai.nameCountFinished[self.name] .. " " .. self.name .. " finished")
+		if self.isMex then self.ai.mexCount = self.ai.mexCount + 1 end
+		if self.isCon then self.ai.conCount = self.ai.conCount + 1 end
+		if self.isCombat then self.ai.combatCount = self.ai.combatCount + 1 end
+		if self.isBattle then self.ai.battleCount = self.ai.battleCount + 1 end
+		if self.isBreakthrough then self.ai.breakthroughCount = self.ai.breakthroughCount + 1 end
+		if self.isSiege then self.ai.siegeCount = self.ai.siegeCount + 1 end
+		if self.isReclaimer then self.ai.reclaimerCount = self.ai.reclaimerCount + 1 end
+		if self.isAssist then self.ai.assistCount = self.ai.assistCount + 1 end
+		if self.isBigEnergy then self.ai.bigEnergyCount = self.ai.bigEnergyCount + 1 end
+		if self.isCleanable then self.ai.cleanable[unit.engineID] = self.position end
+		self.ai.lastNameFinished[self.name] = game:Frame()
+		EchoDebug(self.ai.nameCountFinished[self.name] .. " " .. self.name .. " finished")
 		self.finished = true
 		--mtyped leveled counters
 		if self.mtypedLv then
-			if ai.mtypeLvCount[self.mtypedLv] == nil then 
-				ai.mtypeLvCount[self.mtypedLv] = 1 
+			if self.ai.mtypeLvCount[self.mtypedLv] == nil then 
+				self.ai.mtypeLvCount[self.mtypedLv] = 1 
 			else
-				ai.mtypeLvCount[self.mtypedLv] = ai.mtypeLvCount[self.mtypedLv] + 1
+				self.ai.mtypeLvCount[self.mtypedLv] = self.ai.mtypeLvCount[self.mtypedLv] + 1
 			end
 		end
 	end
@@ -109,21 +109,21 @@ end
 
 function CountBehaviour:UnitDead(unit)
 	if unit.engineID == self.unit.engineID then
-		ai.nameCount[self.name] = ai.nameCount[self.name] - 1
+		self.ai.nameCount[self.name] = self.ai.nameCount[self.name] - 1
 		if self.finished then
-			ai.nameCountFinished[self.name] = ai.nameCountFinished[self.name] - 1
-			if self.isMex then ai.mexCount = ai.mexCount - 1 end
-			if self.isCon then ai.conCount = ai.conCount - 1 end
-			if self.isCombat then ai.combatCount = ai.combatCount - 1 end
-			if self.isBattle then ai.battleCount = ai.battleCount - 1 end
-			if self.isBreakthrough then ai.breakthroughCount = ai.breakthroughCount - 1 end
-			if self.isSiege then ai.siegeCount = ai.siegeCount - 1 end
-			if self.isReclaimer then ai.reclaimerCount = ai.reclaimerCount - 1 end
-			if self.isAssist then ai.assistCount = ai.assistCount - 1 end
-			if self.isBigEnergy then ai.bigEnergyCount = ai.bigEnergyCount - 1 end
-			if self.isCleanable then ai.cleanable[unit.engineID] = nil end
+			self.ai.nameCountFinished[self.name] = self.ai.nameCountFinished[self.name] - 1
+			if self.isMex then self.ai.mexCount = self.ai.mexCount - 1 end
+			if self.isCon then self.ai.conCount = self.ai.conCount - 1 end
+			if self.isCombat then self.ai.combatCount = self.ai.combatCount - 1 end
+			if self.isBattle then self.ai.battleCount = self.ai.battleCount - 1 end
+			if self.isBreakthrough then self.ai.breakthroughCount = self.ai.breakthroughCount - 1 end
+			if self.isSiege then self.ai.siegeCount = self.ai.siegeCount - 1 end
+			if self.isReclaimer then self.ai.reclaimerCount = self.ai.reclaimerCount - 1 end
+			if self.isAssist then self.ai.assistCount = self.ai.assistCount - 1 end
+			if self.isBigEnergy then self.ai.bigEnergyCount = self.ai.bigEnergyCount - 1 end
+			if self.isCleanable then self.ai.cleanable[unit.engineID] = nil end
 			if self.mtypedLv then
-				ai.mtypeLvCount[self.mtypedLv] = ai.mtypeLvCount[self.mtypedLv] - 1
+				self.ai.mtypeLvCount[self.mtypedLv] = self.ai.mtypeLvCount[self.mtypedLv] - 1
 			end
 			
 		end

@@ -24,8 +24,8 @@ function EconHandler:Init()
 	self.lastFrame = -17 -- so that it updates immediately even on the first frame
 	self.hasData = false -- so that it gets data immediately
 	self.samples = {}
-	ai.Energy = {}
-	ai.Metal = {}
+	self.ai.Energy = {}
+	self.ai.Metal = {}
 	self:Update()
 end
 
@@ -49,8 +49,8 @@ function EconHandler:Average()
 	for i, sample in pairs(self.samples) do
 		for name, resource in pairs(sample) do
 			for property, value in pairs(resource) do
-				if not reset then ai[name][property] = 0 end
-				ai[name][property] = ai[name][property] + value
+				if not reset then self.ai[name][property] = 0 end
+				self.ai[name][property] = self.ai[name][property] + value
 			end
 		end
 		if not reset then reset = true end
@@ -58,18 +58,18 @@ function EconHandler:Average()
 	local totalSamples = #self.samples
 	for name, resource in pairs(self.samples[1]) do
 		for property, value in pairs(resource) do
-			ai[name][property] = ai[name][property] / totalSamples
+			self.ai[name][property] = self.ai[name][property] / totalSamples
 		end
-		ai[name].extra = ai[name].income - ai[name].usage
-		if ai[name].capacity == 0 then
-			ai[name].full = math.inf
+		self.ai[name].extra = self.ai[name].income - self.ai[name].usage
+		if self.ai[name].capacity == 0 then
+			self.ai[name].full = math.inf
 		else
-			ai[name].full = ai[name].reserves / ai[name].capacity
+			self.ai[name].full = self.ai[name].reserves / self.ai[name].capacity
 		end
-		if ai[name].income == 0 then
-			ai[name].tics = math.inf
+		if self.ai[name].income == 0 then
+			self.ai[name].tics = math.inf
 		else
-			ai[name].tics = ai[name].reserves / ai[name].income
+			self.ai[name].tics = self.ai[name].reserves / self.ai[name].income
 		end
 	end
 	if not self.hasData then self.hasData = true end
@@ -80,7 +80,7 @@ end
 function EconHandler:DebugAll()
 	if DebugEnabled then
 		for i, name in pairs(self.resourceNames) do
-			local resource = ai[name]
+			local resource = self.ai[name]
 			for property, value in pairs(resource) do
 				EchoDebug(name .. "." .. property .. ": " .. value)
 			end
