@@ -43,13 +43,7 @@ function TaskQueueBehaviour:CategoryEconFilter(value)
 	if Eco1[value] or Eco2[value] then
 		return value
 	end
-	if nanoTurretList[value] then
-		-- nano turret
-		EchoDebug(" nano turret")
-		if metalBelowHalf or energyTooLow or farTooFewCombats then
-			value = DummyUnitName
-		end
-	elseif reclaimerList[value] then
+	if reclaimerList[value] then
 		-- dedicated reclaimer
 		EchoDebug(" dedicated reclaimer")
 		if metalAboveHalf or energyTooLow or farTooFewCombats then
@@ -58,41 +52,7 @@ function TaskQueueBehaviour:CategoryEconFilter(value)
 	elseif unitTable[value].isBuilding then
 		-- buildings
 		EchoDebug(" building")
-		if unitTable[value].extractsMetal > 0 then
-			-- metal extractor
-			EchoDebug("  mex")
-			if energyTooLow and ai.Metal.income > 3 then
-				value = DummyUnitName
-			end
-		elseif value == "corwin" or value == "armwin" or value == "cortide" or value == "armtide" or (unitTable[value].totalEnergyOut > 0 and not unitTable[value].buildOptions) then
-			-- energy plant
-			EchoDebug("  energy plant")
-			if bigEnergyList[uname] then
-				-- big energy plant
-				EchoDebug("   big energy plant")
-				-- don't build big energy plants until we have the resources to do so
-				if energyOkay or metalTooLow or ai.Energy.income < 400 or ai.Metal.income < 35 then
-					value = DummyUnitName
-				end
-				if self.name == "coracv" and value == "corfus" and ai.Energy.income > 4000 then
-					-- build advanced fusion
-					value = "cafus"
-				elseif self.name == "armacv" and value == "armfus" and ai.Energy.income > 4000 then
-					-- build advanced fusion
-					value = "aafus"
-				end
-				-- don't build big energy plants less than fifteen seconds from one another
-				if ai.lastNameFinished[value] ~= nil then
-					if game:Frame() < ai.lastNameFinished[value] + 450 then
-						value = DummyUnitName
-					end
-				end
-			else
-				if energyOkay or metalTooLow then
-					value = DummyUnitName
-				end
-			end
-		elseif unitTable[value].buildOptions ~= nil then
+		if unitTable[value].buildOptions ~= nil then
 			-- factory
 			EchoDebug("  factory")
 			EchoDebug(ai.factories)
@@ -153,24 +113,24 @@ function TaskQueueBehaviour:CategoryEconFilter(value)
 		if unitTable[value].buildOptions ~= nil then
 			-- construction unit
 			EchoDebug("  construction unit")
-			if ai.Energy.full > 0.1 and ai.Metal.full > 0.05 then
+			if ai.Energy.full > 0.1 and ai.Metal.full > 0.1 then
 				return value 
 			end
 		elseif unitTable[value].isWeapon then
 			-- combat unit
 			EchoDebug("  combat unit")
-			if metalTooLow or energyTooLow then
-				value = DummyUnitName
+			if ai.Energy.full > 0.2 and ai.Metal.full > 0.2 then
+				return value 
 			end
 		elseif value == "armpeep" or value == "corfink" then
 			-- scout planes have no weapons
-			if metalTooLow or energyTooLow then
-				value = DummyUnitName
+			if ai.Energy.full > 0.3 and ai.Metal.full > 0.3 then
+				return value 
 			end
 		else
 			-- other unit
 			EchoDebug("  other unit")
-			if notEnoughCombats or metalBelowHalf or energyTooLow then
+			if notEnoughCombats or ai.Energy.full < 0.3 or ai.Metal.full < 0.3 then
 				value = DummyUnitName
 			end
 		end
