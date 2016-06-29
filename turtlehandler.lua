@@ -1,19 +1,13 @@
 shard_include "common"
 
 local DebugEnabled = false
-local DebugPlotEnabled = false
-local debugPlotTurtleFile
+local DebugDrawEnabled = true
 
 
 local function EchoDebug(inStr)
 	if DebugEnabled then
 		game:SendToConsole("TurtleHandler: " .. inStr)
 	end
-end
-
-local function PlotPointDebug(x, z, label)
-	if type(label) ~= "string" then label = string.format("%.1f", label) end
-	debugPlotTurtleFile:write(math.ceil(x) .. " " .. math.ceil(z) .. " " .. label .. "\n")
 end
 
 local maxOrganDistance = 400
@@ -653,17 +647,17 @@ function TurtleHandler:GetUnitTurtle(unitID)
 end
 
 function TurtleHandler:PlotAllDebug()
-	if DebugPlotEnabled then
-		debugPlotTurtleFile= assert(io.open("debugturtleplot",'w'), "Unable to write debugturtleplot")
+	if DebugDrawEnabled then
+		self.map:EraseAll(2)
 		for i, turtle in pairs(self.turtles) do
-			PlotPointDebug(turtle.position.x, turtle.position.z, turtle.priority)
-			for li, limb in pairs(turtle.limbs) do
-				PlotPointDebug(limb.position.x, limb.position.z, "LIMB")
-			end
+			local tcolor = {0,1,0}
 			if turtle.front then
-				PlotPointDebug(turtle.position.x, turtle.position.z, "DANGER")
+				tcolor = {1,0,0}
+			end
+			self.map:DrawCircle(turtle.position, turtle.size, tcolor, string.format("%.1f", tostring(turtle.priority)), false, 2)
+			for li, limb in pairs(turtle.limbs) do
+				self.map:DrawPoint(limb.position, {1,1,0,1}, "L", 2)
 			end
 		end
-		debugPlotTurtleFile:close()
 	end
 end

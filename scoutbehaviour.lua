@@ -51,7 +51,6 @@ end
 function ScoutBehaviour:Activate()
 	EchoDebug("activated on " .. self.name)
 	self.active = true
-	-- self.unit:Internal():DrawHighlight({0,0,1}, 'scout', 2)
 end
 
 function ScoutBehaviour:Deactivate()
