@@ -1,7 +1,7 @@
 shard_include "common"
 
 local DebugEnabled = false
-local DebugDrawEnabled = true
+local DebugDrawEnabled = false
 
 
 local function EchoDebug(inStr)
