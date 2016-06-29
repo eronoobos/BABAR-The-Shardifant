@@ -35,7 +35,7 @@ end
 
 function ConVehicle()
 	local unitName = DummyUnitName
-	if needAmphibiousCons then
+	if ai.situation.needAmphibiousCons then
 		unitName = ConVehicleAmphibious()
 	else
 		unitName = ConGroundVehicle()

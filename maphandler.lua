@@ -19,8 +19,6 @@ local UWMetalSpotCheckUnitType
 local mobMap = {}
 local savepositions = {}
 
-local minDefenseNetworkSize = 100000
-
 local function MapDataFilename()
 	local mapName = string.gsub(map:MapName(), "%W", "_")
 	return "cache/Shard-" .. game:GameName() .. "-" .. mapName .. ".lua"

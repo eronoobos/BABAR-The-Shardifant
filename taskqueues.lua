@@ -24,43 +24,11 @@ random = math.random
 math.randomseed( os.time() + game:GetTeamID() )
 random(); random(); random()
 
-needAA = false
-needShields = false
-needAntinuke = false
-needtorpedo = false
-needGroundDefense = true
-
--- do we need siege equipment such as artillery and merl?
-needSiege = false
-
-heavyPlasmaLimit = 3 -- changes with CheckForMapControl
-AAUnitPerTypeLimit = 3 -- changes with CheckForMapControl
-nukeLimit = 1 -- changes with CheckForMapControl
-tacticalNukeLimit = 1 -- changes with CheckForMapControl
-
-lastCheckFrame = 0
-lastSiegeCheckFrame = 0
-
--- build ranges to check for things
-AreaCheckRange = 1500
-
-needAmphibiousCons = false
-
-minDefenseNetworkSize = 100000
-
 function MapHasWater()
 	return (ai.waterMap or ai.hasUWSpots) or false
 end
 
 function CheckMySide(self)
-	-- fix: moved here so map object is present when it's accessed
-	EchoDebug("per-type construction unit limit: " .. ai.conUnitPerTypeLimit)
-	minDefenseNetworkSize = ai.mobilityGridArea / 4 
-	-- set the averageWind
-	-- set the tidal strength
-	if ai.hasUWSpots and ai.mobRating["sub"] > ai.mobRating["bot"] * 0.75 then
-		needAmphibiousCons = true
-	end
 	if self.unit ~= nil then
 		local tmpName = self.unit:Internal():Name()
 		if tmpName == "corcom" then
@@ -85,65 +53,8 @@ function MapHasUnderwaterMetal()
 	return ai.hasUWSpots or false
 end
 
--- check if siege units are needed
--- check if advanced and experimental factories are needed
--- check if nukes are needed
--- check if reclaiming is needed
-function CheckForMapControl()
-	local f = game:Frame()
-	if (lastSiegeCheckFrame + 240) < f then
-		ai.haveAdvFactory = false
-		if ai.factoriesAtLevel[3] ~= nil then
-			ai.haveAdvFactory = #ai.factoriesAtLevel[3] ~= 0
-		end
-		ai.haveExpFactory = false
-		if ai.factoriesAtLevel[5] ~= nil then
-			ai.haveExpFactory = #ai.factoriesAtLevel[5] ~= 0
-		end
-		
-		lastSiegeCheckFrame = f
-		ai.needToReclaim = ai.Metal.full < 0.5 and ai.wreckCount > 0
-		AAUnitPerTypeLimit = math.ceil(ai.turtlehandler:GetTotalPriority() / 4)
-		heavyPlasmaLimit = math.ceil(ai.combatCount / 10)
-		nukeLimit = math.ceil(ai.combatCount / 50)
-		tacticalNukeLimit = math.ceil(ai.combatCount / 40)
-
-		local attackCounter = ai.attackhandler:GetCounter()
-		local couldAttack = ai.couldAttack >= 1 or ai.couldBomb >= 1
-		local bombingTooExpensive = ai.bomberhandler:GetCounter() == maxBomberCounter
-		local attackTooExpensive = attackCounter == maxAttackCounter
-		local controlMetalSpots = ai.mexCount > #ai.mobNetworkMetals["air"][1] * 0.4
-		local needUpgrade = couldAttack or bombingTooExpensive or attackTooExpensive
-		local lotsOfMetal = ai.Metal.income > 25 or controlMetalSpots
-
-		EchoDebug(ai.totalEnemyThreat .. " " .. ai.totalEnemyImmobileThreat .. " " .. ai.totalEnemyMobileThreat)
-		-- build siege units if the enemy is turtling, if a lot of our attackers are getting destroyed, or if we control over 40% of the metal spots
-		needSiege = (ai.totalEnemyImmobileThreat > ai.totalEnemyMobileThreat * 3.5 and ai.totalEnemyImmobileThreat > 50000) or attackCounter >= siegeAttackCounter or controlMetalSpots
-		ai.needAdvanced = (ai.Metal.income > 10 or controlMetalSpots) and ai.factories > 0 and (needUpgrade or lotsOfMetal)
-		ai.needExperimental = false
-		ai.needNukes = false
-		if ai.Metal.income > 50 and ai.haveAdvFactory and needUpgrade and ai.enemyBasePosition then
-			if not ai.haveExpFactory then
-				for i, factory in pairs(ai.factoriesAtLevel[ai.maxFactoryLevel]) do
-					if ai.maphandler:MobilityNetworkHere("bot", factory.position) == ai.maphandler:MobilityNetworkHere("bot", ai.enemyBasePosition) then
-						ai.needExperimental = true
-						break
-					end
-				end
-			end
-			ai.needNukes = true
-		end
-		EchoDebug("need experimental? " .. tostring(ai.needExperimental) .. ", need nukes? " .. tostring(ai.needNukes) .. ", have advanced? " .. tostring(ai.haveAdvFactory) .. ", need upgrade? " .. tostring(needUpgrade) .. ", have enemy base position? " .. tostring(ai.enemyBasePosition))
-		EchoDebug("metal income: " .. ai.Metal.income .. "  combat units: " .. ai.combatCount)
-		EchoDebug("have advanced? " .. tostring(ai.haveAdvFactory) .. " have experimental? " .. tostring(ai.haveExpFactory))
-		EchoDebug("need advanced? " .. tostring(ai.needAdvanced) .. "  need experimental? " .. tostring(ai.needExperimental))
-		EchoDebug("need advanced? " .. tostring(ai.needAdvanced) .. ", need upgrade? " .. tostring(needUpgrade) .. ", have attacked enough? " .. tostring(couldAttack) .. " (" .. ai.couldAttack .. "), have " .. ai.factories .. " factories, " .. math.floor(ai.Metal.income) .. " metal income")
-	end
-end
-
 function IsSiegeEquipmentNeeded()
-	CheckForMapControl()
-	return needSiege
+	return ai.situation.needSiege
 end
 
 function IsAANeeded()
@@ -192,7 +103,7 @@ end
 function BuildAAIfNeeded(unitName)
 	if IsAANeeded() then
 		if not unitTable[unitName].isBuilding then
-			return BuildWithLimitedNumber(unitName, AAUnitPerTypeLimit)
+			return BuildWithLimitedNumber(unitName, ai.situation.AAUnitPerTypeLimit)
 		else
 			return unitName
 		end

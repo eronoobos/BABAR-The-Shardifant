@@ -58,7 +58,7 @@ function BuildSiteHandler:Init()
 	self.dontBuildRects = {}
 	self.plans = {}
 	self.constructing = {}
-	self.history = {}
+	-- self.history = {}
 	self:DontBuildOnMetalOrGeoSpots()
 end
 
@@ -391,6 +391,7 @@ function BuildSiteHandler:UnitCreated(unit)
 	end
 	if not planned and unitTable[unitName].isBuilding then
 		-- for when we're restarting the AI, or other contingency
+		-- game:SendToConsole("unplanned building creation " .. unitName .. " " .. unitID .. " " .. position.x .. ", " .. position.z)
 		local rect = { position = position, unitName = unitName }
 		self:CalculateRect(rect)
 		self:DontBuildRectangle(rect.x1, rect.z1, rect.x2, rect.z2, unitID)
@@ -428,7 +429,7 @@ function BuildSiteHandler:UnitBuilt(unit)
 		EchoDebugPlans(done.behaviour.name .. " " .. done.behaviour.id ..  " completed " .. done.unitName .. " " .. unitID)
 		done.behaviour:ConstructionComplete()
 		done.frame = game:Frame()
-		table.insert(self.history, done)
+		-- table.insert(self.history, done)
 		self.constructing[unitID] = nil
 	end
 end
