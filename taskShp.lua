@@ -147,7 +147,7 @@ function Lvl2ShipRaider(self)
 	return BuildRaiderIfNeeded(unitName)
 end
 
-function Lv2SubWar(self)
+function Lvl2SubWar(self)
 	local unitName = DummyUnitName
 		if ai.mySide == CORESideName then
 			unitName = "corssub"
