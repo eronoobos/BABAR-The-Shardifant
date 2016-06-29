@@ -357,7 +357,7 @@ function Economy0()
 		 unitName = buildMstore1()
 	elseif ai.Energy.income > ai.Energy.usage * 1.1 and ai.Energy.full > 0.9 and ai.Energy.income > 200 and ai.Energy.income < 2000 and ai.Metal.full < 0.3 then
 		unitName = buildMconv1()
-	elseif (ai.Energy.full < 0.5 or ai.Energy.income < ai.Energy.usage)   then
+	elseif (ai.Energy.full < 0.5 or ai.Energy.income < ai.Energy.usage )   then
 		unitName = WindSolar()
 	else
 		unitName = BuildMex()
@@ -376,9 +376,9 @@ function Economy1()
 		unitName = buildEstore1()
 	elseif ai.Metal.full > 0.8 and ai.Metal.income > 40 and ai.Metal.capacity < 4000  and ai.Energy.reserves > 300 then
 		unitName = buildMstore1()
-	elseif ai.Energy.income > ai.Energy.usage * 1.1 and ai.Energy.full > 0.9 and ai.Energy.income > 200 and ai.Energy.income < 2000 and ai.Metal.full < 0.3 then
+	elseif ai.Energy.income > ai.Energy.usage and ai.Energy.full > 0.9 and ai.Energy.income > 200 and ai.Energy.income < 2000 and ai.Metal.full < 0.3 then
 		unitName = buildMconv1()
-	elseif (ai.Energy.full < 0.3 or ai.Energy.income < ai.Energy.usage) and ai.Metal.full > 0.1 then
+	elseif (ai.Energy.full < 0.3 or ai.Energy.income < ai.Energy.usage * 1.25) and ai.Metal.full > 0.1 then
 		unitName = Energy1()
 	else
 		unitName = BuildMex()
@@ -393,11 +393,11 @@ function EconomyUnderWater()
 		unitName = buildWEstore1()
 	elseif ai.Metal.full > 0.7 and ai.Metal.income > 30 and ai.Metal.capacity < 4000 and ai.Energy.reserves > 600 then
 		unitName = buildWMstore1()
-	elseif ai.Energy.income > ai.Energy.usage * 1.1 and ai.Energy.full > 0.9 and ai.Energy.income > 200 and ai.Energy.income < 2000 and ai.Metal.full < 0.3 then
+	elseif ai.Energy.income > ai.Energy.usage and ai.Energy.full > 0.9 and ai.Energy.income > 200 and ai.Energy.income < 2000 and ai.Metal.full < 0.3 then
 		unitName = buildWMconv1()
 	elseif ai.Energy.full > 0.1 and (ai.Metal.income < 1 or ai.Metal.full < 0.6) then
 		unitName = BuildUWMex()
-	elseif (ai.Energy.full < 0.3 or ai.Energy.income < ai.Energy.usage) and ai.Metal.income > 3 and ai.Metal.full > 0.1 then
+	elseif (ai.Energy.full < 0.3 or ai.Energy.income < ai.Energy.usage * 1.25) and ai.Metal.income > 3 and ai.Metal.full > 0.1 then
 		unitName = TidalIfTidal()--this can get problems
 	else
 		unitName = BuildUWMex()
@@ -412,9 +412,9 @@ function AdvEconomy(self)
 		unitName = buildEstore2()
 	elseif ai.Metal.full > 0.8 and ai.Metal.income > 100 and ai.Metal.capacity < 20000 and ai.Energy.full > 0.3 then
 		unitName = buildMstore2()
-	elseif ai.Energy.income > ai.Energy.usage * 1.1 and ai.Energy.full > 0.9 and ai.Energy.income > 2000 and ai.Metal.full < 0.3 then
+	elseif ai.Energy.income > ai.Energy.usage and ai.Energy.full > 0.9 and ai.Energy.income > 2000 and ai.Metal.full < 0.3 then
 		unitName = buildMconv2()
-	elseif (ai.Energy.full < 0.3 or ai.Energy.income < ai.Energy.usage*1.1) and ai.Metal.full > 0.1 and ai.Metal.income > 18 then
+	elseif (ai.Energy.full < 0.3 or ai.Energy.income < ai.Energy.usage * 1.25) and ai.Metal.full > 0.1 and ai.Metal.income > 18 then
 		unitName = BuildAdvEnergy(self)
 	else--if ai.Metal.full < 0.2 and ai.Energy.full > 0.1 then
 		unitName = BuildMohoMex()
@@ -429,9 +429,9 @@ function AdvEconomyUnderWater(self)
 		unitName=buildEstore2(self)
 	elseif ai.Metal.full>0.7 and ai.Metal.income>30 and ai.Metal.capacity < 20000 and ai.Energy.full > 0.4 then
 		unitName=buildMstore2(self)
-	elseif ai.Energy.income > ai.Energy.usage * 1.1 and ai.Energy.full > 0.9 and ai.Energy.income > 2000 and ai.Metal.full < 0.3 then
+	elseif ai.Energy.income > ai.Energy.usage and ai.Energy.full > 0.9 and ai.Energy.income > 2000 and ai.Metal.full < 0.3 then
 		unitName = buildMconv2UW(self)
-	elseif (ai.Energy.full<0.3 or ai.Energy.income<ai.Energy.usage) and ai.Metal.full>0.1 then
+	elseif (ai.Energy.full<0.3 or ai.Energy.income < ai.Energy.usage * 1.5) and ai.Metal.full>0.1 then
 		unitName = BuildUWFusion(self)
 	else
 		unitName = BuildUWMohoMex()
@@ -472,7 +472,7 @@ end
 
 function EconomyNavalEngineer(self)
         local unitName=DummyUnitName
-	if ai.Energy.full < 0.2 and ai.Metal.income > ai.Metal.usage*1.1 and ai.Metal.full > 0.2 then
+	if ai.Energy.full < 0.2 and ai.Metal.income > ai.Metal.usage and ai.Metal.full > 0.2 then
 		unitName = TidalIfTidal()
 	elseif ai.Metal.full < 0.2 and ai.Energy.income > ai.Metal.usage and ai.Energy.full > 0.2 then
 		unitName = BuildUWMex()
