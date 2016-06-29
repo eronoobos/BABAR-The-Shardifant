@@ -21,8 +21,8 @@ end
 
 function RaidHandler:Init()
 	self.counter = {}
-	ai.raiderCount = {}
-	ai.IDsWeAreRaiding = {}
+	self.ai.raiderCount = {}
+	self.ai.IDsWeAreRaiding = {}
 end
 
 function RaidHandler:NeedMore(mtype, add)
@@ -75,13 +75,13 @@ end
 
 function RaidHandler:IDsWeAreRaiding(unitIDs, mtype)
 	for i, unitID in pairs(unitIDs) do
-		ai.IDsWeAreRaiding[unitID] = mtype
+		self.ai.IDsWeAreRaiding[unitID] = mtype
 	end
 end
 
 function RaidHandler:IDsWeAreNotRaiding(unitIDs)
 	for i, unitID in pairs(unitIDs) do
-		ai.IDsWeAreRaiding[unitID] = nil
+		self.ai.IDsWeAreRaiding[unitID] = nil
 	end
 end
 
