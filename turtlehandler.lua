@@ -225,7 +225,7 @@ function TurtleHandler:RemoveOrgan(unitID)
 				table.remove(turtle.organs, oi)
 				if #turtle.organs == 0 then
 					emptyTurtle = turtle
-					ai.defendhandler:RemoveWard(nil, turtle)
+					self.ai.defendhandler:RemoveWard(nil, turtle)
 					table.remove(self.turtles, ti)
 				end
 				foundOrgan = true
@@ -322,7 +322,7 @@ function TurtleHandler:Base(turtle, size, limbs)
 		-- make sure the limb is in an acceptable position (not near the map edge, and not inside another turtle)
 		for aroundTheClock = 1, 12 do
 			local offMapCheck = RandomAway(turtle.position, size * 1.33, false, angle)
-			if offMapCheck.x ~= 1 and offMapCheck.x ~= ai.maxElmosX - 1 and offMapCheck.z ~= 1 and offMapCheck.z ~= ai.maxElmosZ - 1 then
+			if offMapCheck.x ~= 1 and offMapCheck.x ~= self.ai.maxElmosX - 1 and offMapCheck.z ~= 1 and offMapCheck.z ~= self.ai.maxElmosZ - 1 then
 				limb.position = RandomAway(turtle.position, size, false, angle)
 				local inAnotherTurtle = false
 				for ti, turt in pairs(self.turtles) do
@@ -369,7 +369,7 @@ function TurtleHandler:AddTurtle(position, water, priority)
 	end
 	table.insert(self.turtles, turtle)
 	self.totalPriority = self.totalPriority + priority
-	ai.defendhandler:AddWard(nil, turtle)
+	self.ai.defendhandler:AddWard(nil, turtle)
 	return turtle
 end
 
@@ -503,10 +503,10 @@ function TurtleHandler:LeastTurtled(builder, unitName, bombard, oneOnly)
 				end
 				local okay = false
 				if not enough then
-					okay = ai.maphandler:UnitCanGoHere(builder, limb.position) 
+					okay = self.ai.maphandler:UnitCanGoHere(builder, limb.position) 
 				end
 				if okay and bombard and unitName ~= nil then 
-					okay = ai.targethandler:IsBombardPosition(limb.position, unitName)
+					okay = self.ai.targethandler:IsBombardPosition(limb.position, unitName)
 				end
 				if okay then
 					local mod
@@ -571,10 +571,10 @@ function TurtleHandler:MostTurtled(builder, unitName, bombard, oneOnly)
 	local best
 	local bydistance = {}
 	for i, turtle in pairs(self.turtles) do
-		if ai.maphandler:UnitCanGoHere(builder, turtle.position) then
+		if self.ai.maphandler:UnitCanGoHere(builder, turtle.position) then
 			local okay = true
 			if bombard then 
-				okay = ai.targethandler:IsBombardPosition(turtle.position, bombard)
+				okay = self.ai.targethandler:IsBombardPosition(turtle.position, bombard)
 			end
 			if okay then
 				local mod = turtle.ground + turtle.air + turtle.submerged + (turtle.shield * layerMod["shield"]) + (turtle.jam * layerMod["jam"])
