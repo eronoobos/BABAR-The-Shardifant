@@ -86,7 +86,7 @@ function CleanHandler:IsBeingCleaned(unit)
 end
 
 function CleanHandler:GetCleanables()
-	if self.ai.Metal.full > 0.9 or self.bigEnergyCount < 2 then
+	if self.ai.Metal.full > 0.9 or self.bigEnergyCount < 2 or ai.Energy.full < 0.3 then
 		return
 	end
 	return self.cleanables
