@@ -488,10 +488,10 @@ raiderList = {
 	"corcut",
 	"corcrw",
 	-- subs
-	"corshark",
+	"corsub",
 	"armsub",
 	"armsubk",
-	"corsubk",
+	"corshark",
 }
 
 raiderDisarms = {

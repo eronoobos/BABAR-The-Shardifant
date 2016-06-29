@@ -47,7 +47,7 @@ function Lvl1ShipDestroyerOnly(self)
 		unitName = "armroy"
 	end
 	local mtypedLv = GetMtypedLv(unitName) + GetMtypedLv('armcs')
-	return BuildWithLimitedNumber(unitName,mtypedLv / 6)
+	return BuildWithLimitedNumber(unitName,mtypedLv * 0.7)
 end
 
 function Lvl1ShipBattle(self)
