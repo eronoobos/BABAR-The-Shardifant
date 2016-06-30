@@ -1,5 +1,3 @@
-
-
 local DebugEnabled = false
 
 
@@ -63,7 +61,8 @@ function BomberHandler:DoTargetting()
 			end
 			if bombTarget ~= nil then
 				EchoDebug("got target for " .. weapon)
-				for i,recruit in ipairs(recruits) do
+				for i = 1, #recruits do
+					local recruit = recruits[i]
 					recruit:BombTarget(bombTarget)
 				end
 				self.recruits[weapon] = {}

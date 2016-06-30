@@ -60,7 +60,7 @@ function RaiderBehaviour:UnitIdle(unit)
 		self.evading = false
 		-- keep planes from landing (i'd rather set land state, but how?)
 		if self.mtype == "air" then
-			unit:Internal():Move(RandomAway(unit:Internal():GetPosition(), 500))
+			self.moveNextUpdate = RandomAway(unit:Internal():GetPosition(), 500)
 		end
 		self.unit:ElectBehaviour()
 	end
@@ -150,7 +150,10 @@ function RaiderBehaviour:Update()
 			end
 		end
 	else
-		if f % 29 == 0 then
+		if self.moveNextUpdate then
+			self.unit:Internal():Move(self.moveNextUpdate)
+			self.moveNextUpdate = nil
+		elseif f % 29 == 0 then
 			-- attack nearby vulnerables immediately
 			local unit = self.unit:Internal()
 			local attackTarget

@@ -1,5 +1,3 @@
-
-
 local DebugEnabled = false
 
 
@@ -451,7 +449,7 @@ function DefendHandler:RemoveDefender(dfndbehaviour)
 				-- return
 			end
 		end
-	else
+	elseif self.loiterers[dfndbehaviour.mtype] then
 		for i = #self.loiterers[dfndbehaviour.mtype], 1, -1 do
 			local db = self.loiterers[dfndbehaviour.mtype][i]
 			if db == dfndbehaviour then

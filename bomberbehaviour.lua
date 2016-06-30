@@ -58,6 +58,9 @@ function BomberBehaviour:BombPosition(position)
 end
 
 function BomberBehaviour:BombTarget(target)
+	if not self.unit or not self.unit:Internal() then
+		return
+	end
 	if target ~= nil then
 		local pos = target.position
 		if pos ~= nil then
