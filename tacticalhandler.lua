@@ -1,5 +1,3 @@
-
-
 -- keeps track of where enemy units seem to be moving
 
 local DebugEnabled = false

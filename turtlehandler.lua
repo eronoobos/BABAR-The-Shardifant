@@ -1,5 +1,3 @@
-
-
 local DebugEnabled = false
 local DebugDrawEnabled = false
 

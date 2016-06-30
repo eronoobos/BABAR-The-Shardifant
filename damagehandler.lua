@@ -1,5 +1,3 @@
-
-
 -- keeps track of hits to our units
 
 local DebugEnabled = false

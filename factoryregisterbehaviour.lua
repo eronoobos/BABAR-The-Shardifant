@@ -1,5 +1,3 @@
-
-
 FactoryRegisterBehaviour = class(Behaviour)
 
 local DebugEnabled = false
@@ -38,21 +36,6 @@ function FactoryRegisterBehaviour:UnitCreated(unit)
 		self.ai.factoryUnderConstruction = self.id
 		EchoDebug('starting building of ' ..self.name)
 	end
-end
-
-function FactoryRegisterBehaviour:UnitIdle(unit)
-
-end
-
-function FactoryRegisterBehaviour:Update()
-
-end
-
-function FactoryRegisterBehaviour:Activate()
-
-end
-
-function FactoryRegisterBehaviour:Deactivate()
 end
 
 function FactoryRegisterBehaviour:Priority()

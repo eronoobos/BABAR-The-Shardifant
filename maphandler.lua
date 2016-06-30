@@ -8,8 +8,6 @@ local function EchoDebug(inStr)
 	end
 end
 
-local debugSquares = {}
-
 -- mobTypes = {}
 local mobUnitTypes = {}
 local UWMetalSpotCheckUnitType

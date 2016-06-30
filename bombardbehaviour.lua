@@ -1,6 +1,3 @@
-
-
-
 BombardBehaviour = class(Behaviour)
 
 local DebugEnabled = false

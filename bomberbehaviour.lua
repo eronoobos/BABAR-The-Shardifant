@@ -1,7 +1,3 @@
-
-
-
-
 function IsBomber(unit)
 	local tmpName = unit:Internal():Name()
 	return (bomberList[tmpName] or 0) > 0

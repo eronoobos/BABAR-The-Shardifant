@@ -1,5 +1,3 @@
-
-
 CountBehaviour = class(Behaviour)
 
 local DebugEnabled = false

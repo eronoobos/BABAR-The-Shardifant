@@ -1,5 +1,3 @@
-
-
 AntinukeBehaviour = class(Behaviour)
 
 local DebugEnabled = false

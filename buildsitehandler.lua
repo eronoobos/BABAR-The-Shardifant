@@ -1,10 +1,6 @@
-
-
 local DebugEnabled = false
 local DebugEnabledPlans = false
 local DebugEnabledDraw = false
-
-local debugPlotDrawn = {}
 
 local function EchoDebug(inStr)
 	if DebugEnabled then
@@ -31,7 +27,7 @@ local function PlotRectDebug(rect)
 		local pos2 = {x=rect.x2, y=0, z=rect.z2}
 		local id = map:DrawRectangle(pos1, pos2, color)
 		rect.drawn = color
-		debugPlotDrawn[#debugPlotDrawn+1] = rect
+		self.debugPlotDrawn[#self.debugPlotDrawn+1] = rect
 	end
 end
 
@@ -49,6 +45,7 @@ function BuildSiteHandler:internalName()
 end
 
 function BuildSiteHandler:Init()
+	self.debugPlotDrawn = {}
 	local mapSize = map:MapDimensions()
 	self.ai.maxElmosX = mapSize.x * 8
 	self.ai.maxElmosZ = mapSize.z * 8
@@ -538,13 +535,13 @@ function BuildSiteHandler:PlotAllDebug()
 			PlotRectDebug(rect)
 			isThere[rect] = true
 		end
-		for i = #debugPlotDrawn, 1, -1 do
-			local rect = debugPlotDrawn[i]
+		for i = #self.debugPlotDrawn, 1, -1 do
+			local rect = self.debugPlotDrawn[i]
 			if not isThere[rect] then
 				local pos1 = {x=rect.x1, y=0, z=rect.z1}
 				local pos2 = {x=rect.x2, y=0, z=rect.z2}
 				self.map:EraseRectangle(pos1, pos2, rect.drawn)
-				table.remove(debugPlotDrawn, i)
+				table.remove(self.debugPlotDrawn, i)
 			end
 		end
 	end

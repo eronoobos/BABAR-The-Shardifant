@@ -1,6 +1,3 @@
-
-
-
 NukeBehaviour = class(Behaviour)
 
 local DebugEnabled = false
