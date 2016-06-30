@@ -1,5 +1,3 @@
-
-
 Situation = class(Module)
 
 function Situation:Name()
@@ -11,7 +9,7 @@ function Situation:internalName()
 end
 
 function Situation:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 
 	self.heavyPlasmaLimit = 3
 	self.AAUnitPerTypeLimit = 3

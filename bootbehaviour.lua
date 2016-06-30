@@ -1,5 +1,3 @@
-
-
 -- Sends units out of factories and holds units in place who are being repaired after resurrection
 
 BootBehaviour = class(Behaviour)
@@ -51,7 +49,6 @@ function BootBehaviour:UnitDead(unit)
 end
 
 function BootBehaviour:Update()
-
 	if not self.finished then return end
 
 	local f = game:Frame()

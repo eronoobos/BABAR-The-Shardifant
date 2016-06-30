@@ -1,5 +1,3 @@
-
-
 local DebugEnabled = false
 local DebugDrawEnabled = false
 
@@ -194,6 +192,27 @@ local function Flood8Topology(x, z, mtype, network)
 		Flood8Topology(x-1,z-1,mtype,network)
 	end
 end
+
+-- gives all kinds of unexpected results
+-- function MapHandler:GetFactoryMobilities()
+-- 	local factMobs = {}
+-- 	for uname, utable in pairs(unitTable) do
+-- 		if utable.unitsCanBuild and #utable.unitsCanBuild > 0 then
+-- 			factMobs[uname] = {}
+-- 			local haveMtype = {}
+-- 			for i = 1, #utable.unitsCanBuild do
+-- 				local canBuildName = utable.unitsCanBuild[i]
+-- 				local mtype = unitTable[canBuildName].mtype
+-- 				if not haveMtype[mtype] then
+-- 					factMobs[uname][#factMobs[uname]+1] = mtype
+-- 					haveMtype[mtype] = true
+-- 					EchoDebug(uname .. " " .. mtype)
+-- 				end
+-- 			end
+-- 		end
+-- 	end
+-- 	return factMobs
+-- end
 
 function MapHandler:SpotSimplyfier(metalSpots,geoSpots)
 	local spots = {}
@@ -758,6 +777,9 @@ function MapHandler:Init()
 	if DebugDrawEnabled then
 		self.map:EraseAll(4, 5)
 	end
+
+	-- factoryMobilities = self:GetFactoryMobilities()
+
 	ai.conUnitPerTypeLimit = math.max(map:SpotCount() / 6, 4)--add here cause map:spotcount not correctly load or so
 	ai.conUnitAdvPerTypeLimit = math.max(map:SpotCount() / 8, 2)
 	ai.activeMobTypes = {}
