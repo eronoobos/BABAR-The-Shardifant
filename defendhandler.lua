@@ -508,6 +508,7 @@ function DefendHandler:Unscramble()
 end
 
 function DefendHandler:FindFronts(troublingCells)
+	if not troublingCells then return end
 	local number = #troublingCells
 	for n = 1, number do
 		local tcells = troublingCells[n]

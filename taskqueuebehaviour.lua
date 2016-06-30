@@ -130,7 +130,9 @@ function TaskQueueBehaviour:CategoryEconFilter(value)
 	return value
 end
 function TaskQueueBehaviour:Init()
-	shard_include "taskqueues"
+	if not taskqueues then
+		shard_include "taskqueues"
+	end
 	if ai.outmodedFactories == nil then ai.outmodedFactories = 0 end
 
 	GetEcon()
