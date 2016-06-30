@@ -344,7 +344,8 @@ end
 
 -- handle deaths
 function BuildSiteHandler:DoBuildRectangleByUnitID(unitID)
-	for i, rect in pairs(self.dontBuildRects) do
+	for i = #self.dontBuildRects, 1, -1 do
+		local rect = self.dontBuildRects[i]
 		if rect.unitID == unitID then
 			table.remove(self.dontBuildRects, i)
 		end
@@ -365,7 +366,8 @@ function BuildSiteHandler:UnitCreated(unit)
 	local position = unit:GetPosition()
 	local unitID = unit:ID()
 	local planned = false
-	for i, plan in pairs(self.plans) do
+	for i = #self.plans, 1, -1 do
+		local plan = self.plans[i]
 		if plan.unitName == unitName and PositionWithinRect(position, plan) then
 			if plan.resurrect then
 				-- so that bootbehaviour will hold it in place while it gets repaired
@@ -496,7 +498,8 @@ function BuildSiteHandler:NewPlan(unitName, position, behaviour, resurrect)
 end
 
 function BuildSiteHandler:ClearMyPlans(behaviour)
-	for i, plan in pairs(self.plans) do
+	for i = #self.plans, 1, -1 do
+		local plan = self.plans[i]
 		if plan.behaviour == behaviour then
 			if not plan.resurrect and unitTable[plan.unitName].isBuilding then
 				self.ai.turtlehandler:PlanCancelled(plan)

@@ -111,7 +111,8 @@ end
 
 function AttackHandler:ReTarget()
 	local f = game:Frame()
-	for is, squad in pairs(self.squads) do
+	for is = #self.squads, 1, -1 do
+		local squad = self.squads[is]
 		if f > squad.lastReTarget + 300 then
 			if squad.idle or squad.reachedTarget then
 				if squad.idle or f > squad.reachedTarget + 900 then
@@ -162,14 +163,16 @@ end
 
 function AttackHandler:DoMovement()
 	local f = game:Frame()
-	for is, squad in pairs(self.squads) do
+	for is = #self.squads, 1, -1 do
+		local squad = self.squads[is]
 		-- get a representative and midpoint
 		local representative
 		local totalx = 0
 		local totalz = 0
 		local totalSize = 0
 		if squad.hasCongregated then
-			for iu, member in pairs(squad.members) do
+			for iu = #squad.members, 1, -1 do
+				local member = squad.members[iu]
 				local unit
 				if member ~= nil then
 					if member.unit ~= nil then
@@ -209,7 +212,8 @@ function AttackHandler:DoMovement()
 			local damaged = 0
 			local idle = 0
 			local maxRange = 0
-			for iu, member in pairs(squad.members) do
+			for iu = #squad.members, 1, -1 do
+				local member = squad.members[iu]
 				if member.damaged then damaged = damaged + 1 end
 				if member.idle then idle = idle + 1 end
 				if member.range > maxRange then maxRange = member.range end
@@ -343,8 +347,10 @@ end
 function AttackHandler:RemoveMember(attkbehaviour)
 	if attkbehaviour == nil then return false end
 	local found = false
-	for is, squad in pairs(self.squads) do
-		for iu, member in pairs(squad.members) do
+	for is = #self.squads, 1, -1 do
+		local squad = self.squads[is]
+		for iu = #squad.members, 1, -1 do
+			local member = squad.members[iu]
 			if member == attkbehaviour then
 				table.remove(squad.members, iu)
 				found = true

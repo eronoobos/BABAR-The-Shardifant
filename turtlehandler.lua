@@ -217,8 +217,10 @@ end
 function TurtleHandler:RemoveOrgan(unitID)
 	local foundOrgan = false
 	local emptyTurtle = false
-	for ti, turtle in pairs(self.turtles) do
-		for oi, organ in pairs(turtle.organs) do
+	for ti = #self.turtles, 1, -1 do
+		local turtle = self.turtles[ti]
+		for oi = #turtle.organs, 1, -1 do
+			local organ = turtle.organs[oi]
 			if organ.unitID == unitID then
 				turtle.priority = turtle.priority - organ.priority
 				self.totalPriority = self.totalPriority - organ.priority
@@ -236,7 +238,8 @@ function TurtleHandler:RemoveOrgan(unitID)
 	end
 	if emptyTurtle then
 		for si, shell in pairs(self.shells) do
-			for ti, turtle in pairs(shell.attachments) do
+			for ti = #shell.attachments, 1, -1 do
+				local turtle = shell.attachments[ti]
 				if turtle == emptyTurtle then
 					table.remove(shell.attachments, ti)
 				end
@@ -421,7 +424,8 @@ function TurtleHandler:AddShell(position, unitID, uname, value, layer, radius)
 end
 
 function TurtleHandler:RemoveShell(unitID)
-	for si, shell in pairs(self.shells) do
+	for si = #self.shells, 1, -1 do
+		local shell = self.shells[si]
 		if shell.unitID == unitID then
 			for li, limb in pairs(shell.attachments) do
 				self:Detach(limb, shell)

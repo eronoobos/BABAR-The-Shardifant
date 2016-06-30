@@ -109,9 +109,9 @@ local function NewCell(px, pz)
 	local threat = { ground = 0, air = 0, submerged = 0 } -- threats (including buildings) by what they hurt
 	local response = { ground = 0, air = 0, submerged = 0 } -- count mobile threat by what can hurt it
 	local preresponse = { ground = 0, air = 0, submerged = 0 } -- count where mobile threat will probably be by what can hurt it 
-	local position = api.Position()
 	local x = px * cellElmos - cellElmosHalf
 	local z = pz * cellElmos - cellElmosHalf
+	local position = api.Position()
 	position.x, position.z = x, z
 	position.y = 0
 	if ShardSpringLua then
@@ -537,7 +537,8 @@ end
 
 function TargetHandler:UpdateBadPositions()
 	local f = game:Frame()
-	for i, r in pairs(badPositions) do
+	for i = #badPositions, 1, -1 do
+		local r = badPositions[i]
 		if cells[r.px] then
 			cell = cells[r.px][r.pz]
 			if cell then
@@ -717,6 +718,7 @@ end
 
 function TargetHandler:UpdateMap()
 	if self.ai.lastLOSUpdate > self.lastUpdateFrame then
+		-- game:SendToConsole("before target update", collectgarbage("count")/1024)
 		self.raiderCounted = {}
 		cells = {}
 		cellList = {}
@@ -727,6 +729,9 @@ function TargetHandler:UpdateMap()
 		self:UpdateFronts(3)
 		UpdateDebug()
 		self.lastUpdateFrame = game:Frame()
+		-- game:SendToConsole("after target update", collectgarbage("count")/1024)
+		-- collectgarbage()
+		-- game:SendToConsole("after collectgarbage", collectgarbage("count")/1024)
 	end
 end
 
@@ -1156,7 +1161,8 @@ function TargetHandler:BestAdjacentPosition(unit, targetPosition)
 					end
 				end
 				-- if we just went to the same place, probably not a great place
-				for i, feint in pairs(self.feints) do
+				for i = #self.feints, 1, -1 do
+					local feint = self.feints[i]
 					if f > feint.frame + 900 then
 						-- expire stored after 30 seconds
 						table.remove(self.feints, i)

@@ -39,7 +39,8 @@ function AssistHandler:Update()
 			self.ai.nonAssistantsPerName = math.max(self.ai.nonAssistantsPerName - 1, 2)
 		elseif self.ai.Metal.tics < 2 or self.ai.Metal.full < 0.1 then
 			self.ai.nonAssistantsPerName = math.min(self.ai.nonAssistantsPerName + 1, self.ai.conUnitPerTypeLimit)
-			for fi, asstbehaviour in pairs(self.free) do
+			for fi = #self.free, 1, -1 do
+				local asstbehaviour = self.free[fi]
 				if self.ai.IDByName[asstbehaviour.id] == nil then self:AssignIDByName(asstbehaviour) end
 				if self.ai.IDByName[asstbehaviour.id] <= self.ai.nonAssistantsPerName then
 					self.ai.nonAssistant[asstbehaviour.id] = true
@@ -180,16 +181,11 @@ function AssistHandler:TakeUpSlack(builder)
 	if #self.free == 0 then return end
 	local builderPos = builder:GetPosition()
 	self.lastPullPosition = builderPos -- so that any newly free assistants can be sent to a non-dumb place
-	for i, asstbehaviour in pairs(self.free) do
-		local skip = false
-		if asstbehaviour.unit == nil then
+	for i = #self.free, 1, -1 do
+		local asstbehaviour = self.free[i]
+		if not asstbehaviour.unit or not asstbehaviour.unit:Internal() then
 			table.remove(self.free, i)
-			skip = true
-		elseif asstbehaviour.unit:Internal() == nil then
-			table.remove(self.free, i)
-			skip = true
-		end
-		if not skip then
+		else
 			if self:IsLocal(asstbehaviour, builderPos) then
 				asstbehaviour:SoftAssign(builder:ID())
 			end
@@ -199,7 +195,8 @@ end
 
 -- assign any free assistants to really important ongoing projects
 function AssistHandler:DoMagnets()
-	for fi, asstbehaviour in pairs(self.free) do
+	for fi = #self.free, 1, -1 do
+		local asstbehaviour = self.free[fi]
 		if #self.magnets == 0 then break end
 		local skip = false
 		if asstbehaviour.unit == nil then
@@ -268,7 +265,8 @@ function AssistHandler:Release(builder, bid, dead)
 	self.working[bid] = nil
 	self.totalAssignments = self.totalAssignments - 1
 	EchoDebug("demagnetizing " .. bid)
-	for i, magnet in pairs(self.magnets) do
+	for i = #self.magnets, 1, -1 do
+		local magnet = self.magnets[i]
 		if magnet.bid == bid then
 			EchoDebug("removing a magnet")
 			table.remove(self.magnets, i)

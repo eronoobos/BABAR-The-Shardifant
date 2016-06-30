@@ -522,6 +522,11 @@ function DefendHandler:FindFronts(troublingCells)
 					if ward.behaviour ~= nil then
 						local behaviour = ward.behaviour
 						if water == behaviour.water then
+							-- if not cell then game:SendToConsole("nil cell") end
+							-- if not cell.pos then game:SendToConsole("nil cell pos") end
+							-- if not behaviour then game:SendToConsole("nil behaviour") end
+							-- if not behaviour.unit then game:SendToConsole("nil behaviour unit") end
+							-- if not behaviour.unit:Internal() then game:SendToConsole("nil behaviour unit internal") end
 							local dist = Distance(behaviour.unit:Internal():GetPosition(), cell.pos)
 							if dist < nearestMobileDist then
 								nearestMobileDist = dist

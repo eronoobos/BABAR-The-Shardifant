@@ -683,7 +683,8 @@ function MapHandler:factoriesRating()
 	
 	local factoriesRanking = {}
 	for i,v in pairs(sorting) do
-		for ii, vv in pairs(rank[v]) do
+		for ii = #rank[v], 1, -1 do
+			local vv = rank[v][ii]
 			table.insert(factoriesRanking,table.remove(rank[v],ii))
 			EchoDebug((i.. ' '..vv))
 		end
