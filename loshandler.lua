@@ -81,7 +81,6 @@ function LosHandler:Init()
 	self.ai.knownEnemies = {}
 	self.ai.knownWrecks = {}
 	self.ai.wreckCount = 0
-	self.ai.enemyList = {}
 	self.ai.lastLOSUpdate = 0
 	self.ai.friendlyTeamID = {}
 	self:Update()

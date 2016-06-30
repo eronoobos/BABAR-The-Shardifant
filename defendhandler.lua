@@ -259,7 +259,8 @@ function DefendHandler:AssignAll(GAS, mtype) -- Ground Air Submerged (weapon), m
 			end
 			-- put into table to sort by distance
 			local bydistance = {}
-			for di, dfndbehaviour in pairs(defendersToAssign) do
+			for di = #defendersToAssign, 1, -1 do
+				local dfndbehaviour = defendersToAssign[di]
 				local okay = true
 				for nothing, removedfndbehaviour in pairs(defendersToRemove) do
 					if removedfndbehaviour == dfndbehaviour then
