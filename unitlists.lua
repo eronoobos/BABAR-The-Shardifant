@@ -31,8 +31,8 @@ factoryMobilities = {
 	armasy = {"shp", "sub"},
 	csubpen = {"amp","sub"},
 	asubpen = {"amp","sub"},
-	corgant = {"bot"},
-	armshltx = {"bot"},
+	corgant = {"bot", "amp"},
+	armshltx = {"bot", "amp"},
 	corgantuw = {"amp"},
 	armshltxuw = {"amp"},
 }

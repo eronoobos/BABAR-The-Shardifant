@@ -11,7 +11,7 @@ function Situation:internalName()
 end
 
 function Situation:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 
 	self.heavyPlasmaLimit = 3
 	self.AAUnitPerTypeLimit = 3
@@ -58,9 +58,15 @@ function Situation:Evaluate()
 		if self.ai.Metal.income > 50 and self.ai.haveAdvFactory and needUpgrade and self.ai.enemyBasePosition then
 			if not self.ai.haveExpFactory then
 				for i, factory in pairs(self.ai.factoriesAtLevel[self.ai.maxFactoryLevel]) do
-					if self.ai.maphandler:MobilityNetworkHere("bot", factory.position) == self.ai.maphandler:MobilityNetworkHere("bot", self.ai.enemyBasePosition) then
-						self.ai.needExperimental = true
-						break
+					for expFactName, _ in pairs(expFactories) do
+						for _, mtype in pairs(factoryMobilities[expFactName]) do
+							local myNet = self.ai.maphandler:MobilityNetworkHere(mtype, factory.position)
+							local enemyNet = self.ai.maphandler:MobilityNetworkHere(mtype, self.ai.enemyBasePosition)
+							if myNet and enemyNet and myNet == enemyNet then
+								self.ai.needExperimental = true
+								break
+							end
+						end
 					end
 				end
 			end
