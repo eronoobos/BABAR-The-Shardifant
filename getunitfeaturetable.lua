@@ -166,5 +166,6 @@ end
 
 local unitTable, wrecks = GetUnitTable()
 local featureTable = GetFeatureTable(wrecks)
+wrecks = nil
 
 return unitTable, featureTable

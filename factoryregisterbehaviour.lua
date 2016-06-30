@@ -1,4 +1,4 @@
-shard_include "common"
+
 
 FactoryRegisterBehaviour = class(Behaviour)
 
@@ -93,7 +93,7 @@ function FactoryRegisterBehaviour:Unregister()
 	if self.ai.factoryUnderConstruction == self.id then self.ai.factoryUnderConstruction = false end
 	local mtype = factoryMobilities[self.name][1]
 	local network = self.ai.maphandler:MobilityNetworkHere(mtype,self.position)
-	self.ai.factoryBuilded[mtype][network] = self.ai.factoryBuilded[mtype][network] - unitTable[self.name].techLevel
+	self.ai.factoryBuilded[mtype][network] = (self.ai.factoryBuilded[mtype][network] or 0) - unitTable[self.name].techLevel
 	EchoDebug('factory '  ..self.name.. ' network '  .. mtype .. '-' .. network .. ' level ' .. self.ai.factoryBuilded[mtype][network] .. ' subtract tech '.. self.level)
 end
 

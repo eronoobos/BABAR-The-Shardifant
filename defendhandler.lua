@@ -1,4 +1,4 @@
-shard_include "common"
+
 
 local DebugEnabled = false
 
@@ -518,32 +518,32 @@ function DefendHandler:FindFronts(troublingCells)
 				local nearestMobile
 				local nearestTurtleDist = 100000
 				local nearestTurtle
-				for wi, ward in pairs(self.wards) do
-					if ward.behaviour ~= nil then
-						local behaviour = ward.behaviour
-						if water == behaviour.water then
-							-- if not cell then game:SendToConsole("nil cell") end
-							-- if not cell.pos then game:SendToConsole("nil cell pos") end
-							-- if not behaviour then game:SendToConsole("nil behaviour") end
-							-- if not behaviour.unit then game:SendToConsole("nil behaviour unit") end
-							-- if not behaviour.unit:Internal() then game:SendToConsole("nil behaviour unit internal") end
-							local dist = Distance(behaviour.unit:Internal():GetPosition(), cell.pos)
-							if dist < nearestMobileDist then
-								nearestMobileDist = dist
-								nearestMobile = ward
+				for wi = #self.wards, 1, -1 do
+					local ward = self.wards[wi]
+					if not ward.behaviour or not ward.behaviour.unit or not ward.behaviour.unit:Internal() then
+						table.remove(self.wards, wi)
+					else
+						if ward.behaviour ~= nil then
+							local behaviour = ward.behaviour
+							if water == behaviour.water then
+								local dist = Distance(behaviour.unit:Internal():GetPosition(), cell.pos)
+								if dist < nearestMobileDist then
+									nearestMobileDist = dist
+									nearestMobile = ward
+								end
 							end
-						end
-						if ward.frontNumber[GAS] > 0 then self:SetDangerZone(ward, 0, number, GAS) end
-					elseif n == 1 and ward.turtle ~= nil then
-						local turtle = ward.turtle
-						turtle.threatForecastAngle = nil
-						turtle.front = nil
-						if water == turtle.water then
-							if turtle.priority > 1 then
-								local dist = Distance(turtle.position, cell.pos)
-								if dist < nearestTurtleDist then
-									nearestTurtleDist = dist
-									nearestTurtle = ward
+							if ward.frontNumber[GAS] > 0 then self:SetDangerZone(ward, 0, number, GAS) end
+						elseif n == 1 and ward.turtle ~= nil then
+							local turtle = ward.turtle
+							turtle.threatForecastAngle = nil
+							turtle.front = nil
+							if water == turtle.water then
+								if turtle.priority > 1 then
+									local dist = Distance(turtle.position, cell.pos)
+									if dist < nearestTurtleDist then
+										nearestTurtleDist = dist
+										nearestTurtle = ward
+									end
 								end
 							end
 						end

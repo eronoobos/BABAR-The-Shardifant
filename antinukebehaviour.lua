@@ -1,4 +1,4 @@
-shard_include "common"
+
 
 AntinukeBehaviour = class(Behaviour)
 

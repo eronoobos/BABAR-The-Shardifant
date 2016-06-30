@@ -306,3 +306,5 @@ function BehaviourPosition(behaviour)
 	if unit == nil then return end
 	return unit:GetPosition()
 end
+
+CommonFunctionsLoaded = true -- so that SpringShardLua doesn't load them multiple times

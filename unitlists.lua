@@ -679,3 +679,5 @@ ARMSideName = "arm"
 
 -- how much metal to assume features with these strings in their names have
 baseFeatureMetal = { rock = 30, heap = 80, wreck = 150 }
+
+UnitListsLoaded = true -- so that SpringShardLua doesn't load them multiple times
