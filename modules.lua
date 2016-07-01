@@ -10,6 +10,7 @@ shard_include "raidhandler"
 shard_include "loshandler"
 shard_include "targethandler"
 shard_include "scouthandler"
+shard_include "factorybuildershandler"
 shard_include "assisthandler"
 shard_include "defendhandler"
 shard_include "turtlehandler"
@@ -19,4 +20,4 @@ shard_include "damagehandler"
 shard_include "cleanhandler"
 shard_include "situation"
 
-modules = { Sleep, MapHandler, EconHandler, AttackHandler, BomberHandler, RaidHandler, BuildSiteHandler, CountHandler, TurtleHandler, TacticalHandler, LosHandler, TargetHandler, DamageHandler, ScoutHandler, AssistHandler, DefendHandler, CleanHandler, Situation, UnitHandler }
+modules = { Sleep, MapHandler, EconHandler, AttackHandler, BomberHandler, RaidHandler, BuildSiteHandler, CountHandler, TurtleHandler, TacticalHandler, LosHandler, TargetHandler, DamageHandler, ScoutHandler, FactoryBuildersHandler, AssistHandler, DefendHandler, CleanHandler, Situation, UnitHandler }
