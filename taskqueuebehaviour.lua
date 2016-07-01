@@ -179,7 +179,16 @@ end
 function TaskQueueBehaviour:UnitBuilt(unit)
 	if self.unit == nil then return end
 	if unit.engineID == self.unit.engineID then
-		ai.builderslist[self.engineID] = self
+		
+		self.ai.FactoryBuildersHandler.builderslist[self.id] = self
+
+		if not self.ai.FactoryBuildersHandler.buildersNames[self.name] then
+			self.ai.FactoryBuildersHandler.buildersNames[self.name] = 1
+			self.ai.FactoryBuildersHandler:updateRequired()
+		else
+			self.ai.FactoryBuildersHandler.buildersNames[self.name] = self.ai.FactoryBuildersHandler.buildersNames[self.name] +1
+		end
+	
 		if self:IsActive() then self.progress = true end
 	end
 end
@@ -209,10 +218,14 @@ function TaskQueueBehaviour:UnitDead(unit)
 			if self.outmodedFactory then ai.outmodedFactories = ai.outmodedFactories - 1 end
 			-- self.unit = nil
 			if self.target then ai.targethandler:AddBadPosition(self.target, self.mtype) end
+			ai.builderslist = ai.builderslist -1
 			ai.assisthandler:Release(nil, self.id, true)
 			ai.buildsitehandler:ClearMyPlans(self)
 			ai.buildsitehandler:ClearMyConstruction(self)
-			ai.builderslist[self.engineID] = nil
+			self.ai.FactoryBuildersHandler.buildersNames[self.id] = nil
+			if self.ai.FactoryBuildersHandler.buildersNames[self.name] == 0 then
+				self.ai.FactoryBuildersHandler:updateRequired()
+			end
 		end
 	end
 end
@@ -548,15 +561,15 @@ function TaskQueueBehaviour:ProgressQueue()
 			local p
 			if value == FactoryUnitName then
 				-- build the best factory this builder can build
-				--DebugEnabled = true
-				value , p = ai.FactoryBuildersHandler:GetFactoryPos(self.id)
+				DebugEnabled = true
+				value , p = self.ai.FactoryBuildersHandler:GetFactoryPos(self.id)
 				if not p  then
-					value = DummyUnitName
+					--value = DummyUnitName
 					EchoDebug('factory lost ' .. self.id )
 				else 
 					EchoDebug('factory ' .. value .. 'will be build to '..p.x .. ' ' .. p.y .. ' ' ..p.z)
 				end
-				--DebugEnabled = false
+				DebugEnabled = false
 			end
 			local success = false
 			if value ~= DummyUnitName and value ~= nil then

@@ -10,17 +10,20 @@ function FactoryBuildersHandler:internalName()
 end 
 
 function FactoryBuildersHandler:Init()
-	ai.builderslist = {}
-	self.DebugEnabled = false
+	self.builderslist = {}
+	self.updateRequest = false
+	self.DebugEnabled = true
 	self.factoryToBuild = false
 	self.factoryPosition = false
 	self.builderToUse = false
+	self.buildersNames ={}
 	
 
 end
 
 function FactoryBuildersHandler:Update()
 	if ai.factoryUnderConstruction then return end
+	if not self.updateRequest then return end
 	local f = self.game:Frame()
 	if f % 100 == 0 then
 		self:EchoDebug('no factory under construction')
@@ -36,12 +39,22 @@ function FactoryBuildersHandler:Update()
 end
 
 function FactoryBuildersHandler:Getbuilders()
-	for i,v in pairs(ai.builderslist) do
+	for i,v in pairs(self.builderslist) do
 		self:EchoDebug(i)
 	end
 end
 
-function 
+function FactoryBuildersHandler:GetFactoryPos(builderID)
+	if self.builderToUse == builderID then
+		self:EchoDebug('factoryToBuild ' .. self.factoryToBuild ..' self.factoryPosition ' )
+		return self.factoryToBuild , self.factoryPosition
+	end
+end
+
+function FactoryBuildersHandler:updateRequired()
+	self.updateRequest = true
+	self:EchoDebug('update required')
+end
 function FactoryBuildersHandler:AvailableFactories()
 	local availableFactories = {}
 	for name,count  in pairs(self.ai.nameCount) do
@@ -134,12 +147,6 @@ function FactoryBuildersHandler:PrePositionFilter(factoryBuildable)
 	return factoriesPreCleaned
 end
 
-function FactoryBuildersHandler:GetFactoryPos()
-	for i,v in pairs(ai.builderslist) do
-		self:EchoDebug(i)
-	end
-end
-
 
 
 function FactoryBuildersHandler:BestFactoryPosition(factoriesPreCleaned)
@@ -147,7 +154,7 @@ function FactoryBuildersHandler:BestFactoryPosition(factoriesPreCleaned)
 	for index, factoryName in pairs(factoriesPreCleaned) do
 		local utype = game:GetTypeByName(factoryName)
 		local mtype = factoryMobilities[factoryName][1]
-		for id, obj in pairs(ai.builderslist) do
+		for id, obj in pairs(self.builderslist) do
 			local builder = obj.unit:Internal()	
 			local builderPos = builder:GetPosition()
 			
@@ -281,7 +288,7 @@ function FactoryBuildersHandler:ComparingChoiches(postPositionedFactories)
 			end
 			for builderID, position in pairs(factoriesOptions) do
 				
-				local builder = ai.builderslist[builderID].unit:Internal()
+				local builder = self.builderslist[builderID].unit:Internal()
 				local builderPos = builder:GetPosition()
 				local hiLvFactoryPos = ai.buildsitehandler:ClosestHighestLevelFactory(builderPos, 10000)
 				if hiLvFactoryPos then
@@ -313,7 +320,8 @@ function FactoryBuildersHandler:ComparingChoiches(postPositionedFactories)
 				self.factoryToBuild = factoryName
 				self.factoryPosition = bestPos
 				self.builderToUse = bestName
-			return
+				self.updateRequest = false
+				return
 
 			end
 		end
@@ -325,13 +333,7 @@ function FactoryBuildersHandler:ComparingChoiches(postPositionedFactories)
 	
 end
 
-function FactoryBuildersHandler:GetFactoryPos(builderID)
-	self:EchoDebug('self.builderToUse '..self.builderToUse)
-	if self.builderToUse == builderID then
-		self:EchoDebug('factoryToBuild ' .. self.factoryToBuild ..' self.factoryPosition ' )
-		return self.factoryToBuild , self.factoryPosition
-	end
-end
+
 
 -- function FactoryBuildersHandler:ShareFactories(factoriesChoiche)
 -- 	for rank, factoryName in pairs(ai.factoriesRanking) do
