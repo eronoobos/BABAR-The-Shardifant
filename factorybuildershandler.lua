@@ -11,7 +11,7 @@ end
 
 function FactoryBuildersHandler:Init()
 	ai.builderslist = {}
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self.factoryToBuild = false
 	self.factoryPosition = false
 	self.builderToUse = false
@@ -35,21 +35,13 @@ function FactoryBuildersHandler:Update()
 	end
 end
 
-function FactoryBuildersHandler:GetFactoryPos(builderID)
-	self:EchoDebug('self.builderToUse '..self.builderToUse)
-	if self.builderToUse == builderID then
-		self:EchoDebug('factoryToBuild ' .. self.factoryToBuild ..' self.factoryPosition ' .. self.factoryPosition)
-		return self.factoryToBuild , self.factoryPosition
-	end
-end
-
 function FactoryBuildersHandler:Getbuilders()
 	for i,v in pairs(ai.builderslist) do
 		self:EchoDebug(i)
 	end
 end
 
-
+function 
 function FactoryBuildersHandler:AvailableFactories()
 	local availableFactories = {}
 	for name,count  in pairs(self.ai.nameCount) do
@@ -332,6 +324,15 @@ function FactoryBuildersHandler:ComparingChoiches(postPositionedFactories)
 	end
 	
 end
+
+function FactoryBuildersHandler:GetFactoryPos(builderID)
+	self:EchoDebug('self.builderToUse '..self.builderToUse)
+	if self.builderToUse == builderID then
+		self:EchoDebug('factoryToBuild ' .. self.factoryToBuild ..' self.factoryPosition ' )
+		return self.factoryToBuild , self.factoryPosition
+	end
+end
+
 -- function FactoryBuildersHandler:ShareFactories(factoriesChoiche)
 -- 	for rank, factoryName in pairs(ai.factoriesRanking) do
 -- 		if factoriesChoiche[factoryName] then

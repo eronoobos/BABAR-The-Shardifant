@@ -548,15 +548,15 @@ function TaskQueueBehaviour:ProgressQueue()
 			local p
 			if value == FactoryUnitName then
 				-- build the best factory this builder can build
-				DebugEnabled = true
-				value , p = self.ai.FactoryBuildersHandler:GetFactoryPos(self.id)
+				--DebugEnabled = true
+				value , p = ai.FactoryBuildersHandler:GetFactoryPos(self.id)
 				if not p  then
-
+					value = DummyUnitName
 					EchoDebug('factory lost ' .. self.id )
 				else 
 					EchoDebug('factory ' .. value .. 'will be build to '..p.x .. ' ' .. p.y .. ' ' ..p.z)
 				end
-				DebugEnabled = false
+				--DebugEnabled = false
 			end
 			local success = false
 			if value ~= DummyUnitName and value ~= nil then
