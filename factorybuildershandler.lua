@@ -12,9 +12,9 @@ end
 function FactoryBuildersHandler:Init()
 	ai.builderslist = {}
 	self.DebugEnabled = true
-	ai.factoryToBuild = false
-	ai.factoryPosition = false
-	ai.builderToUse = false
+	self.factoryToBuild = false
+	self.factoryPosition = false
+	self.builderToUse = false
 	
 
 end
@@ -32,6 +32,20 @@ function FactoryBuildersHandler:Update()
 		local postPositionedFactories = self:PostPositionFilter(bestFactoryPosition)
 		local epuredChoiches = self:ComparingChoiches(postPositionedFactories)
 		
+	end
+end
+
+function FactoryBuildersHandler:GetFactoryPos(builderID)
+	self:EchoDebug('self.builderToUse '..self.builderToUse)
+	if self.builderToUse == builderID then
+		self:EchoDebug('factoryToBuild ' .. self.factoryToBuild ..' self.factoryPosition ' .. self.factoryPosition)
+		return self.factoryToBuild , self.factoryPosition
+	end
+end
+
+function FactoryBuildersHandler:Getbuilders()
+	for i,v in pairs(ai.builderslist) do
+		self:EchoDebug(i)
 	end
 end
 
@@ -128,7 +142,7 @@ function FactoryBuildersHandler:PrePositionFilter(factoryBuildable)
 	return factoriesPreCleaned
 end
 
-function FactoryBuildersHandler:Getbuilders()
+function FactoryBuildersHandler:GetFactoryPos()
 	for i,v in pairs(ai.builderslist) do
 		self:EchoDebug(i)
 	end
@@ -304,9 +318,9 @@ function FactoryBuildersHandler:ComparingChoiches(postPositionedFactories)
 					end
 
 				end
-			ai.factoryToBuild = factoryName
-			ai.factoryPosition = bestPos
-			ai.builderToUse = bestName
+				self.factoryToBuild = factoryName
+				self.factoryPosition = bestPos
+				self.builderToUse = bestName
 			return
 
 			end
