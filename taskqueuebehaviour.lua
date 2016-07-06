@@ -144,6 +144,7 @@ function TaskQueueBehaviour:Init()
 	local mtype, network = ai.maphandler:MobilityOfUnit(u)
 	self.mtype = mtype
 	self.name = u:Name()
+	self.side = unitTable[self.name].side
 	if commanderList[self.name] then self.isCommander = true end
 	self.id = u:ID()
 	EchoDebug(self.name .. " " .. self.id .. " initializing...")
@@ -704,6 +705,7 @@ function TaskQueueBehaviour:ProgressQueue()
 		local value = val
 
 		-- evaluate any functions here, they may return tables
+		MyTB = self
 		while type(value) == "function" do
 			value = value(self)
 		end
