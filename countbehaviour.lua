@@ -65,7 +65,7 @@ function CountBehaviour:UnitBuilt(unit)
 		if self.isMex then self.ai.mexCount = self.ai.mexCount + 1 end
 		if self.isCon then 
 			self.ai.conCount = self.ai.conCount + 1 
-			self.ai.conList[self.id] = self.name
+			self.ai.conList[self.id] = self
 		end
 		if self.isCombat then self.ai.combatCount = self.ai.combatCount + 1 end
 		if self.isBattle then self.ai.battleCount = self.ai.battleCount + 1 end
