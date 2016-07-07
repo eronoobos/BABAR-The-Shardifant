@@ -63,7 +63,10 @@ function CountBehaviour:UnitBuilt(unit)
 			self.ai.nameCountFinished[self.name] = self.ai.nameCountFinished[self.name] + 1
 		end
 		if self.isMex then self.ai.mexCount = self.ai.mexCount + 1 end
-		if self.isCon then self.ai.conCount = self.ai.conCount + 1 end
+		if self.isCon then 
+			self.ai.conCount = self.ai.conCount + 1 
+			self.ai.conList[self.id] = self.name
+		end
 		if self.isCombat then self.ai.combatCount = self.ai.combatCount + 1 end
 		if self.isBattle then self.ai.battleCount = self.ai.battleCount + 1 end
 		if self.isBreakthrough then self.ai.breakthroughCount = self.ai.breakthroughCount + 1 end
@@ -111,7 +114,10 @@ function CountBehaviour:UnitDead(unit)
 		if self.finished then
 			self.ai.nameCountFinished[self.name] = self.ai.nameCountFinished[self.name] - 1
 			if self.isMex then self.ai.mexCount = self.ai.mexCount - 1 end
-			if self.isCon then self.ai.conCount = self.ai.conCount - 1 end
+			if self.isCon then
+				self.ai.conCount = self.ai.conCount - 1
+				self.ai.conList[self.id] = nil
+			end
 			if self.isCombat then self.ai.combatCount = self.ai.combatCount - 1 end
 			if self.isBattle then self.ai.battleCount = self.ai.battleCount - 1 end
 			if self.isBreakthrough then self.ai.breakthroughCount = self.ai.breakthroughCount - 1 end

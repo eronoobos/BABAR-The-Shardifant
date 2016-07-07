@@ -30,6 +30,7 @@ function CountHandler:Init()
 	self.ai.lastNameDead = {}
 	self.ai.mexCount = 0
 	self.ai.conCount = 0
+	self.ai.conList = {}
 	self.ai.combatCount = 0
 	self.ai.battleCount = 0
 	self.ai.breakthroughCount = 0
