@@ -16,16 +16,17 @@ function CountBehaviour:Init()
 	local uTn = unitTable[self.name]
 	-- game:SendToConsole(self.name .. " " .. self.id .. " init")
 	if uTn.isBuilding then
-			self.position = self.unit:Internal():GetPosition() -- buildings don't move
-		else
-			if uTn.buildOptions then
-				self.isCon = true
-			elseif uTn.isWeapon then
-				self.isCombat = true
-			end
+		self.position = self.unit:Internal():GetPosition() -- buildings don't move
+		self.isBuilding = true
+	else
+		if uTn.buildOptions then
+			self.isCon = true
+		elseif uTn.isWeapon then
+			self.isCombat = true
 		end
+	end
 	self.level = uTn.techLevel
-	if not self.isBuilding and not self.isCon then
+	if not self.isBuilding and self.isCombat then
 		self.mtypedLv = tostring(uTn.mtype)..self.level
 	end
 	if uTn.totalEnergyOut > 750 then self.isBigEnergy = true end
@@ -63,7 +64,10 @@ function CountBehaviour:UnitBuilt(unit)
 			self.ai.nameCountFinished[self.name] = self.ai.nameCountFinished[self.name] + 1
 		end
 		if self.isMex then self.ai.mexCount = self.ai.mexCount + 1 end
-		if self.isCon then self.ai.conCount = self.ai.conCount + 1 end
+		if self.isCon then 
+			self.ai.conCount = self.ai.conCount + 1 
+			self.ai.conList[self.id] = self
+		end
 		if self.isCombat then self.ai.combatCount = self.ai.combatCount + 1 end
 		if self.isBattle then self.ai.battleCount = self.ai.battleCount + 1 end
 		if self.isBreakthrough then self.ai.breakthroughCount = self.ai.breakthroughCount + 1 end
@@ -77,6 +81,7 @@ function CountBehaviour:UnitBuilt(unit)
 		self.finished = true
 		--mtyped leveled counters
 		if self.mtypedLv then
+			self.ai.army = self.ai.army + 1
 			if self.ai.mtypeLvCount[self.mtypedLv] == nil then 
 				self.ai.mtypeLvCount[self.mtypedLv] = 1 
 			else
@@ -111,7 +116,10 @@ function CountBehaviour:UnitDead(unit)
 		if self.finished then
 			self.ai.nameCountFinished[self.name] = self.ai.nameCountFinished[self.name] - 1
 			if self.isMex then self.ai.mexCount = self.ai.mexCount - 1 end
-			if self.isCon then self.ai.conCount = self.ai.conCount - 1 end
+			if self.isCon then
+				self.ai.conCount = self.ai.conCount - 1
+				self.ai.conList[self.id] = nil
+			end
 			if self.isCombat then self.ai.combatCount = self.ai.combatCount - 1 end
 			if self.isBattle then self.ai.battleCount = self.ai.battleCount - 1 end
 			if self.isBreakthrough then self.ai.breakthroughCount = self.ai.breakthroughCount - 1 end
@@ -121,6 +129,7 @@ function CountBehaviour:UnitDead(unit)
 			if self.isBigEnergy then self.ai.bigEnergyCount = self.ai.bigEnergyCount - 1 end
 			if self.isCleanable then self.ai.cleanable[unit.engineID] = nil end
 			if self.mtypedLv then
+				self.ai.army = self.ai.army - 1
 				self.ai.mtypeLvCount[self.mtypedLv] = self.ai.mtypeLvCount[self.mtypedLv] - 1
 			end
 			
