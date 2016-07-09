@@ -1,12 +1,3 @@
-local DebugEnabled = false
-
-
-local function EchoDebug(inStr)
-	if DebugEnabled then
-		game:SendToConsole("CountHandler: " .. inStr)
-	end
-end
-
 CountHandler = class(Module)
 
 function CountHandler:Name()
@@ -18,6 +9,8 @@ function CountHandler:internalName()
 end
 
 function CountHandler:Init()
+	self.DebugEnabled = false
+
 	self.ai.factories = 0
 	self.ai.maxFactoryLevel = 0
 	self.ai.factoriesAtLevel = {}
@@ -53,17 +46,13 @@ function CountHandler:InitializeNameCounts()
 end
 
 function CountHandler:UnitDamaged(unit, attacker,damage)
+	if unit:Team() ~= self.game:GetTeamID() then
+		self:EchoDebug("unit damaged", unit:Team(), unit:Name(), unit:ID())
+	end
 	local aname = "nil"
 	if attacker then 
 		if attacker:Team() ~= game:GetTeamID() then
-			EchoDebug(unit:Name() .. " on team " .. unit:Team() .. " damaged by " .. attacker:Name() .. " on team " .. attacker:Team())
+			self:EchoDebug(unit:Name() .. " on team " .. unit:Team() .. " damaged by " .. attacker:Name() .. " on team " .. attacker:Team())
 		end
-	end
-end
-
-function CountHandler:UnitDead(unit)
-	EchoDebug(unit:Name() .. " on team " .. unit:Team() .. " dead")
-	if unit:Team() ~= game:GetTeamID() then
-		EchoDebug("enemy unit died")
 	end
 end

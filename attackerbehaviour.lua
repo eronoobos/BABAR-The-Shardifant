@@ -30,7 +30,9 @@ function AttackerBehaviour:Init()
 	if self.level == 0 then self.level = 0.5 elseif self.level < 0 then self.level = 0.25 end
 	self.size = ut.xsize * ut.zsize * 16
 	self.range = math.max(ut.groundRange, ut.airRange, ut.submergedRange)
-	self.awayDistance = self.range * 0.9
+	self.weaponDistance = self.range * 0.9
+	self.sightDistance = ut.losRadius * 0.9
+	self.sturdy = battleList[self.name] or breakthroughList[self.name]
 	if ut.groundRange > 0 then
 		self.hits = "ground"
 	elseif ut.submergedRange > 0 then
@@ -40,24 +42,16 @@ function AttackerBehaviour:Init()
 	end
 end
 
-function AttackerBehaviour:UnitBuilt(unit)
-	if unit.engineID == self.unit.engineID then
-		self.attacking = false
-		self.ai.attackhandler:AddRecruit(self)
-	end
+function AttackerBehaviour:OwnerBuilt()
+	self.attacking = false
+	self.ai.attackhandler:AddRecruit(self)
 end
 
-function AttackerBehaviour:UnitDamaged(unit,attacker,damage)
-	if unit.engineID == self.unit.engineID then
-		self.damaged = game:Frame()
-	end
+function AttackerBehaviour:OwnerDamaged(attacker,damage)
+	self.damaged = game:Frame()
 end
 
-function AttackerBehaviour:UnitDead(unit)
-	--
-end
-
-function AttackerBehaviour:OwnerDied()
+function AttackerBehaviour:OwnerDead()
 	self.attacking = nil
 	self.active = nil
 	self.unit = nil
@@ -66,10 +60,8 @@ function AttackerBehaviour:OwnerDied()
 	self.ai.attackhandler:RemoveMember(self)
 end
 
-function AttackerBehaviour:UnitIdle(unit)
-	if unit.engineID == self.unit.engineID then
-		self.idle = true
-	end
+function AttackerBehaviour:OwnerIdle()
+	self.idle = true
 end
 
 function AttackerBehaviour:Attack(pos, realClose)
@@ -106,7 +98,11 @@ function AttackerBehaviour:AwayFromTarget(pos, spread)
 	elseif angle < 0 then
 		angle = angle + twicePi
 	end
-	return RandomAway(pos, self.awayDistance, false, angle)
+	local awayDistance = math.min(self.sightDistance, self.weaponDistance)
+	if not self.sturdy or self.ai.loshandler:IsInLos(pos) then
+		awayDistance = self.weaponDistance
+	end
+	return RandomAway(pos, awayDistance, false, angle)
 end
 
 function AttackerBehaviour:Congregate(pos)
