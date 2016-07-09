@@ -8,7 +8,7 @@ end
 
 --Factory call
 function BuildAppropriateFactory()
-		unitName = FactoryUnitName
+	return FactoryUnitName
 end
 --nano call
 function NanoTurret()
