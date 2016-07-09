@@ -54,23 +54,3 @@ function CountHandler:UnitDamaged(unit, attacker,damage)
 		end
 	end
 end
-
--- uncomment below for unitmovefailed debugging info
--- function CountHandler:UnitMoveFailed(unit)
--- 	self:EchoDebug("unit move failed", unit:Team(), unit:Name(), unit:ID())
--- 	unit:DrawHighlight({1,0,0}, "movefailed", 9)
--- 	self.hasHighlight = self.hasHighlight or {}
--- 	self.hasHighlight[unit:ID()] = 0
--- end
-
--- function CountHandler:Update()
--- 	if not self.hasHighlight then return end
--- 	for id, counter in pairs(self.hasHighlight) do
--- 		counter = counter + 1
--- 		if counter > 150 then
--- 			local unit = self.game:GetUnitByID(id)
--- 			unit:EraseHighlight({1,0,0}, "movefailed", 9)
--- 			self.hasHighlight[id] = nil
--- 		end
--- 	end
--- end
