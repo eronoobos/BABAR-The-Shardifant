@@ -102,7 +102,7 @@ function CountBehaviour:OwnerDead()
 		if self.isReclaimer then self.ai.reclaimerCount = self.ai.reclaimerCount - 1 end
 		if self.isAssist then self.ai.assistCount = self.ai.assistCount - 1 end
 		if self.isBigEnergy then self.ai.bigEnergyCount = self.ai.bigEnergyCount - 1 end
-		if self.isCleanable then self.ai.cleanable[unit.engineID] = nil end
+		if self.isCleanable then self.ai.cleanable[self.unit.engineID] = nil end
 		if self.mtypedLv then
 			self.ai.army = self.ai.army - 1
 			self.ai.mtypeLvCount[self.mtypedLv] = self.ai.mtypeLvCount[self.mtypedLv] - 1
