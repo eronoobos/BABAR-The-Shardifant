@@ -18,7 +18,7 @@ function FactoryBuildersHandler:Init()
 end
 
 function FactoryBuildersHandler:UpdateFactories()
-	game:SendToConsole("update factories")
+	self:EchoDebug("update factories")
 	local factoriesPreCleaned = self:PrePositionFilter()
 	self:AvailableFactories(factoriesPreCleaned)
 end
