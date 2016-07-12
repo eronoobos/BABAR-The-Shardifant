@@ -1,6 +1,3 @@
-
-
-
 local DebugEnabled = false
 
 
@@ -37,6 +34,10 @@ local function GetEcon()
 end
 
 TaskQueueBehaviour = class(Behaviour)
+
+function TaskQueueBehaviour:Name()
+	return "TaskQueueBehaviour"
+end
 
 function TaskQueueBehaviour:CategoryEconFilter(value)
 	if value == nil then return DummyUnitName end
@@ -122,6 +123,8 @@ function TaskQueueBehaviour:CategoryEconFilter(value)
 	return value
 end
 function TaskQueueBehaviour:Init()
+	self.DebugEnabled = false
+
 	if not taskqueues then
 		shard_include "taskqueues"
 	end
