@@ -430,31 +430,26 @@ end
 function TaskQueueBehaviour:GetQueue()
 	self.unit:ElectBehaviour()
 	-- fall back to only making enough construction units if a level 2 factory exists
-	local got = false
-	if wateryTaskqueues[self.name] ~= nil then
+	local q
+	if self.isFactory and ai.factoryUnderConstruction and ( ai.Metal.full < 0.5 or ai.Energy.full < 0.5) then
+		q = {}
+	end
+	if not q and wateryTaskqueues[self.name] ~= nil then
 		if ai.mobRating["shp"] * 0.5 > ai.mobRating["veh"] then
 			q = wateryTaskqueues[self.name]
-			got = true
 		end
 	end
 	self.outmodedTechLevel = false
-	if outmodedTaskqueues[self.name] ~= nil and not got then
+	if not q and outmodedTaskqueues[self.name] ~= nil then
 		if self.isFactory and unitTable[self.name].techLevel < ai.maxFactoryLevel and ai.Metal.reserves < ai.Metal.capacity * 0.95 then
 			-- stop buidling lvl1 attackers if we have a lvl2, unless we're about to waste metal, in which case use it up
 			q = outmodedTaskqueues[self.name]
-			got = true
 			self.outmodedTechLevel = true
 		elseif self.outmodedFactory then
 			q = outmodedTaskqueues[self.name]
-			got = true
 		end
 	end
-	if self.isFactory and ai.factoryUnderConstruction and ( ai.Metal.full < 0.5 or ai.Energy.full < 0.5) then
-		got = true
-	end
-	if not got then
-		q = taskqueues[self.name]
-	end
+	q = q or taskqueues[self.name]
 	if type(q) == "function" then
 		-- game:SendToConsole("function table found!")
 		q = q(self)
