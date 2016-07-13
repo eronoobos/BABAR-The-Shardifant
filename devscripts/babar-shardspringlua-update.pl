@@ -33,7 +33,8 @@ if ($shardspringluaVer[1] > 0) {
 }
 print("\n");
 
-my $oldVerStr = 'BABAR \d+ for ShardSpringLua \d+';
+my $oldVerStr = 'BABAR.*\d+.*ShardSpringLua.*\d+';
+my $newVerStr = "BABAR version $bbVerNum * ShardSpringLua version $sslVerNum";
 my @searchFiles;
 $searchFiles[0] = "$BAdir\\LuaAI.lua";
 $searchFiles[1] = "$BARdir\\LuaAI.lua";
@@ -53,15 +54,35 @@ for (my $i=0; $i <= 1; $i++) {
 		if ($line =~ /$oldVerStr/g) {
 			chomp($line);
 			my @quotes = split("'", $line);
-			my $removeCrap = substr($quotes[1], 6);
-			my @vers = split(' for ShardSpringLua ', $removeCrap);
-			$curLuaAIVerBABAR[$i] = $vers[0];
-			$curLuaAIVerShardSpringLua[$i] = $vers[1];
+			my @words = split(/\s+/, $quotes[1]);
+			my $versionOf;
+			for (my $w=0; $w < scalar(@words); $w++) {
+				my $word = $words[$w];
+				if ($word eq 'BABAR') {
+					$versionOf = 'BABAR';
+				} elsif ($word eq 'ShardSpringLua') {
+					$versionOf = 'ShardSpringLua';
+				} elsif ($word =~ /\d+/g) {
+					if ($versionOf eq 'BABAR') {
+						$curLuaAIVerBABAR[$i] = $word;
+					}
+					if ($versionOf eq 'ShardSpringLua') {
+						$curLuaAIVerShardSpringLua[$i] = $word;
+					}
+				} elsif (($curLuaAIVerBABAR[$i] != -1) && ($curLuaAIVerShardSpringLua[$i] != -1)) {
+					last;
+				}
+			}
 		}
 	}
 	my $game = "BA";
 	if ($i == 1) { $game = "BAR"; }
-	print("current $game LuaAI version: BABAR $curLuaAIVerBABAR[$i] for ShardSpringLua $curLuaAIVerShardSpringLua[$i]\n");
+	print("current $game LuaAI version: BABAR version $curLuaAIVerBABAR[$i], ShardSpringLua version $curLuaAIVerShardSpringLua[$i]\n");
+}
+
+if (lc($ARGV[0]) eq 'versioncheck') {
+	print("version check only, stopping here.\n");
+	exit;
 }
 
 if (($curLuaAIVerBABAR[0] != $bbVerNum) || ($curLuaAIVerBABAR[1] != $bbVerNum)) {
@@ -101,8 +122,6 @@ if (($curLuaAIVerShardSpringLua[0] != $sslVerNum) || ($curLuaAIVerShardSpringLua
 		system "cd \"$shardspringluaDir\" && git stash apply";	
 	}
 }
-
-my $newVerStr = "BABAR $bbVerNum for ShardSpringLua $sslVerNum";
 
 for (my $i=0; $i <= 1; $i++) {
 	if (($curLuaAIVerBABAR[$i] != $bbVerNum) || ($curLuaAIVerShardSpringLua[$i] != $sslVerNum))  {
