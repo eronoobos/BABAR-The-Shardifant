@@ -88,7 +88,7 @@ if (lc($ARGV[0]) eq 'versioncheck') {
 if (($curLuaAIVerBABAR[0] != $bbVerNum) || ($curLuaAIVerBABAR[1] != $bbVerNum)) {
 	my $stash = `cd \"$babarDir\" && git stash`;
 	if ($babarVer[1] > 0) {
-		system "cd \"$babarDir\" && git tag -a $bbVerNum -m 'version $bbVerNum'";
+		system "cd \"$babarDir\" && git tag -a $bbVerNum -m \"version $bbVerNum\"";
 	}
 	if ($curLuaAIVerBABAR[0] != $bbVerNum) {
 		system "copy /Y \"$babarDir\\*.lua\" \"$BAdir\\luarules\\gadgets\\ai\\BA\\\"";
@@ -107,7 +107,7 @@ if (($curLuaAIVerBABAR[0] != $bbVerNum) || ($curLuaAIVerBABAR[1] != $bbVerNum)) 
 if (($curLuaAIVerShardSpringLua[0] != $sslVerNum) || ($curLuaAIVerShardSpringLua[1] != $sslVerNum)) {
 	my $stash = `cd \"$shardspringluaDir\" && git stash`;
 	if ($shardspringluaVer[1] > 0) {
-		system "cd \"$shardspringluaDir\" && git tag -a $sslVerNum -m 'version $sslVerNum'";
+		system "cd \"$shardspringluaDir\" && git tag -a $sslVerNum -m \"version $sslVerNum\"";
 	}
 	if ($curLuaAIVerShardSpringLua[0] != $sslVerNum) {
 		system "copy /Y \"$shardspringluaDir\\luarules\\gadgets\\AILoader.lua\" \"$BAdir\\luarules\\gadgets\\AILoader.lua\"";
