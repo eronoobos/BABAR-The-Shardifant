@@ -187,11 +187,14 @@ function AttackHandler:DoMovement()
 				representative = representativeBehaviour.unit:Internal()
 				midPos = self.ai.frontPosition[representativeBehaviour.hits] or representative:GetPosition()
 			end
+			squad.attackAngle = AngleAtoB(midPos.x, midPos.z, squad.target.x, squad.target.z)
+			squad.perpendicularAttackAngle = AngleAdd(squad.attackAngle, halfPi)
 			local congDist = sqrt(pi * totalSize) * 2
 			local stragglers = 0
 			local damaged = 0
 			local idle = 0
 			local maxRange = 0
+			local outFromMid = 0
 			for iu = #squad.members, 1, -1 do
 				local member = squad.members[iu]
 				if member.damaged then damaged = damaged + 1 end
@@ -199,8 +202,17 @@ function AttackHandler:DoMovement()
 				if member.range > maxRange then maxRange = member.range end
 				local unit = member.unit:Internal()
 				if unit then
+					if not member.distFromMid or #squad.members ~= (squad.lastMemberCount or 0) then
+						local mult = 1
+						if iu % 2 == 0 then
+							mult = -1
+							outFromMid = outFromMid + member.congSize
+						end
+						member.distFromMid = outFromMid*mult
+					end
+					member.congPos = RandomAway(midPos, member.distFromMid, nil, squad.perpendicularAttackAngle)
 					local upos = unit:GetPosition()
-					local cdist = Distance(upos, midPos)
+					local cdist = Distance(upos, member.congPos)
 					if cdist > congDist then
 						member.straggler = (member.straggler or 0) + 1
 						stragglers = stragglers + 1
@@ -219,6 +231,7 @@ function AttackHandler:DoMovement()
 							end
 						end
 					else
+						member.stuck = 0
 						member.straggler = 0
 					end
 					if member.lastpos == nil then
@@ -259,7 +272,7 @@ function AttackHandler:DoMovement()
 					-- congregate squad
 					squad.congregating = true
 					for iu, member in pairs(squad.members) do
-						local ordered = member:Congregate(midPos)
+						local ordered = member:Congregate(member.congPos)
 						if not ordered and squad.congregating then squad.congregating = false end
 					end
 					squad.hasCongregated = true
@@ -271,7 +284,7 @@ function AttackHandler:DoMovement()
 					-- squad attacks if that wasn't the last order
 					if squad.target ~= nil then
 						for iu, member in pairs(squad.members) do
-							member:Attack(squad.target, realClose)
+							member:Attack(squad.target, realClose, squad.perpendicularAttackAngle)
 						end
 						squad.attacking = squad.target
 						squad.close = realClose
@@ -279,6 +292,7 @@ function AttackHandler:DoMovement()
 				end
 				squad.congregating = false
 			end
+			squad.lastMemberCount = #squad.members
 		end
 	end
 end
