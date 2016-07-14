@@ -34,7 +34,7 @@ if ($shardspringluaVer[1] > 0) {
 print("\n");
 
 my $oldVerStr = 'BABAR.*\d+.*ShardSpringLua.*\d+';
-my $newVerStr = "BABAR version $bbVerNum * ShardSpringLua version $sslVerNum";
+my $newVerStr = "BABAR version $bbVerNum -- ShardSpringLua version $sslVerNum";
 my @searchFiles;
 $searchFiles[0] = "$BAdir\\LuaAI.lua";
 $searchFiles[1] = "$BARdir\\LuaAI.lua";
@@ -140,4 +140,11 @@ for (my $i=0; $i <= 1; $i++) {
 		system "cd \"$gameDir\" && svn add -q LuaAI.lua luarules\\gadgets\\AILoader.lua luarules\\gadgets\\ai\\*";
 		system "cd \"$gameDir\" && svn commit -m \"update LuaAI to $newVerStr\"";
 	}
+}
+
+if ($babarVer[1] > 0) {
+	system "cd \"$babarDir\" && git push --tags";
+}
+if ($shardspringluaVer[1] > 0) {
+	system "cd \"$shardspringluaDir\" && git push --tags";
 }
