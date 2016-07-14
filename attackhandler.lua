@@ -45,28 +45,13 @@ function AttackHandler:Update()
 	end
 end
 
-function AttackHandler:GameEnd()
-	--
-end
-
-function AttackHandler:UnitCreated(engineunit)
-	--
-end
-
-function AttackHandler:UnitBuilt(engineunit)
-	--
-end
-
-function AttackHandler:UnitIdle(engineunit)
-	--
-end
-
 function AttackHandler:DraftSquads()
 	-- if self.ai.incomingThreat > 0 then game:SendToConsole(self.ai.incomingThreat .. " " .. (self.ai.battleCount + self.ai.breakthroughCount) * 75) end
-	if self.ai.incomingThreat > (self.ai.battleCount + self.ai.breakthroughCount) * 75 then
-		EchoDebug("not a good time to attack")
-		return
-	end -- do not attack if we're in trouble
+	-- if self.ai.incomingThreat > (self.ai.battleCount + self.ai.breakthroughCount) * 75 then
+		-- do not attack if we're in trouble
+		-- EchoDebug("not a good time to attack " .. tostring(self.ai.battleCount+self.ai.breakthroughCount) .. " " .. self.ai.incomingThreat .. " > " .. tostring((self.ai.battleCount+self.ai.breakthroughCount)*75))
+		-- return
+	-- end
 	local needtarget = {}
 	local f = game:Frame()
 	-- find which mtypes need targets
