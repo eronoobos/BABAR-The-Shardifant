@@ -1,4 +1,3 @@
-
 FactoryBuildersHandler = class(Module)
 
 function FactoryBuildersHandler:Name()
@@ -201,7 +200,6 @@ end
 
 function FactoryBuildersHandler:GetBuilderFactory(builder)
 	local builderID = builder:ID()
-	local p = nil
 	local f = game:Frame()
 	if f - self.lastCheckFrame < 1000 then
 		return false
@@ -212,15 +210,13 @@ function FactoryBuildersHandler:GetBuilderFactory(builder)
 	for rank, factoryName in pairs(ai.factoriesRanking ) do
 		if factories[factoryName] then
 			if factories[factoryName][builderID] then
-			self:EchoDebug(builder:Name())
-				--if raw[builderID] then
-					p = self:FactoryPosition(factoryName,builder)
-					if p then
-						if self.ai.factorybuildershandler:PostPositionalFilter(factoryName,p) then
-							return p, factoryName
-						end
+				self:EchoDebug(builder:Name())
+				local p = self:FactoryPosition(factoryName,builder)
+				if p then
+					if self.ai.factorybuildershandler:PostPositionalFilter(factoryName,p) then
+						return p, factoryName
 					end
-				--end
+				end
 			end
 		end
 	end
@@ -275,6 +271,9 @@ function FactoryBuildersHandler:FactoryPosition(factoryName,builder)
 	if p == nil then
 		self:EchoDebug("trying near builder for " .. factoryName)
 		p = ai.buildsitehandler:ClosestBuildSpot(builder, builderPos, utype)
+	end
+	if p then
+		self:EchoDebug("position found for " .. factoryName)
 	end
 	return p
 end

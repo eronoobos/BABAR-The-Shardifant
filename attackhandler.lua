@@ -1,15 +1,3 @@
-local DebugEnabled = false
-
-
-local function EchoDebug(inStr)
-	if DebugEnabled then
-		game:SendToConsole("AttackHandler: " .. inStr)
-	end
-end
-
-local floor = math.floor
-local ceil = math.ceil
-
 AttackHandler = class(Module)
 
 function AttackHandler:Name()
@@ -20,7 +8,12 @@ function AttackHandler:internalName()
 	return "attackhandler"
 end
 
+local floor = math.floor
+local ceil = math.ceil
+
 function AttackHandler:Init()
+	self.DebugEnabled = false
+
 	self.recruits = {}
 	self.count = {}
 	self.squads = {}
@@ -49,7 +42,7 @@ function AttackHandler:DraftSquads()
 	-- if self.ai.incomingThreat > 0 then game:SendToConsole(self.ai.incomingThreat .. " " .. (self.ai.battleCount + self.ai.breakthroughCount) * 75) end
 	-- if self.ai.incomingThreat > (self.ai.battleCount + self.ai.breakthroughCount) * 75 then
 		-- do not attack if we're in trouble
-		-- EchoDebug("not a good time to attack " .. tostring(self.ai.battleCount+self.ai.breakthroughCount) .. " " .. self.ai.incomingThreat .. " > " .. tostring((self.ai.battleCount+self.ai.breakthroughCount)*75))
+		-- self:EchoDebug("not a good time to attack " .. tostring(self.ai.battleCount+self.ai.breakthroughCount) .. " " .. self.ai.incomingThreat .. " > " .. tostring((self.ai.battleCount+self.ai.breakthroughCount)*75))
 		-- return
 	-- end
 	local needtarget = {}
@@ -57,6 +50,7 @@ function AttackHandler:DraftSquads()
 	-- find which mtypes need targets
 	for mtype, count in pairs(self.count) do
 		if f > self.attackSent[mtype] + 1800 and count >= self.counter[mtype] then
+			self:EchoDebug(mtype, "needs target with", count, "units of", self.counter[mtype], "needed")
 			table.insert(needtarget, mtype)
 		end
 	end
@@ -64,6 +58,7 @@ function AttackHandler:DraftSquads()
 		-- prepare a squad
 		local squad = { members = {}, notarget = 0, congregating = false, mtype = mtype, lastReTarget = f }
 		local representative
+		self:EchoDebug(mtype, #self.recruits[mtype], "recruits")
 		for _, attkbehaviour in pairs(self.recruits[mtype]) do
 			if attkbehaviour ~= nil then
 				if attkbehaviour.unit ~= nil then
@@ -73,10 +68,12 @@ function AttackHandler:DraftSquads()
 			end
 		end
 		if representative ~= nil then
+			self:EchoDebug(mtype, "has representative")
 			self.ai.couldAttack = self.ai.couldAttack + 1
 			-- don't actually draft the squad unless there's something to attack
 			local bestCell = self.ai.targethandler:GetBestAttackCell(representative)
 			if bestCell ~= nil then
+				self:EchoDebug(mtype, "has target, recruiting squad...")
 				squad.target = bestCell.pos
 				self:IDsWeAreAttacking(bestCell.buildingIDs, squad.mtype)
 				squad.buildingIDs = bestCell.buildingIDs
@@ -205,29 +202,15 @@ function AttackHandler:DoMovement()
 					local upos = unit:GetPosition()
 					local cdist = Distance(upos, midPos)
 					if cdist > congDist then
-						if member.straggler == nil then
-							member.straggler = 1
-						else
-							member.straggler = member.straggler + 1
-						end
-						if member.straggler > 20 then
-							-- remove from squad if the unit is taking longer than 40 seconds
-							EchoDebug("leaving slowpoke behind")
-							self:AddRecruit(member)
-							table.remove(squad.members, iu)
-						else
-							stragglers = stragglers + 1
-						end
-						if member.lastpos ~= nil and member.straggler ~= nil and member.straggler ~= 0 then
-							if math.abs(upos.x - member.lastpos.x) < 3 and math.abs(upos.z - member.lastpos.z) < 3 then
-								if member.stuck == nil then
-									member.stuck = 1
-								else
-									member.stuck = member.stuck + 1
-								end
+						member.straggler = (member.straggler or 0) + 1
+						stragglers = stragglers + 1
+						if member.lastpos ~= nil and member.straggler > 1 then
+							local totalMovement = math.abs(upos.x - member.lastpos.x) + math.abs(upos.z - member.lastpos.z)
+							if totalMovement < 4 then
+								member.stuck = (member.stuck or 0) + 1
 								if member.stuck > 5 then
 									-- remove from squad if the unit is pathfinder-stuck
-									EchoDebug("leaving stuck behind")
+									self:EchoDebug("leaving stuck behind")
 									self:AddRecruit(member)
 									table.remove(squad.members, iu)
 								end
@@ -247,7 +230,7 @@ function AttackHandler:DoMovement()
 				end
 			end
 			local congregate = false
-			EchoDebug("attack squad of " .. #squad.members .. " members, " .. stragglers .. " stragglers")
+			self:EchoDebug("attack squad of " .. #squad.members .. " members, " .. stragglers .. " stragglers")
 			local tenth = math.ceil(#squad.members * 0.1)
 			local half = math.ceil(#squad.members * 0.5)
 			if stragglers >= tenth and damaged < tenth then -- don't congregate if we're being shot
@@ -313,7 +296,7 @@ function AttackHandler:IDsWeAreNotAttacking(unitIDs)
 end
 
 function AttackHandler:TargetDied(mtype)
-	EchoDebug("target died")
+	self:EchoDebug("target died")
 	self:NeedLess(mtype, 0.75)
 end
 
@@ -368,7 +351,7 @@ end
 function AttackHandler:AddRecruit(attkbehaviour)
 	if not self:IsRecruit(attkbehaviour) then
 		if attkbehaviour.unit ~= nil then
-			-- EchoDebug("adding attack recruit")
+			-- self:EchoDebug("adding attack recruit")
 			local mtype = self.ai.maphandler:MobilityOfUnit(attkbehaviour.unit:Internal())
 			if self.recruits[mtype] == nil then self.recruits[mtype] = {} end
 			if self.counter[mtype] == nil then self.counter[mtype] = baseAttackCounter end
@@ -380,7 +363,7 @@ function AttackHandler:AddRecruit(attkbehaviour)
 			attkbehaviour:SetMoveState()
 			attkbehaviour:Free()
 		else
-			EchoDebug("unit is nil!")
+			self:EchoDebug("unit is nil!")
 		end
 	end
 end
@@ -403,7 +386,7 @@ function AttackHandler:NeedMore(attkbehaviour)
 	local mtype = attkbehaviour.mtype
 	local level = attkbehaviour.level
 	self.counter[mtype] = math.min(maxAttackCounter, self.counter[mtype] + (level * 0.7) ) -- 0.75
-	EchoDebug(mtype .. " attack counter: " .. self.counter[mtype])
+	self:EchoDebug(mtype .. " attack counter: " .. self.counter[mtype])
 end
 
 function AttackHandler:NeedLess(mtype, subtract)
@@ -412,12 +395,12 @@ function AttackHandler:NeedLess(mtype, subtract)
 		for mtype, count in pairs(self.counter) do
 			if self.counter[mtype] == nil then self.counter[mtype] = baseAttackCounter end
 			self.counter[mtype] = math.max(self.counter[mtype] - subtract, minAttackCounter)
-			EchoDebug(mtype .. " attack counter: " .. self.counter[mtype])
+			self:EchoDebug(mtype .. " attack counter: " .. self.counter[mtype])
 		end
 	else
 		if self.counter[mtype] == nil then self.counter[mtype] = baseAttackCounter end
 		self.counter[mtype] = math.max(self.counter[mtype] - subtract, minAttackCounter)
-		EchoDebug(mtype .. " attack counter: " .. self.counter[mtype])
+		self:EchoDebug(mtype .. " attack counter: " .. self.counter[mtype])
 	end
 end
 
