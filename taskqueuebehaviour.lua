@@ -443,13 +443,28 @@ function TaskQueueBehaviour:GetQueue()
 		end
 	end
 	self.outmodedTechLevel = false
-	if not q and outmodedTaskqueues[self.name] ~= nil then
-		if self.isFactory and unitTable[self.name].techLevel < ai.maxFactoryLevel and ai.Metal.reserves < ai.Metal.capacity * 0.95 then
-			-- stop buidling lvl1 attackers if we have a lvl2, unless we're about to waste metal, in which case use it up
-			q = outmodedTaskqueues[self.name]
-			self.outmodedTechLevel = true
+	local uT = unitTable
+	if outmodedTaskqueues[self.name] ~= nil and not q then 
+		local threshold =  1 - (uT[self.name].techLevel / ai.maxFactoryLevel)
+		if self.isFactory  and (ai.Metal.full < threshold or ai.Energy.full < threshold) then
+			local mtype = factoryMobilities[self.name][1]
+			for level, factories in pairs (ai.factoriesAtLevel)  do
+				for index, factory in pairs(factories) do
+					local factoryName = factory.unit:Internal():Name()
+					if mtype == factoryMobilities[factoryName][1] and uT[self.name].techLevel < level then
+						EchoDebug( self.name .. ' have major factory ' .. factoryName)
+						-- stop buidling lvl1 attackers if we have a lvl2, unless we're with proportioned resources
+						q = outmodedTaskqueues[self.name]
+						self.outmodedTechLevel = true
+						break
+					end
+				end
+				if q then break end
+			end
+		
 		elseif self.outmodedFactory then
 			q = outmodedTaskqueues[self.name]
+			
 		end
 	end
 	q = q or taskqueues[self.name]
