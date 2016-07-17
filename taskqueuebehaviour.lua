@@ -166,6 +166,19 @@ function TaskQueueBehaviour:Init()
 		end
 	end
 
+	if self.isFactory then
+		-- precalculate amphibious rank
+		local ampSpots = ai.maphandler:AccessibleMetalGeoSpotsHere('amp', self.unit:Internal():GetPosition())
+		local vehSpots = ai.maphandler:AccessibleMetalGeoSpotsHere('veh', self.unit:Internal():GetPosition())
+		local amphRank = 0
+		if #ampSpots > 0 and #vehSpots > 0 then
+		    amphRank = 1 - (#vehSpots / #ampSpots)
+		elseif #vehSpots == 0 and #ampSpots > 0 then
+		    amphRank = 1
+		end
+		self.amphRank = amphRank
+	end
+
 	-- reset attack count
 	if self.isFactory and not self.outmodedFactory then
 		if self.isAirFactory then
@@ -320,11 +333,12 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 			EchoDebug( ' analysis for level ' .. level)
 			for index, factory in pairs(factories) do
 				local factoryName = factory.unit:Internal():Name()
-				if mtype == factoryMobilities[factoryName][1] and level > currentLevel then
-					EchoDebug( self.name .. ' can push up self mtype ' .. factoryName)
-					-- stop buidling lvl1 attackers if we have a lvl2, unless we're about to waste metal, in which case use it up
-					currentLevel = level
-					target = factory
+				for _, factMtype in pairs(factoryMobilities[factoryName]) do
+					if mtype == factMtype and level > currentLevel then
+						EchoDebug( self.name .. ' can push up self mtype ' .. factoryName)
+						currentLevel = level
+						target = factory
+					end
 				end
 			end
 		end
