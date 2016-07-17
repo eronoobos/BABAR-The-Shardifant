@@ -313,17 +313,40 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 	elseif nanoTurretList[value] then
 		-- build nano turrets next to a factory near you
 		EchoDebug("looking for factory for nano")
-		local factoryPos = ai.buildsitehandler:ClosestHighestLevelFactory(builder:GetPosition(), 5000)
-		if factoryPos then
-			EchoDebug("found factory")
+		local currentLevel = 0
+		local target = nil
+		local mtype = unitTable[self.name].mtype
+		for level, factories in pairs (ai.factoriesAtLevel)  do
+			EchoDebug( ' analysis for level ' .. level)
+			for index, factory in pairs(factories) do
+				local factoryName = factory.unit:Internal():Name()
+				if mtype == factoryMobilities[factoryName][1] and level > currentLevel then
+					EchoDebug( self.name .. ' can push up self mtype ' .. factoryName)
+					-- stop buidling lvl1 attackers if we have a lvl2, unless we're about to waste metal, in which case use it up
+					currentLevel = level
+					target = factory
+				end
+			end
+		end
+		if target then
+			EchoDebug(self.name..' search position for nano near ' ..target.unit:Internal():Name())
+			local factoryPos = target.unit:Internal():GetPosition()
 			p = ai.buildsitehandler:ClosestBuildSpot(builder, factoryPos, utype)
-			if p == nil then
-				EchoDebug("no spot near factory found")
+		end
+		if not p then
+			
+			local factoryPos = ai.buildsitehandler:ClosestHighestLevelFactory(builder:GetPosition(), 5000)
+			if factoryPos then
+				EchoDebug("searching for top level factory")
+				p = ai.buildsitehandler:ClosestBuildSpot(builder, factoryPos, utype)
+				if p == nil then
+					EchoDebug("no spot near factory found")
+					utype = nil
+				end
+			else
+				EchoDebug("no factory found")
 				utype = nil
 			end
-		else
-			EchoDebug("no factory found")
-			utype = nil
 		end
 	elseif (unitTable[value].isWeapon and unitTable[value].isBuilding and not nukeList[value] and not bigPlasmaList[value] and not littlePlasmaList[value]) then
 		EchoDebug("looking for least turtled positions")
@@ -443,13 +466,28 @@ function TaskQueueBehaviour:GetQueue()
 		end
 	end
 	self.outmodedTechLevel = false
-	if not q and outmodedTaskqueues[self.name] ~= nil then
-		if self.isFactory and unitTable[self.name].techLevel < ai.maxFactoryLevel and ai.Metal.reserves < ai.Metal.capacity * 0.95 then
-			-- stop buidling lvl1 attackers if we have a lvl2, unless we're about to waste metal, in which case use it up
-			q = outmodedTaskqueues[self.name]
-			self.outmodedTechLevel = true
+	local uT = unitTable
+	if outmodedTaskqueues[self.name] ~= nil and not q then 
+		local threshold =  1 - (uT[self.name].techLevel / ai.maxFactoryLevel)
+		if self.isFactory  and (ai.Metal.full < threshold or ai.Energy.full < threshold) then
+			local mtype = factoryMobilities[self.name][1]
+			for level, factories in pairs (ai.factoriesAtLevel)  do
+				for index, factory in pairs(factories) do
+					local factoryName = factory.unit:Internal():Name()
+					if mtype == factoryMobilities[factoryName][1] and uT[self.name].techLevel < level then
+						EchoDebug( self.name .. ' have major factory ' .. factoryName)
+						-- stop buidling lvl1 attackers if we have a lvl2, unless we're with proportioned resources
+						q = outmodedTaskqueues[self.name]
+						self.outmodedTechLevel = true
+						break
+					end
+				end
+				if q then break end
+			end
+		
 		elseif self.outmodedFactory then
 			q = outmodedTaskqueues[self.name]
+			
 		end
 	end
 	q = q or taskqueues[self.name]
