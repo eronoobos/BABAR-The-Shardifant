@@ -1272,17 +1272,17 @@ function MapHandler:MobilityNetworkSizeHere(mtype, position)
 end
 
 function MapHandler:AccessibleMetalSpotsHere(mtype, position)
-	local network = self:MobilityNetworkHere(position)
+	local network = self:MobilityNetworkHere(mtype, position)
 	return self.ai.mobNetworkMetals[mtype][network] or {}
 end
 
 function MapHandler:AccessibleGeoSpotsHere(mtype, position)
-	local network = self:MobilityNetworkHere(position)
+	local network = self:MobilityNetworkHere(mtype, position)
 	return self.ai.mobNetworkGeos[mtype][network] or {}
 end
 
 function MapHandler:AccessibleMetalGeoSpotsHere(mtype, position)
-	local network = self:MobilityNetworkHere(position)
+	local network = self:MobilityNetworkHere(mtype, position)
 	return self.ai.scoutSpots[mtype][network] or {}
 end
 
