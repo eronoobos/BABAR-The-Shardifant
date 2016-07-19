@@ -7,36 +7,31 @@ local function EchoDebug(inStr)
 	end
 end
 
-local CMD_GUARD = 25
-
-local extraEnergy, extraMetal, energyTooLow, energyOkay, metalTooLow, metalOkay, metalBelowHalf, metalAboveHalf, notEnoughCombats, farTooFewCombats
-
-local function GetEcon()
-	ai.realMetal = ai.Metal.income / ai.Metal.usage
-	ai.realEnergy = ai.Energy.income / ai.Energy.usage
-	ai.scaledMetal = ai.Metal.reserves * ai.realMetal
-	ai.scaledEnergy = ai.Energy.reserves * ai.realEnergy
-	extraEnergy = ai.Energy.income - ai.Energy.usage
-	extraMetal = ai.Metal.income - ai.Metal.usage
-	local enoughMetalReserves = math.min(ai.Metal.income, ai.Metal.capacity * 0.1)
-	local lotsMetalReserves = math.min(ai.Metal.income * 10, ai.Metal.capacity * 0.5)
-	local enoughEnergyReserves = math.min(ai.Energy.income * 2, ai.Energy.capacity * 0.25)
-	-- local lotsEnergyReserves = math.min(ai.Energy.income * 3, ai.Energy.capacity * 0.5)
-	energyTooLow = ai.Energy.reserves < enoughEnergyReserves or ai.Energy.income < 40
-	energyOkay = ai.Energy.reserves >= enoughEnergyReserves and ai.Energy.income >= 40
-	metalTooLow = ai.Metal.reserves < enoughMetalReserves
-	metalOkay = ai.Metal.reserves >= enoughMetalReserves
-	metalBelowHalf = ai.Metal.reserves < lotsMetalReserves
-	metalAboveHalf = ai.Metal.reserves >= lotsMetalReserves
-	local attackCounter = ai.attackhandler:GetCounter()
-	notEnoughCombats = ai.combatCount < attackCounter * 0.6
-	farTooFewCombats = ai.combatCount < attackCounter * 0.2
-end
-
 TaskQueueBehaviour = class(Behaviour)
 
 function TaskQueueBehaviour:Name()
 	return "TaskQueueBehaviour"
+end
+
+local CMD_GUARD = 25
+
+local maxBuildDists = {}
+local maxBuildSpeedDists = {}
+
+-- for non-defensive buildings
+local function MaxBuildDist(unitName, speed)
+	local dist = maxBuildDists[unitName]
+	if not dist then
+		dist = math.sqrt(unitTable[value].metalCost)
+		maxBuildDists[unitName] = dist
+	end
+	maxBuildSpeedDists[unitName] = maxBuildSpeedDists[unitName] or {}
+	local speedDist = maxBuildDists[unitName][speed]
+	if not speedDist then
+		speedDist = dist * (speed / 2)
+		maxBuildSpeedDists[unitName][speed] = speedDist
+	end
+	return speedDist
 end
 
 function TaskQueueBehaviour:CategoryEconFilter(value)
@@ -51,7 +46,7 @@ function TaskQueueBehaviour:CategoryEconFilter(value)
 	if reclaimerList[value] then
 		-- dedicated reclaimer
 		EchoDebug(" dedicated reclaimer")
-		if metalAboveHalf or energyTooLow or farTooFewCombats then
+		if self.situation.metalAboveHalf or self.situation.energyTooLow or self.situation.farTooFewCombats then
 			value = DummyUnitName
 		end
 	elseif unitTable[value].isBuilding then
@@ -66,29 +61,29 @@ function TaskQueueBehaviour:CategoryEconFilter(value)
 			EchoDebug("  defense")
 			if bigPlasmaList[value] or nukeList[value] then
 				-- long-range plasma and nukes aren't really defense
-				if metalTooLow or energyTooLow or ai.Metal.income < 35 or ai.factories == 0 or notEnoughCombats then
+				if self.situation.metalTooLow or self.situation.energyTooLow or ai.Metal.income < 35 or ai.factories == 0 or self.situation.notEnoughCombats then
 					value = DummyUnitName
 				end
 			elseif littlePlasmaList[value] then
 				-- plasma turrets need units to back them up
-				if metalTooLow or energyTooLow or ai.Metal.income < 10 or ai.factories == 0 or notEnoughCombats then
+				if self.situation.metalTooLow or self.situation.energyTooLow or ai.Metal.income < 10 or ai.factories == 0 or self.situation.notEnoughCombats then
 					value = DummyUnitName
 				end
 			else
-				if metalTooLow or ai.Metal.income < (unitTable[value].metalCost / 35) + 2 or energyTooLow or ai.factories == 0 then
+				if self.situation.metalTooLow or ai.Metal.income < (unitTable[value].metalCost / 35) + 2 or self.situation.energyTooLow or ai.factories == 0 then
 					value = DummyUnitName
 				end
 			end
 		elseif unitTable[value].radarRadius > 0 then
 			-- radar
 			EchoDebug("  radar")
-			if metalTooLow or energyTooLow or ai.factories == 0 or ai.Energy.full < 0.5 then
+			if self.situation.metalTooLow or self.situation.energyTooLow or ai.factories == 0 or ai.Energy.full < 0.5 then
 				value = DummyUnitName
 			end
 		else
 			-- other building
 			EchoDebug("  other building")
-			if notEnoughCombats or metalTooLow or energyTooLow or ai.Energy.income < 200 or ai.Metal.income < 8 or ai.factories == 0 then
+			if self.situation.notEnoughCombats or self.situation.metalTooLow or self.situation.energyTooLow or ai.Energy.income < 200 or ai.Metal.income < 8 or ai.factories == 0 then
 				value = DummyUnitName
 			end
 		end
@@ -115,7 +110,7 @@ function TaskQueueBehaviour:CategoryEconFilter(value)
 		else
 			-- other unit
 			EchoDebug("  other unit")
-			if notEnoughCombats or ai.Energy.full < 0.3 or ai.Metal.full < 0.3 then
+			if self.situation.notEnoughCombats or ai.Energy.full < 0.3 or ai.Metal.full < 0.3 then
 				value = DummyUnitName
 			end
 		end
@@ -130,7 +125,7 @@ function TaskQueueBehaviour:Init()
 	end
 	if ai.outmodedFactories == nil then ai.outmodedFactories = 0 end
 
-	GetEcon()
+	self:GetEcon()
 	self.active = false
 	self.currentProject = nil
 	self.lastWatchdogCheck = game:Frame()
@@ -140,6 +135,7 @@ function TaskQueueBehaviour:Init()
 	self.mtype = mtype
 	self.name = u:Name()
 	self.side = unitTable[self.name].side
+	self.speed = unitTable[self.name].speed
 	if commanderList[self.name] then self.isCommander = true end
 	self.id = u:ID()
 	EchoDebug(self.name .. " " .. self.id .. " initializing...")
@@ -333,12 +329,10 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 			EchoDebug( ' analysis for level ' .. level)
 			for index, factory in pairs(factories) do
 				local factoryName = factory.unit:Internal():Name()
-				for _, factMtype in pairs(factoryMobilities[factoryName]) do
-					if mtype == factMtype and level > currentLevel then
-						EchoDebug( self.name .. ' can push up self mtype ' .. factoryName)
-						currentLevel = level
-						target = factory
-					end
+				if mtype == factoryMobilities[factoryName][1] and level > currentLevel then
+					EchoDebug( self.name .. ' can push up self mtype ' .. factoryName)
+					currentLevel = level
+					target = factory
 				end
 			end
 		end
@@ -388,13 +382,10 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 		-- 		end
 		-- 	end
 		-- end
-		
 		if p == nil then
 			EchoDebug("did NOT find build spot near turtle position")
 			utype = nil
 		end
-
-		
 	elseif nukeList[value] or bigPlasmaList[value] or littlePlasmaList[value] then
 		-- bombarders
 		EchoDebug("seeking bombard build spot")
@@ -449,7 +440,7 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 				end
 			end
 		end
-		if p and Distance(p, builder:GetPosition()) > 300 then
+		if p and Distance(p, builder:GetPosition()) > MaxBuildDist(value, self.speed) then
 			-- HERE BECAUSE DEFENSE PLACEMENT SYSTEM SUCKS
 			-- this prevents cons from wasting time building very far away
 			p = ai.buildsitehandler:ClosestBuildSpot(builder, builder:GetPosition(), utype)
@@ -459,9 +450,6 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 	if utype ~= nil and p == nil then
 		local builderPos = builder:GetPosition()
 		p = ai.buildsitehandler:ClosestBuildSpot(builder, builderPos, utype)
-		if p == nil then
-			p = map:FindClosestBuildSite(utype, builderPos, 500, 15)
-		end
 	end
 	return utype, value, p
 end
@@ -537,7 +525,7 @@ function TaskQueueBehaviour:Update()
 	local f = game:Frame()
 	-- econ check
 	if f % 22 == 0 then
-		GetEcon()
+		self:GetEcon()
 	end
 	-- watchdog check
 	if not self.constructing and not self.isFactory then
