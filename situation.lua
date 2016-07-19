@@ -62,6 +62,11 @@ function Situation:EvaluateSituation()
 
 	self:EchoDebug(self.ai.totalEnemyThreat .. " " .. self.ai.totalEnemyImmobileThreat .. " " .. self.ai.totalEnemyMobileThreat)
 	-- build siege units if the enemy is turtling, if a lot of our attackers are getting destroyed, or if we control over 40% of the metal spots
+	self.plasmaRocketBotRatio = 1
+	if self.ai.totalEnemyMobileThreat and self.ai.totalEnemyMobileThreat > 0 and self.ai.totalEnemyImmobileThreat and self.ai.totalEnemyImmobileThreat > 0 then
+		self.plasmaRocketBotRatio = 1 - ((self.ai.totalEnemyImmobileThreat / self.ai.totalEnemyThreat) / 2.5)
+		self:EchoDebug("plasma/rocket bot ratio: " .. self.plasmaRocketBotRatio)
+	end
 	self.needSiege = (self.ai.totalEnemyImmobileThreat > self.ai.totalEnemyMobileThreat * 3.5 and self.ai.totalEnemyImmobileThreat > 50000) or attackCounter >= siegeAttackCounter or controlMetalSpots
 	local needAdvanced = (self.ai.Metal.income > 10 or controlMetalSpots) and self.ai.factories > 0 and (needUpgrade or lotsOfMetal)
 	if needAdvanced ~= self.ai.needAdvanced then
