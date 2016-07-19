@@ -420,8 +420,15 @@ function TargetHandler:UpdateEnemies()
 		local ghost = e.ghost
 		local name = e.unitName
 		local ut = unitTable[name]
-		-- only count those we know about and that aren't being built
-		if (los ~= 0 or ghost) and not e.beingBuilt then
+		if ghost and not ghost.position and not e.beingBuilt then
+			-- count ghosts with unknown positions as non-positioned threats
+			self:DangerCheck(name, e.unitID)
+			local threatLayers = UnitThreatRangeLayers(name)
+			for groundAirSubmerged, layer in pairs(threatLayers) do
+				self:CountEnemyThreat(e.unitID, name, layer.threat)
+			end
+		elseif (los ~= 0 or (ghost and ghost.position)) and not e.beingBuilt then
+			-- count those we know about and that aren't being built
 			local pos
 			if ghost then pos = ghost.position else pos = e.position end
 			local px, pz = GetCellPosition(pos)

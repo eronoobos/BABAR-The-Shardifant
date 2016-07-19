@@ -93,49 +93,55 @@ function AttackHandler:ReTarget()
 	for is = #self.squads, 1, -1 do
 		local squad = self.squads[is]
 		if f > squad.lastReTarget + 300 then
-			if squad.idle or squad.reachedTarget then
-				if squad.idle or f > squad.reachedTarget + 900 then
-					local representative
-					for iu, member in pairs(squad.members) do
-						if member ~= nil then
-							if member.unit ~= nil then
-								representative = member.unit:Internal()
-								if representative ~= nil then
-									break
-								end
-							end
-						end
-					end
-					if squad.buildingIDs ~= nil then
-						self:IDsWeAreNotAttacking(squad.buildingIDs)
-					end
-					if representative == nil then
-						self.attackSent[squad.mtype] = 0
-						table.remove(self.squads, is)
-					else
-						-- find a target
-						local bestCell = self.ai.targethandler:GetBestAttackCell(representative)
-						if bestCell == nil then
-							-- squad.notarget = squad.notarget + 1
-							-- if squad.target == nil or squad.notarget > 3 then
-								-- if no target found initially, or no target for the last three targetting checks, disassemble and recruit the squad
-								for iu, member in pairs(squad.members) do
-									self:AddRecruit(member)
-								end
-								self.attackSent[squad.mtype] = 0
-								table.remove(self.squads, is)
-							-- end
-						else
-							squad.target = bestCell.pos
-							self:IDsWeAreAttacking(bestCell.buildingIDs, squad.mtype)
-							squad.buildingIDs = bestCell.buildingIDs
-							squad.notarget = 0
-							squad.reachedTarget = nil
-						end
-					end
+			self:SquadReTarget(squad, is)
+			squad.lastReTarget = f
+		end
+	end
+end
+
+function AttackHandler:SquadReTarget(squad, squadIndex)
+	if not squad.idle and not squad.reachedTarget then
+		return
+	end
+	if not squad.idle and f < squad.reachedTarget + 900 then
+		return
+	end
+	local representative
+	for iu, member in pairs(squad.members) do
+		if member ~= nil then
+			if member.unit ~= nil then
+				representative = member.unit:Internal()
+				if representative ~= nil then
+					break
 				end
 			end
-			squad.lastReTarget = f
+		end
+	end
+	if squad.buildingIDs ~= nil then
+		self:IDsWeAreNotAttacking(squad.buildingIDs)
+	end
+	if representative == nil then
+		self.attackSent[squad.mtype] = 0
+		table.remove(self.squads, squadIndex)
+	else
+		-- find a target
+		local bestCell = self.ai.targethandler:GetBestAttackCell(representative)
+		if bestCell == nil then
+			-- squad.notarget = squad.notarget + 1
+			-- if squad.target == nil or squad.notarget > 3 then
+				-- if no target found initially, or no target for the last three targetting checks, disassemble and recruit the squad
+				for iu, member in pairs(squad.members) do
+					self:AddRecruit(member)
+				end
+				self.attackSent[squad.mtype] = 0
+				table.remove(self.squads, squadIndex)
+			-- end
+		else
+			squad.target = bestCell.pos
+			self:IDsWeAreAttacking(bestCell.buildingIDs, squad.mtype)
+			squad.buildingIDs = bestCell.buildingIDs
+			squad.notarget = 0
+			squad.reachedTarget = nil
 		end
 	end
 end
