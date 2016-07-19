@@ -22,11 +22,13 @@ local maxBuildSpeedDists = {}
 local function MaxBuildDist(unitName, speed)
 	local dist = maxBuildDists[unitName]
 	if not dist then
-		dist = math.sqrt(unitTable[value].metalCost)
+		local ut = unitTable[unitName]
+		if not ut then return 0 end
+		dist = math.sqrt(ut.metalCost)
 		maxBuildDists[unitName] = dist
 	end
 	maxBuildSpeedDists[unitName] = maxBuildSpeedDists[unitName] or {}
-	local speedDist = maxBuildDists[unitName][speed]
+	local speedDist = maxBuildSpeedDists[unitName][speed]
 	if not speedDist then
 		speedDist = dist * (speed / 2)
 		maxBuildSpeedDists[unitName][speed] = speedDist
@@ -46,7 +48,7 @@ function TaskQueueBehaviour:CategoryEconFilter(value)
 	if reclaimerList[value] then
 		-- dedicated reclaimer
 		EchoDebug(" dedicated reclaimer")
-		if self.situation.metalAboveHalf or self.situation.energyTooLow or self.situation.farTooFewCombats then
+		if self.ai.situation.metalAboveHalf or self.ai.situation.energyTooLow or self.ai.situation.farTooFewCombats then
 			value = DummyUnitName
 		end
 	elseif unitTable[value].isBuilding then
@@ -61,29 +63,29 @@ function TaskQueueBehaviour:CategoryEconFilter(value)
 			EchoDebug("  defense")
 			if bigPlasmaList[value] or nukeList[value] then
 				-- long-range plasma and nukes aren't really defense
-				if self.situation.metalTooLow or self.situation.energyTooLow or ai.Metal.income < 35 or ai.factories == 0 or self.situation.notEnoughCombats then
+				if self.ai.situation.metalTooLow or self.ai.situation.energyTooLow or ai.Metal.income < 35 or ai.factories == 0 or self.ai.situation.notEnoughCombats then
 					value = DummyUnitName
 				end
 			elseif littlePlasmaList[value] then
 				-- plasma turrets need units to back them up
-				if self.situation.metalTooLow or self.situation.energyTooLow or ai.Metal.income < 10 or ai.factories == 0 or self.situation.notEnoughCombats then
+				if self.ai.situation.metalTooLow or self.ai.situation.energyTooLow or ai.Metal.income < 10 or ai.factories == 0 or self.ai.situation.notEnoughCombats then
 					value = DummyUnitName
 				end
 			else
-				if self.situation.metalTooLow or ai.Metal.income < (unitTable[value].metalCost / 35) + 2 or self.situation.energyTooLow or ai.factories == 0 then
+				if self.ai.situation.metalTooLow or ai.Metal.income < (unitTable[value].metalCost / 35) + 2 or self.ai.situation.energyTooLow or ai.factories == 0 then
 					value = DummyUnitName
 				end
 			end
 		elseif unitTable[value].radarRadius > 0 then
 			-- radar
 			EchoDebug("  radar")
-			if self.situation.metalTooLow or self.situation.energyTooLow or ai.factories == 0 or ai.Energy.full < 0.5 then
+			if self.ai.situation.metalTooLow or self.ai.situation.energyTooLow or ai.factories == 0 or ai.Energy.full < 0.5 then
 				value = DummyUnitName
 			end
 		else
 			-- other building
 			EchoDebug("  other building")
-			if self.situation.notEnoughCombats or self.situation.metalTooLow or self.situation.energyTooLow or ai.Energy.income < 200 or ai.Metal.income < 8 or ai.factories == 0 then
+			if self.ai.situation.notEnoughCombats or self.ai.situation.metalTooLow or self.ai.situation.energyTooLow or ai.Energy.income < 200 or ai.Metal.income < 8 or ai.factories == 0 then
 				value = DummyUnitName
 			end
 		end
@@ -110,7 +112,7 @@ function TaskQueueBehaviour:CategoryEconFilter(value)
 		else
 			-- other unit
 			EchoDebug("  other unit")
-			if self.situation.notEnoughCombats or ai.Energy.full < 0.3 or ai.Metal.full < 0.3 then
+			if self.ai.situation.notEnoughCombats or ai.Energy.full < 0.3 or ai.Metal.full < 0.3 then
 				value = DummyUnitName
 			end
 		end
@@ -125,7 +127,6 @@ function TaskQueueBehaviour:Init()
 	end
 	if ai.outmodedFactories == nil then ai.outmodedFactories = 0 end
 
-	self:GetEcon()
 	self.active = false
 	self.currentProject = nil
 	self.lastWatchdogCheck = game:Frame()
@@ -523,10 +524,6 @@ function TaskQueueBehaviour:Update()
 		return
 	end
 	local f = game:Frame()
-	-- econ check
-	if f % 22 == 0 then
-		self:GetEcon()
-	end
 	-- watchdog check
 	if not self.constructing and not self.isFactory then
 		if (self.lastWatchdogCheck + self.watchdogTimeout < f) or (self.currentProject == nil and (self.lastWatchdogCheck + 1 < f)) then

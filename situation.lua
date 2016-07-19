@@ -115,7 +115,7 @@ function Situation:SetEconomyAliases()
 	self.metalOkay = self.ai.Metal.reserves >= enoughMetalReserves
 	self.metalBelowHalf = self.ai.Metal.reserves < lotsMetalReserves
 	self.metalAboveHalf = self.ai.Metal.reserves >= lotsMetalReserves
-	local attackCounter = self.self.ai.attackhandler:GetCounter()
+	local attackCounter = self.ai.attackhandler:GetCounter()
 	self.notEnoughCombats = self.ai.combatCount < attackCounter * 0.6
 	self.farTooFewCombats = self.ai.combatCount < attackCounter * 0.2
 end
