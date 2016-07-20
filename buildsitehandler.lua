@@ -308,24 +308,25 @@ function BuildSiteHandler:ClosestHighestLevelFactory(builderPos, maxDist)
 	local minDist = maxDist
 	local maxLevel = self.ai.maxFactoryLevel
 	EchoDebug(maxLevel .. " max factory level")
-	local factoryPos = nil
+	local factorybhvr
 	if self.ai.factoriesAtLevel[maxLevel] ~= nil then
 		for i, factory in pairs(self.ai.factoriesAtLevel[maxLevel]) do
 			if not self.ai.outmodedFactoryID[factory.id] then
 				local dist = Distance(builderPos, factory.position)
 				if dist < minDist then
 					minDist = dist
-					factoryPos = factory.position
+					factorybhvr = factory
 				end
 			end
 		end
 	end
-	if factoryPos then
+	if factorybhvr then
+		local factoryPos = factorybhvr.position
 		local newpos = api.Position()
 		newpos.x = factoryPos.x
 		newpos.z = factoryPos.z
 		newpos.y = factoryPos.y
-		return newpos
+		return newpos, factorybhvr.unit:Internal()
 	else
 		return
 	end
