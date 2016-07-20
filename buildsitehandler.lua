@@ -358,6 +358,19 @@ function BuildSiteHandler:DontBuildOnMetalOrGeoSpots()
 	self:PlotAllDebug()
 end
 
+function BuildSiteHandler:BuilNearNano(builder,utype)
+	local p = nil
+	for id,nanoPos in pairs(self.ai.nanoList) do
+		p = ai.buildsitehandler:ClosestBuildSpot(builder, nanoPos, utype)
+		if p then 
+			EchoDebug('found Position for near nano turret at: ' .. nanoPos.x ..' ' ..nanoPos.z)
+			break 
+		end
+
+	end
+	return p
+end
+
 function BuildSiteHandler:UnitCreated(unit)
 	local unitName = unit:Name()
 	local position = unit:GetPosition()
