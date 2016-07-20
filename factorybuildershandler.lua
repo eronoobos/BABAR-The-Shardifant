@@ -159,6 +159,10 @@ function FactoryBuildersHandler:FactoryPosition(factoryName,builder)
 	local builderPos = builder:GetPosition()
 	local p
 	if p == nil then
+		self:EchoDebug("looking next to nano turrets for " .. factoryName)
+		p = ai.buildsitehandler:BuilNearNano(builder, utype)
+	end
+	if p == nil then
 		self:EchoDebug("looking next to factory for " .. factoryName)
 		local factoryPos = ai.buildsitehandler:ClosestHighestLevelFactory(builderPos, 10000)
 		if factoryPos then
