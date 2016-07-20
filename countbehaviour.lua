@@ -69,7 +69,7 @@ function CountBehaviour:OwnerBuilt()
 	if self.isAssist then self.ai.assistCount = self.ai.assistCount + 1 end
 	if self.isBigEnergy then self.ai.bigEnergyCount = self.ai.bigEnergyCount + 1 end
 	if self.isCleanable then self.ai.cleanable[self.unit.engineID] = self.position end
-	if self.isNano then self.ai.nanoList[self.id] = self.position end
+	if self.isNano then self.ai.nanoList[self.id] = self.unit:Internal():GetPosition() end
 	self.ai.lastNameFinished[self.name] = game:Frame()
 	EchoDebug(self.ai.nameCountFinished[self.name] .. " " .. self.name .. " finished")
 	self.finished = true
