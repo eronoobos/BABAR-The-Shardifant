@@ -371,6 +371,14 @@ function BuildSiteHandler:BuilNearNano(builder,utype)
 	return p
 end
 
+function BuildSiteHandler:BuilNearLastNano(builder,utype)
+	local p = nil
+	if self.ai.lastNanoBuild then
+		p = ai.buildsitehandler:ClosestBuildSpot(builder, nanoPos, utype)
+	end
+	return p
+end
+
 function BuildSiteHandler:UnitCreated(unit)
 	local unitName = unit:Name()
 	local position = unit:GetPosition()
