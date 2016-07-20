@@ -374,7 +374,7 @@ end
 function BuildSiteHandler:BuilNearLastNano(builder,utype)
 	local p = nil
 	if self.ai.lastNanoBuild then
-		p = ai.buildsitehandler:ClosestBuildSpot(builder, nanoPos, utype)
+		p = ai.buildsitehandler:ClosestBuildSpot(builder, self.ai.lastNanoBuild, utype)
 	end
 	return p
 end
