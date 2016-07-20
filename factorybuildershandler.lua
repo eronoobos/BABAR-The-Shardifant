@@ -9,7 +9,7 @@ function FactoryBuildersHandler:internalName()
 end 
 
 function FactoryBuildersHandler:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 
 	self.lastCheckFrame = 0
 	self.factories = {}
@@ -44,7 +44,7 @@ function FactoryBuildersHandler:AvailableFactories(factoriesPreCleaned)
 	end
 	if self.DebugEnabled then
 		for i, v in pairs(self.factories) do
-			self:EchoDebug(i..' is buildable')
+			self:EchoDebug(i  ..' is available Factories' )
 		end
 	end
 end	
@@ -60,11 +60,11 @@ function FactoryBuildersHandler:PrePositionFilter()
 		local isExperimental = expFactories[factoryName] or leadsToExpFactories[factoryName]
 		local mtype = factoryMobilities[factoryName][1]
 		if ai.needAdvanced and not ai.haveAdvFactory and not isAdvanced then
-			self:EchoDebug('not advanced when i need it')
+			self:EchoDebug(factoryName ..' not advanced when i need it')
 			buildMe = false 
 		end
 		if buildMe and ai.needExperimental and not ai.haveExpFactory and not isExperimental then
-			self:EchoDebug('not Experimental when i need it')
+			self:EchoDebug(factoryName ..' not Experimental when i need it')
 			buildMe = false 
 		end
 		if buildMe and (not ai.needExperimental or ai.haveExpFactory) and expFactories[factoryName] then
@@ -72,11 +72,11 @@ function FactoryBuildersHandler:PrePositionFilter()
 			buildMe = false 
 		end
 		if buildMe and mtype == 'air' and ai.factoryBuilded['air'][1] >= 1 and utn.needsWater then
-			self:EchoDebug('dont build seaplane if i have normal planes')
+			self:EchoDebug(factoryName .. ' dont build seaplane if i have normal planes')
 			buildMe = false 
 		end
 		if not buildMe and mtype == 'air' and ai.haveAdvFactory and ai.factoryBuilded['air'][1] > 0 and ai.factoryBuilded['air'][1] < 3 and isAdvanced then
-			self:EchoDebug('force build t2 air if you have t1 air and a t2 of another type')
+			self:EchoDebug(factoryName .. ' force build t2 air if you have t1 air and a t2 of another type')
 			buildMe = true
 		end
 		if buildMe and self.ai.factoriesAtLevel[1] and mtype == 'air' and isAdvanced and not ai.haveAdvFactory then
@@ -88,6 +88,7 @@ function FactoryBuildersHandler:PrePositionFilter()
 				end
 			end
 		end
+				
 		if buildMe then table.insert(factoriesPreCleaned,factoryName) end
 	end
 	for i, v in pairs(factoriesPreCleaned) do
@@ -168,8 +169,8 @@ function FactoryBuildersHandler:FactoryPosition(factoryName,builder)
 	local builderPos = builder:GetPosition()
 	local p
 	if p == nil then
-		self:EchoDebug("looking next to nano turrets for " .. factoryName)
-		p = ai.buildsitehandler:BuilNearNano(builder, utype)
+		self:EchoDebug("looking next to last nano turrets for " .. factoryName)
+		p = ai.buildsitehandler:BuilNearLastNano(builder, utype)
 	end
 	if p == nil then
 		self:EchoDebug("looking next to factory for " .. factoryName)
