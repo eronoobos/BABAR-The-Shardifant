@@ -9,7 +9,7 @@ function FactoryBuildersHandler:internalName()
 end 
 
 function FactoryBuildersHandler:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 
 	self.lastCheckFrame = 0
 	self.factories = {}
