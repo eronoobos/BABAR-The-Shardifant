@@ -79,6 +79,15 @@ function FactoryBuildersHandler:PrePositionFilter()
 			self:EchoDebug('force build t2 air if you have t1 air and a t2 of another type')
 			buildMe = true
 		end
+		if buildMe and self.ai.factoriesAtLevel[1] and mtype == 'air' and isAdvanced and not ai.haveAdvFactory then
+			for index, factory in pairs(self.ai.factoriesAtLevel[1]) do
+				if unitTable[factory.unit:Internal():Name()].mtype ~= 'air' then
+					self:EchoDebug(factoryName .. ' dont build t2 air if we have another t1 type and dont have adv')
+					buildMe = false
+					break
+				end
+			end
+		end
 		if buildMe then table.insert(factoriesPreCleaned,factoryName) end
 	end
 	for i, v in pairs(factoriesPreCleaned) do
