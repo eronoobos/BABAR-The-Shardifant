@@ -114,7 +114,7 @@ function FactoryBuildersHandler:ConditionsToBuildFactories()
 			local uTn = unitTable[factoryName]
 			self:EchoDebug('measure conditions to build ' .. factoryName .. ' factory')
 			--if ai.scaledMetal > uTn.metalCost * idx and ai.scaledEnergy > uTn.energyCost * idx and ai.army >= ai.factories * 20 then
-			if ai.Metal.income > ((ai.factories ^ 2) * 10) +3 and ai.Energy.income > ((ai.factories ^ 2) * 100) +25 and ai.army >= ai.factories ^ 2 * 10 then
+			if (ai.Metal.income > ((ai.factories ^ 2) * 10) +3 and ai.Energy.income > ((ai.factories ^ 2) * 100) +25 and ai.army >= ai.factories * 20) or (ai.Metal.income > ((ai.factories ^ 2) * 20) and ai.Energy.income > ((ai.factories ^ 2) * 200)) then
 				self:EchoDebug(factoryName .. ' can be builded')
 				factories[factoryName] = self.factories[factoryName]
 			end
