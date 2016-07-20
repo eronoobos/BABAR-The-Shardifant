@@ -431,20 +431,25 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 			utype = nil
 		end
 	elseif unitTable[value].isBuilding then
-		-- buildings in defended positions
-		local turtlePosList = ai.turtlehandler:MostTurtled(builder, value)
-		if turtlePosList then
-			if #turtlePosList ~= 0 then
-				for i, turtlePos in ipairs(turtlePosList) do
-					p = ai.buildsitehandler:ClosestBuildSpot(builder, turtlePos, utype)
-					if p ~= nil then break end
+		if Eco2[value] == 1 then
+			p = ai.buildsitehandler:BuilNearNano(value)
+		end
+		if not p then
+			-- buildings in defended positions
+			local turtlePosList = ai.turtlehandler:MostTurtled(builder, value)
+			if turtlePosList then
+				if #turtlePosList ~= 0 then
+					for i, turtlePos in ipairs(turtlePosList) do
+						p = ai.buildsitehandler:ClosestBuildSpot(builder, turtlePos, utype)
+						if p ~= nil then break end
+					end
 				end
 			end
-		end
-		if p and Distance(p, builder:GetPosition()) > MaxBuildDist(value, self.speed) then
-			-- HERE BECAUSE DEFENSE PLACEMENT SYSTEM SUCKS
-			-- this prevents cons from wasting time building very far away
-			p = ai.buildsitehandler:ClosestBuildSpot(builder, builder:GetPosition(), utype)
+			if p and Distance(p, builder:GetPosition()) > MaxBuildDist(value, self.speed) then
+				-- HERE BECAUSE DEFENSE PLACEMENT SYSTEM SUCKS
+				-- this prevents cons from wasting time building very far away
+				p = ai.buildsitehandler:ClosestBuildSpot(builder, builder:GetPosition(), utype)
+			end
 		end
 	end
 	-- last ditch placement
