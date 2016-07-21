@@ -1,12 +1,3 @@
-local DebugEnabled = false
-
-
-local function EchoDebug(inStr)
-	if DebugEnabled then
-		game:SendToConsole("RaidHandler: " .. inStr)
-	end
-end
-
 RaidHandler = class(Module)
 
 function RaidHandler:Name()
@@ -19,17 +10,20 @@ end
 
 local mCeil = math.ceil
 
+-- these local variables are the same for all AI teams, in fact having them the same saves memory and processing
+
+local nodeSize = 256
+local halfNodeSize = nodeSize / 2
+local testSize = nodeSize / 6
+
+local pathGraphs = {}
+local pathNeighFuncs = {}
+local pathValidFuncs = {}
+
 function RaidHandler:Init()
 	self.counter = {}
 	self.ai.raiderCount = {}
 	self.ai.IDsWeAreRaiding = {}
-
-	self.pathGraphs = {}
-	self.pathNeighFuncs = {}
-	self.pathValidFuncs = {}
-	self.nodeSize = 256
-	self.halfNodeSize = self.nodeSize / 2
-	self.testSize = self.nodeSize / 6
 end
 
 function RaidHandler:NeedMore(mtype, add)
@@ -39,13 +33,13 @@ function RaidHandler:NeedMore(mtype, add)
 			if self.counter[mtype] == nil then self.counter[mtype] = baseRaidCounter end
 			self.counter[mtype] = self.counter[mtype] + add
 			self.counter[mtype] = math.min(self.counter[mtype], maxRaidCounter)
-			EchoDebug(mtype .. " raid counter: " .. self.counter[mtype])
+			self:EchoDebug(mtype .. " raid counter: " .. self.counter[mtype])
 		end
 	else
 		if self.counter[mtype] == nil then self.counter[mtype] = baseRaidCounter end
 		self.counter[mtype] = self.counter[mtype] + add
 		self.counter[mtype] = math.min(self.counter[mtype], maxRaidCounter)
-		EchoDebug(mtype .. " raid counter: " .. self.counter[mtype])
+		self:EchoDebug(mtype .. " raid counter: " .. self.counter[mtype])
 	end
 end
 
@@ -55,13 +49,13 @@ function RaidHandler:NeedLess(mtype)
 			if self.counter[mtype] == nil then self.counter[mtype] = baseRaidCounter end
 			self.counter[mtype] = self.counter[mtype] - 0.5
 			self.counter[mtype] = math.max(self.counter[mtype], minRaidCounter)
-			EchoDebug(mtype .. " raid counter: " .. self.counter[mtype])
+			self:EchoDebug(mtype .. " raid counter: " .. self.counter[mtype])
 		end
 	else
 		if self.counter[mtype] == nil then self.counter[mtype] = baseRaidCounter end
 		self.counter[mtype] = self.counter[mtype] - 0.5
 		self.counter[mtype] = math.max(self.counter[mtype], minRaidCounter)
-		EchoDebug(mtype .. " raid counter: " .. self.counter[mtype])
+		self:EchoDebug(mtype .. " raid counter: " .. self.counter[mtype])
 	end
 end
 
@@ -93,21 +87,18 @@ function RaidHandler:IDsWeAreNotRaiding(unitIDs)
 end
 
 function RaidHandler:TargetDied(mtype)
-	EchoDebug("target died")
+	self:EchoDebug("target died")
 	self:NeedMore(mtype, 0.35)
 end
 
 function RaidHandler:GetPathGraph(mtype)
-	if self.pathGraphs[mtype] then
-		return self.pathGraphs[mtype]
+	if pathGraphs[mtype] then
+		return pathGraphs[mtype]
 	end
 	local graph = {}
 	local id = 1
 	local sizeX = self.ai.elmoMapSizeX
 	local sizeZ = self.ai.elmoMapSizeZ
-	local nodeSize = self.nodeSize
-	local halfNodeSize = self.halfNodeSize
-	local testSize = self.testSize
 	local maphand = self.ai.maphandler
 	for cx = 0, sizeX-nodeSize, nodeSize do
 		local x = cx + halfNodeSize
@@ -124,21 +115,28 @@ function RaidHandler:GetPathGraph(mtype)
 				if not canGo then break end
 			end
 			if canGo then
-				local node = { x = x, y = z, id = id }
+				local position = api.Position()
+				position.x = x
+				position.z = z
+				position.y = 0
+				if ShardSpringLua then
+					position.y = Spring.GetGroundHeight(x, z)
+				end
+				local node = { x = x, y = z, id = id, position = position }
 				graph[id] = node
 				id = id + 1
 			end
 		end
 	end
-	self.pathGraphs[mtype] = graph
+	pathGraphs[mtype] = graph
 	return graph
 end
 
 function RaidHandler:GetPathNeighborFunc(mtype)
-	if self.pathNeighFuncs[mtype] then
-		return self.pathNeighFuncs[mtype]
+	if pathNeighFuncs[mtype] then
+		return pathNeighFuncs[mtype]
 	end
-	local nodeSize = self.nodeSize
+	local nodeSize = nodeSize
 	local nodeDist = 1+ (2 * (nodeSize^2))
 	local neighbor_node_func = function ( node, neighbor ) 
 		if astar.distance( node.x, node.y, neighbor.x, neighbor.y) < nodeDist then
@@ -146,23 +144,22 @@ function RaidHandler:GetPathNeighborFunc(mtype)
 		end
 		return false
 	end
-	self.pathNeighFuncs[mtype] = neighbor_node_func
+	pathNeighFuncs[mtype] = neighbor_node_func
 	return neighbor_node_func
 end
 
 function RaidHandler:GetPathValidFunc(unitName)
-	if self.pathValidFuncs[unitName] then
-		return self.pathValidFuncs[unitName]
+	if pathValidFuncs[unitName] then
+		return pathValidFuncs[unitName]
 	end
 	local valid_node_func = function ( node )
 		return ai.targethandler:IsSafePosition({x=node.x, z=node.y}, unitName, 1)
 	end
-	self.pathValidFuncs[unitName] = valid_node_func
+	pathValidFuncs[unitName] = valid_node_func
 	return valid_node_func
 end
 
 function RaidHandler:GetPathNodeHere(position, graph)
-	local nodeSize = self.nodeSize
 	local x, z = ConstrainToMap(position.x, position.z)
 	local nx = (x - (x % nodeSize)) + mCeil(nodeSize/2)
 	local nz = (z - (z % nodeSize)) + mCeil(nodeSize/2)
@@ -172,5 +169,5 @@ function RaidHandler:GetPathNodeHere(position, graph)
 end
 
 function RaidHandler:GetPathNodeSize()
-	return self.nodeSize
+	return nodeSize
 end
