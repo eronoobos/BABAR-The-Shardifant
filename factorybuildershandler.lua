@@ -170,7 +170,7 @@ function FactoryBuildersHandler:FactoryPosition(factoryName,builder)
 	local p
 	if p == nil then
 		self:EchoDebug("looking next to last nano turrets for " .. factoryName)
-		p = ai.buildsitehandler:BuilNearLastNano(builder, utype)
+		p = ai.buildsitehandler:BuildNearNano(builder, utype)
 	end
 	if p == nil then
 		self:EchoDebug("looking next to factory for " .. factoryName)

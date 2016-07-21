@@ -432,7 +432,7 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 		end
 	elseif unitTable[value].isBuilding then
 		if Eco2[value] == 1 then
-			p = ai.buildsitehandler:BuilNearLastNano(builder, utype)
+			p = ai.buildsitehandler:BuildNearNano(builder, utype)
 		end
 		if not p then
 			-- buildings in defended positions
