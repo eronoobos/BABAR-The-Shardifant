@@ -1,23 +1,10 @@
 local DebugEnabled = false
-local DebugDrawEnabled = false
+local DebugDrawEnabled = true
 
 
 local function EchoDebug(inStr)
 	if DebugEnabled then
 		game:SendToConsole("TargetHandler: " .. inStr)
-	end
-end
-
-local function PlotDebug(x, z, label)
-	if DebugDrawEnabled then
-		if label == nil then label= "nil" end
-		local pos = api.Position()
-		pos.x, pos.z = x, z
-		pos.y = 0
-		if ShardSpringLua then
-			pos.y = Spring.GetGroundHeight(x, z)
-		end
-		map:DrawPoint(pos, {1,1,1}, label, 8)
 	end
 end
 
@@ -605,7 +592,8 @@ end
 
 function TargetHandler:UpdateDebug()
 	if DebugDrawEnabled then
-		map:EraseAll(8)
+		map:EraseRectangle(nil, nil, nil, nil, true, 8)
+		map:EraseRectangle(nil, nil, nil, nil, false, 8)
 		local maxThreat = 0
 		local maxValue = 0
 		for cx, czz in pairs(self.cells) do
