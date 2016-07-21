@@ -29,6 +29,7 @@ function RaiderBehaviour:Init()
 	else
 		self.range = utable.groundRange
 	end
+	self.arrivalRadius = self.range * 0.67
 	self.pathingRadius = self.range * 0.33
 	self.id = self.unit:Internal():ID()
 	self.disarmer = raiderDisarms[self.name]
@@ -154,6 +155,7 @@ function RaiderBehaviour:Update()
 			self.unit:Internal():Move(self.moveNextUpdate)
 			self.moveNextUpdate = nil
 		elseif f > self.lastMovementFrame + 30 then
+			self:ArrivalCheck()
 			self:UpdatePathProgress()
 			self.lastMovementFrame = f
 			-- attack nearby vulnerables immediately
@@ -193,6 +195,17 @@ function RaiderBehaviour:Update()
 				end
 			end
 		end
+	end
+end
+
+function RaiderBehaviour:ArrivalCheck()
+	if not self.target then return end
+	if Distance(self.unit:Internal():GetPosition(), self.target) < self.arrivalRadius then
+		self:EchoDebug("arrived at target")
+		self.target = nil
+		self.pathTry = nil
+		-- deactivate and get a new target
+		self.unit:ElectBehaviour()
 	end
 end
 
@@ -293,7 +306,11 @@ function RaiderBehaviour:UpdatePathProgress()
 			self.pathStep = self.pathStep + 1
 			self:EchoDebug("advancing to next step of path " .. self.pathStep)
 			self.targetNode = self.path[self.pathStep]
-			self:MoveToNode(self.targetNode)
+			if self.pathStep == #self.path then
+				self.unit:Internal():Move(self.target)
+			else
+				self:MoveToNode(self.targetNode)
+			end
 		end
 	end
 end
@@ -319,7 +336,11 @@ function RaiderBehaviour:ResumeCourse()
 		if nearestNode then
 			self.targetNode = nearestNode
 			self.pathStep = nearestStep
-			self:MoveToNode(self.targetNode)
+			if self.pathStep == #self.path then
+				self.unit:Internal():Move(self.target)
+			else
+				self:MoveToNode(self.targetNode)
+			end
 		end
 	else
 		self:EchoDebug("resuming course directly to target")
