@@ -1,5 +1,5 @@
 local DebugEnabled = false
-local DebugDrawEnabled = false
+local DebugDrawEnabled = true
 
 
 local function EchoDebug(inStr)
@@ -217,7 +217,8 @@ function LosHandler:UpdateEnemies(enemyList)
 					end
 				end
 			end
-			if los == 1 then
+			if not known[id] and los == 1 then
+				-- don't overwrite seen with radar-seen unless it was previously not known
 				self.ai.knownEnemies[id] = e
 				e.los = los
 				known[id] = los

@@ -27,7 +27,7 @@ function RaidHandler:Init()
 	self.pathGraphs = {}
 	self.pathNeighFuncs = {}
 	self.pathValidFuncs = {}
-	self.nodeSize = self.ai.mobilityGridSize * 4
+	self.nodeSize = 256
 	self.halfNodeSize = self.nodeSize / 2
 	self.testSize = self.nodeSize / 6
 end
@@ -169,4 +169,8 @@ function RaidHandler:GetPathNodeHere(position, graph)
 	local node = astar.find_node(nx, nz, graph) or astar.nearest_node(nx, nz, graph)
 	-- spEcho(x, z, nx, nz, nodeSize, mCeil(nodeSize/2), node)
 	return node
+end
+
+function RaidHandler:GetPathNodeSize()
+	return self.nodeSize
 end

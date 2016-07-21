@@ -29,8 +29,9 @@ function RaiderBehaviour:Init()
 	else
 		self.range = utable.groundRange
 	end
-	self.arrivalRadius = self.range * 0.67
-	self.pathingRadius = self.range * 0.33
+	self.arrivalRadius = self.range * 0.5
+	self.pathingRadius = self.ai.raidhandler:GetPathNodeSize() * 0.5
+	self.minPathfinderDistance = self.ai.raidhandler:GetPathNodeSize() * 3
 	self.id = self.unit:Internal():ID()
 	self.disarmer = raiderDisarms[self.name]
 	if self.ai.raiderCount[mtype] == nil then
@@ -179,7 +180,12 @@ function RaiderBehaviour:Update()
 					elseif arrived then
 						self:EchoDebug(self.name .. " arrived")
 						-- if we're at the target
+						self.unit:Internal():Move(self.target)
 						self.evading = false
+						self.target = nil
+						self.pathTry = nil
+						-- deactivate and get a new target
+						self.unit:ElectBehaviour()
 					elseif self.evading then
 						self:EchoDebug(self.name .. " setting course to taget")
 						-- return to course to target after evading
@@ -201,6 +207,7 @@ end
 function RaiderBehaviour:ArrivalCheck()
 	if not self.target then return end
 	if Distance(self.unit:Internal():GetPosition(), self.target) < self.arrivalRadius then
+		self.unit:Internal():Move(self.target)
 		self:EchoDebug("arrived at target")
 		self.target = nil
 		self.pathTry = nil
@@ -225,29 +232,33 @@ function RaiderBehaviour:SetMoveState()
 end
 
 function RaiderBehaviour:BeginPath(position)
-	if self.pathedTarget ~= position and self.pathedOrigin ~= self.unit:Internal():GetPosition() then
-		-- need a new path
-		self:EchoDebug("getting new path")
-		local graph = self.ai.raidhandler:GetPathGraph(self.mtype)
-		local startNode = self.ai.raidhandler:GetPathNodeHere(self.unit:Internal():GetPosition(), graph)
-		if startNode then
-			local goalNode = self.ai.raidhandler:GetPathNodeHere(position, graph)
-			if goalNode and startNode ~= goalNode then
-				local neighFunc = self.ai.raidhandler:GetPathNeighborFunc(self.mtype)
-				local validFunc = self.ai.raidhandler:GetPathValidFunc(self.unit:Internal():Name())
-				self.pathTry = astar.pathtry(startNode, goalNode, graph, true, neighFunc, validFunc)
-				self.pathedTarget = position
-				self.pathedOrigin = self.unit:Internal():GetPosition()
-				self:FindPath() -- try once
-			end
+	-- need a new path?
+	if self.pathedTarget == position and self.pathedOrigin == self.unit:Internal():GetPosition() then
+		return
+	end
+	if Distance(position, self.unit:Internal():GetPosition()) < self.minPathfinderDistance then
+		return
+	end
+	self:EchoDebug("getting new path")
+	local graph = self.ai.raidhandler:GetPathGraph(self.mtype)
+	local startNode = self.ai.raidhandler:GetPathNodeHere(self.unit:Internal():GetPosition(), graph)
+	if startNode then
+		local goalNode = self.ai.raidhandler:GetPathNodeHere(position, graph)
+		if goalNode and startNode ~= goalNode then
+			local neighFunc = self.ai.raidhandler:GetPathNeighborFunc(self.mtype)
+			local validFunc = self.ai.raidhandler:GetPathValidFunc(self.unit:Internal():Name())
+			self.pathTry = astar.pathtry(startNode, goalNode, graph, true, neighFunc, validFunc)
+			self.pathedTarget = position
+			self.pathedOrigin = self.unit:Internal():GetPosition()
+			self:FindPath() -- try once
 		end
-	end 
+	end
 end
 
 function RaiderBehaviour:FindPath()
 	if not self.pathTry then return end
 	local path, remaining = astar.work_pathtry(self.pathTry, 3)
-	self:EchoDebug(tostring(remaining) .. " remaining to find path")
+	-- self:EchoDebug(tostring(remaining) .. " remaining to find path")
 	if path then
 		self:EchoDebug("got path")
 		self.pathTry = nil
