@@ -173,7 +173,7 @@ function RaiderBehaviour:Update()
 						self:EchoDebug(self.name .. " evading")
 						unit:Move(newPos)
 						self.evading = true
-						self:BeginPath()
+						self:BeginPath(self.target)
 					elseif arrived then
 						self:EchoDebug(self.name .. " arrived")
 						-- if we're at the target
@@ -212,7 +212,7 @@ function RaiderBehaviour:SetMoveState()
 end
 
 function RaiderBehaviour:BeginPath(position)
-	if self.pathed ~= position then
+	if self.pathedTarget ~= position and self.pathedOrigin ~= self.unit:Internal():GetPosition() then
 		-- need a new path
 		self:EchoDebug("getting new path")
 		local graph = self.ai.raidhandler:GetPathGraph(self.mtype)
@@ -223,7 +223,8 @@ function RaiderBehaviour:BeginPath(position)
 				local neighFunc = self.ai.raidhandler:GetPathNeighborFunc(self.mtype)
 				local validFunc = self.ai.raidhandler:GetPathValidFunc(self.unit:Internal():Name())
 				self.pathTry = astar.pathtry(startNode, goalNode, graph, true, neighFunc, validFunc)
-				self.pathed = position
+				self.pathedTarget = position
+				self.pathedOrigin = self.unit:Internal():GetPosition()
 				self:FindPath() -- try once
 			end
 		end
