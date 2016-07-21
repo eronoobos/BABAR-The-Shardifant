@@ -81,7 +81,7 @@ function FactoryBuildersHandler:PrePositionFilter()
 		end
 		if buildMe and self.ai.factoriesAtLevel[1] and mtype == 'air' and isAdvanced and not ai.haveAdvFactory then
 			for index, factory in pairs(self.ai.factoriesAtLevel[1]) do
-				if unitTable[factory.unit:Internal():Name()].mtype ~= 'air' then
+				if factoryMobilities[factory.unit:Internal():Name()][1] ~= 'air' then
 					self:EchoDebug(factoryName .. ' dont build t2 air if we have another t1 type and dont have adv')
 					buildMe = false
 					break
