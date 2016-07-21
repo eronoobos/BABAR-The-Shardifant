@@ -9,12 +9,10 @@ function NanoHandler:internalName()
 end
 
 local tInsert = table.insert
-local mSqrt = math.sqrt
-local mFloor = math.floor
 
 local cellSize = 100
 local halfCellSize = cellSize / 2
-local hotBuildRadius = mFloor(mSqrt(halfCellSize * halfCellSize * 2))
+local hotBuildRadius = math.floor(math.sqrt(halfCellSize * halfCellSize * 2))
 
 function NanoHandler:Init()
 	self.DebugEnabled = false

@@ -62,6 +62,12 @@ function RandomAway(pos, dist, opposite, angle)
 	end
 end
 
+function DistanceSq(pos1,pos2)
+	local xd = pos1.x-pos2.x
+	local yd = pos1.z-pos2.z
+	return xd*xd + yd*yd
+end
+
 function Distance(pos1,pos2)
 	local xd = pos1.x-pos2.x
 	local yd = pos1.z-pos2.z

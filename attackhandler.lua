@@ -100,6 +100,7 @@ function AttackHandler:ReTarget()
 end
 
 function AttackHandler:SquadReTarget(squad, squadIndex)
+	local f = game:Frame()
 	if not squad.idle and not squad.reachedTarget then
 		return
 	end
@@ -201,6 +202,7 @@ function AttackHandler:DoSquadMovement(squad)
 	squad.attackAngle = AngleAtoB(midPos.x, midPos.z, squad.target.x, squad.target.z)
 	squad.perpendicularAttackAngle = AngleAdd(squad.attackAngle, halfPi)
 	local congDist = sqrt(pi * totalSize) * 2
+	local congDistSq = congDist * congDist
 	local stragglers = 0
 	local damaged = 0
 	local idle = 0
@@ -223,8 +225,8 @@ function AttackHandler:DoSquadMovement(squad)
 			end
 			member.congPos = RandomAway(midPos, member.distFromMid, nil, squad.perpendicularAttackAngle)
 			local upos = unit:GetPosition()
-			local cdist = Distance(upos, member.congPos)
-			if cdist > congDist then
+			local cdistSq = DistanceSq(upos, member.congPos)
+			if cdistSq > congDistSq then
 				member.straggler = (member.straggler or 0) + 1
 				stragglers = stragglers + 1
 				if member.lastpos ~= nil and member.straggler > 1 then
