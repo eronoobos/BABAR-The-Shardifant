@@ -31,6 +31,8 @@ local astar = {}
 -- local variables
 ----------------------------------------------------------------
 
+local cacheNeighbors = false -- do not cache neighbors by default
+
 local INF = 1/0
 local cachedPaths = nil
 
@@ -79,7 +81,7 @@ local function lowest_f_score ( set, f_score )
 end
 
 local function neighbor_nodes ( theNode, nodes )
-	if theNode.neighbors then return theNode.neighbors end -- use cached neighbors
+	if cacheNeighbors and theNode.neighbors then return theNode.neighbors end -- use cached neighbors
 	local neighbors = {}
 	for i = 1, #nodes do
 		local node = nodes[i]
@@ -87,7 +89,9 @@ local function neighbor_nodes ( theNode, nodes )
 			neighbors[#neighbors+1] = node
 		end
 	end
-	theNode.neighbors = neighbors -- cache neighbors
+	if cacheNeighbors then
+		theNode.neighbors = neighbors -- cache neighbors
+	end
 	return neighbors
 end
 
@@ -235,6 +239,10 @@ function astar.cache_neighbors( nodes, neighbor_node_func, valid_node_func )
 		local node = nodes[i]
 		local neighbors = neighbor_nodes(node, nodes)
 	end
+end
+
+function astar.enable_neighbor_cache()
+	cacheNeighbors = true
 end
 
 function astar.distance ( x1, y1, x2, y2 )

@@ -156,8 +156,6 @@ function RaiderBehaviour:Update()
 			self.unit:Internal():Move(self.moveNextUpdate)
 			self.moveNextUpdate = nil
 		elseif f > self.lastMovementFrame + 30 then
-			self:ArrivalCheck()
-			self:UpdatePathProgress()
 			self.lastMovementFrame = f
 			-- attack nearby vulnerables immediately
 			local unit = self.unit:Internal()
@@ -176,6 +174,9 @@ function RaiderBehaviour:Update()
 						self:EchoDebug(self.name .. " evading")
 						unit:Move(newPos)
 						self.evading = true
+						self.path = nil
+						self.pathStep = nil
+						self.targetNode = nil
 						self:BeginPath(self.target)
 					elseif arrived then
 						self:EchoDebug(self.name .. " arrived")
@@ -197,6 +198,9 @@ function RaiderBehaviour:Update()
 							self:ResumeCourse()
 						end
 						self.evading = false
+					else
+						self:ArrivalCheck()
+						self:UpdatePathProgress()
 					end
 				end
 			end
@@ -257,14 +261,14 @@ end
 
 function RaiderBehaviour:FindPath()
 	if not self.pathTry then return end
-	local path, remaining = astar.work_pathtry(self.pathTry, 3)
+	local path, remaining = astar.work_pathtry(self.pathTry, 1)
 	-- self:EchoDebug(tostring(remaining) .. " remaining to find path")
 	if path then
 		self:EchoDebug("got path")
 		self.pathTry = nil
 		self:ReceivePath(path)
 	elseif remaining == 0 then
-		self:EchoDebug("no path found?")
+		self:EchoDebug("no path found")
 		self.pathTry = nil
 	end
 end
@@ -278,18 +282,19 @@ function RaiderBehaviour:ReceivePath(path)
 		self.pathStep = 2
 	end
 	self.targetNode = self.path[self.pathStep]
-	self.clearShot = true
-	if #self.path > 2 then
-		for i = 2, #self.path-1 do
-			local node = self.path[i]
-			if node and #node.neighbors < 8 then
-				self:EchoDebug("path is not clear shot")
-				self.clearShot = false
-				self:ResumeCourse()
-				break
-			end
-		end
-	end
+	self:ResumeCourse()
+	-- self.clearShot = true
+	-- if #self.path > 2 then
+	-- 	for i = 2, #self.path-1 do
+	-- 		local node = self.path[i]
+	-- 		if node and #node.neighbors < 8 then
+	-- 			self:EchoDebug("path is not clear shot")
+	-- 			self.clearShot = false
+	-- 			self:ResumeCourse()
+	-- 			break
+	-- 		end
+	-- 	end
+	-- end
 	if self.DebugEnabled then
 		self.map:EraseLine(nil, nil, {0,1,1}, self.unit:Internal():ID(), true, 8)
 		for i = 2, #self.path do

@@ -1093,7 +1093,6 @@ function TargetHandler:IsSafePosition(position, unit, threshold)
 	end
 	local uname
 	if type(unit) == 'string' then
-		game:SendToConsole(unit, threshold, position.x, position.z)
 		uname = unit
 	else
 		uname = unit:Name()
