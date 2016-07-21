@@ -1099,9 +1099,20 @@ end
 
 function TargetHandler:IsSafePosition(position, unit, threshold)
 	self:UpdateMap()
-	if unit == nil then game:SendToConsole("nil unit") end
-	local uname = unit:Name()
-	if uname == nil then game:SendToConsole("nil unit name") end
+	if unit == nil then
+		game:SendToConsole("nil unit given to IsSafePosition")
+		return
+	end
+	local uname
+	if type(unit) == 'string' then
+		uname = unit
+	else
+		uname = unit:Name()
+	end
+	if uname == nil then
+		game:SendToConsole("nil unit name give nto IsSafePosition")
+		return
+	end
 	local cell = self:GetCellHere(position)
 	if cell == nil then return 0, 0 end
 	local value, threat = CellValueThreat(uname, cell)

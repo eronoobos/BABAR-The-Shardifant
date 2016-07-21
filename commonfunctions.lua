@@ -1,3 +1,5 @@
+astar = shard_include("a-star")
+
 sqrt = math.sqrt
 random = math.random
 pi = math.pi

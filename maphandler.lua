@@ -785,6 +785,10 @@ function MapHandler:Init()
 		self.map:EraseAll(4, 5)
 	end
 
+	local mapSize = self.map:MapDimensions()
+	self.ai.elmoMapSizeX = mapSize.x * 8
+	self.ai.elmoMapSizeZ = mapSize.z * 8
+
 	-- factoryMobilities = self:GetFactoryMobilities()
 
 	ai.conUnitPerTypeLimit = math.max(map:SpotCount() / 6, 4)--add here cause map:spotcount not correctly load or so
