@@ -367,11 +367,11 @@ function BuildSiteHandler:BuildNearNano(builder, utype)
 	EchoDebug("looking for spot near nano hotspots")
 	local nanoHots = self.ai.nanohandler:GetHotSpots()
 	if nanoHots then
-		EchoDebug("got nano hotspots")
+		EchoDebug("got " .. #nanoHots .. " nano hotspots")
 		for i = 1, #nanoHots do
 			local hotPos = nanoHots[i]
-			-- find somewhere at most 60 away from hotspot
-			local p = self:ClosestBuildSpot(builder, hotPos, utype, 10, nil, nil, 60)
+			-- find somewhere at most 90 away from hotspot
+			local p = self:ClosestBuildSpot(builder, hotPos, utype, 10, nil, nil, 90)
 			if p then 
 				EchoDebug('found Position for near nano hotspot at: ' .. hotPos.x ..' ' ..hotPos.z)
 				return p

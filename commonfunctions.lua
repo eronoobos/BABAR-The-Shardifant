@@ -307,4 +307,65 @@ function BehaviourPosition(behaviour)
 	return unit:GetPosition()
 end
 
+function HorizontalLine(grid, x, z, tx, sets, adds)
+	for ix = x, tx do
+		grid[ix] = grid[ix] or {}
+		if type(sets) == 'table' or type(adds) == 'table' then
+			grid[ix][z] = grid[ix][z] or {}
+			local cell = grid[ix][z]
+			if sets then
+				for k, v in pairs(sets) do
+					cell[k] = v
+				end
+			end
+			if adds then
+				for k, v in pairs(adds) do
+					cell[k] = (cell[k] or 0) + v
+				end
+			end
+		else
+			if sets then
+				grid[ix][z] = sets
+			end
+			if adds then
+				grid[ix][z] = (grid[ix][z] or 0) + adds
+			end
+		end
+	end
+	return grid
+end
+
+function Plot4(grid, cx, cz, x, z, sets, adds)
+	grid = HorizontalLine(grid, cx - x, cz + z, cx + x, sets, adds)
+	if x ~= 0 and z ~= 0 then
+        grid = HorizontalLine(grid, cx - x, cz - z, cx + x, sets, adds)
+    end
+    return grid
+end
+
+function FillCircle(grid, gridElmos, position, radius, sets, adds)
+	local cx = ceil(position.x / gridElmos)
+	local cz = ceil(position.z / gridElmos)
+	local cradius = floor(radius / gridElmos)
+	if cradius > 0 then
+		local err = -cradius
+		local x = cradius
+		local z = 0
+		while x >= z do
+	        local lastZ = z
+	        err = err + z
+	        z = z + 1
+	        err = err + z
+	        grid = Plot4(grid, cx, cz, x, lastZ, sets, adds)
+	        if err >= 0 then
+	            if x ~= lastZ then grid = Plot4(grid, cx, cz, lastZ, x, sets, adds) end
+	            err = err - x
+	            x = x - 1
+	            err = err - x
+	        end
+	    end
+	end
+	return grid
+end
+
 CommonFunctionsLoaded = true -- so that SpringShardLua doesn't load them multiple times
