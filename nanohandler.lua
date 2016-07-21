@@ -8,6 +8,8 @@ function NanoHandler:internalName()
 	return "nanohandler"
 end
 
+local tInsert = table.insert
+
 local cellSize = 128
 local halfCellSize = cellSize / 2
 
@@ -81,14 +83,18 @@ function NanoHandler:SortCells()
 				local cellPos = api.Position()
 				cellPos.x = cx * cellSize
 				cellPos.z = cz * cellSize
-				posByCounts[-count] = cellPos
+				posByCounts[-count] = posByCounts[-count] or {}
+				tInsert(posByCounts[-count], cellPos)
 			end
 		end
 	end
 	self.sortedCells = {}
-	for negCount, position in pairsByKeys(posByCounts) do
-		self:EchoDebug(-negCount, "nanos", "overlap at", position.x, position.z)
-		self.sortedCells[#self.sortedCells+1] = position
+	for negCount, posList in pairsByKeys(posByCounts) do
+		for i = 1, #posList do
+			local position = posList[i]
+			self:EchoDebug(-negCount, "nanos", "overlap at", position.x, position.z)
+			self.sortedCells[#self.sortedCells+1] = position
+		end
 	end
 	self.cellsNeedSorting = false
 end

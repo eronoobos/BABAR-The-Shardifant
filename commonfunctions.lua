@@ -329,6 +329,7 @@ function HorizontalLine(grid, x, z, tx, sets, adds)
 			end
 			if adds then
 				grid[ix][z] = (grid[ix][z] or 0) + adds
+				if grid[ix][z] == 0 then grid[ix][z] = nil end
 			end
 		end
 	end
