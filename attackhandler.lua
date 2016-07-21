@@ -30,10 +30,10 @@ function AttackHandler:Update()
 		self:DraftSquads()
 	end
 	if f % 30 == 0 then
-		-- actually retargets each squad every 15 seconds
-		self:ReTarget()
 		-- actually does each squad movement every 5 seconds
 		self:DoMovement()
+		-- actually retargets each squad every 15 seconds
+		self:ReTarget()
 	end
 end
 
