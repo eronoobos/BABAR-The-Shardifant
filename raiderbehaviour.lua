@@ -61,7 +61,7 @@ function RaiderBehaviour:OwnerIdle()
 	if self.mtype == "air" then
 		self.moveNextUpdate = RandomAway(self.unit:Internal():GetPosition(), 500)
 	end
-	self.unit:ElectBehaviour()
+	self:GetTarget()
 end
 
 function RaiderBehaviour:RaidCell(cell)
