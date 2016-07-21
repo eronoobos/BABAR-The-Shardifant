@@ -9,9 +9,12 @@ function NanoHandler:internalName()
 end
 
 local tInsert = table.insert
+local mSqrt = math.sqrt
+local mFloor = math.floor
 
-local cellSize = 128
+local cellSize = 100
 local halfCellSize = cellSize / 2
+local hotBuildRadius = mFloor(mSqrt(halfCellSize * halfCellSize * 2))
 
 function NanoHandler:Init()
 	self.DebugEnabled = false
@@ -50,11 +53,11 @@ function NanoHandler:DrawDebug()
 			local x = cx * cellSize
 			local z = cz * cellSize
 			local cellPosMin = api.Position()
-			cellPosMin.x = x - halfCellSize
-			cellPosMin.z = z - halfCellSize
+			cellPosMin.x = x - cellSize
+			cellPosMin.z = z - cellSize
 			local cellPosMax = api.Position()
-			cellPosMax.x = x + halfCellSize
-			cellPosMax.z = z + halfCellSize
+			cellPosMax.x = x
+			cellPosMax.z = z
 			local green = count / highestCount
 			local blue = 1 - green
 			self.map:DrawRectangle(cellPosMin, cellPosMax, {0,green,blue}, count, true, 2)
@@ -81,8 +84,8 @@ function NanoHandler:SortCells()
 		for cz, count in pairs(czz) do
 			if count > 1 then
 				local cellPos = api.Position()
-				cellPos.x = cx * cellSize
-				cellPos.z = cz * cellSize
+				cellPos.x = (cx * cellSize) - halfCellSize
+				cellPos.z = (cz * cellSize) - halfCellSize
 				posByCounts[-count] = posByCounts[-count] or {}
 				tInsert(posByCounts[-count], cellPos)
 			end
@@ -102,4 +105,9 @@ end
 function NanoHandler:GetHotSpots()
 	self:SortCells()
 	return self.sortedCells
+end
+
+function NanoHandler:HotBuildRadius()
+	self:EchoDebug("hotBuildRadius", hotBuildRadius)
+	return hotBuildRadius
 end

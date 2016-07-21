@@ -347,6 +347,7 @@ end
 function FillCircle(grid, gridElmos, position, radius, sets, adds)
 	local cx = ceil(position.x / gridElmos)
 	local cz = ceil(position.z / gridElmos)
+	radius = max( 0, radius - (gridElmos/2) )
 	local cradius = floor(radius / gridElmos)
 	if cradius > 0 then
 		local err = -cradius
