@@ -137,18 +137,7 @@ function RaiderBehaviour:Update()
 	if not self.active then
 		if f > self.lastGetTargetFrame + 90 then
 			self.lastGetTargetFrame = f
-			local unit = self.unit:Internal()
-			local bestCell = self.ai.targethandler:GetBestRaidCell(unit)
-			self.ai.targethandler:RaiderHere(self)
-			if bestCell then
-				self:EchoDebug(self.name .. " got target")
-				self:RaidCell(bestCell)
-			else
-				self.target = nil
-				self.pathTry = nil
-				self.unit:ElectBehaviour()
-				-- revert to scouting
-			end
+			self:GetTarget()
 		end
 	else
 		self:FindPath()
@@ -183,10 +172,7 @@ function RaiderBehaviour:Update()
 						-- if we're at the target
 						self.unit:Internal():Move(self.target)
 						self.evading = false
-						self.target = nil
-						self.pathTry = nil
-						-- deactivate and get a new target
-						self.unit:ElectBehaviour()
+						self:GetTarget()
 					elseif self.evading then
 						self:EchoDebug(self.name .. " setting course to taget")
 						-- return to course to target after evading
@@ -208,15 +194,27 @@ function RaiderBehaviour:Update()
 	end
 end
 
+function RaiderBehaviour:GetTarget()
+	local unit = self.unit:Internal()
+	local bestCell = self.ai.targethandler:GetBestRaidCell(unit)
+	self.ai.targethandler:RaiderHere(self)
+	if bestCell then
+		self:EchoDebug(self.name .. " got target")
+		self:RaidCell(bestCell)
+	else
+		self.target = nil
+		self.pathTry = nil
+		self.unit:ElectBehaviour()
+		-- revert to scouting
+	end
+end
+
 function RaiderBehaviour:ArrivalCheck()
 	if not self.target then return end
 	if Distance(self.unit:Internal():GetPosition(), self.target) < self.arrivalRadius then
 		self.unit:Internal():Move(self.target)
 		self:EchoDebug("arrived at target")
-		self.target = nil
-		self.pathTry = nil
-		-- deactivate and get a new target
-		self.unit:ElectBehaviour()
+		self:GetTarget()
 	end
 end
 
