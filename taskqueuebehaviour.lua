@@ -650,7 +650,7 @@ function TaskQueueBehaviour:ProgressQueue()
 			if success then
 				EchoDebug(self.name .. " " .. self.id .. " successful build command for " .. utype:Name())
 				if self.isFactory then
-					if not self.outmodedTechLevel then
+					if not self.outmodedTechLevel and not self.ai.underReserves then
 						-- factories take up idle assistants
 						ai.assisthandler:TakeUpSlack(builder)
 					end
