@@ -91,14 +91,17 @@ function RaiderBehaviour:RaidCell(cell)
 			self:EchoDebug("air raid target: " .. tostring(self.unitTarget.unitName))
 		end
 		if self.active then
+			self:EchoDebug("is active")
 			if self.mtype == "air" then
 				if self.unitTarget ~= nil then
 					CustomCommand(self.unit:Internal(), CMD_ATTACK, {self.unitTarget.unitID})
 				end
 			else
+				self:EchoDebug("moving near target")
 				self:MoveNear(self.target)
 			end
 		end
+		self:EchoDebug("electing behaviour")
 		self.unit:ElectBehaviour()
 	end
 end
