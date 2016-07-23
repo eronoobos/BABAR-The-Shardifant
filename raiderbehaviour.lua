@@ -165,17 +165,11 @@ function RaiderBehaviour:Update()
 			if attackTarget then
 				CustomCommand(unit, CMD_ATTACK, {attackTarget.unitID})
 			else
-				-- evade enemies on the way to the target, if possible
 				if self.target ~= nil then
 					self.ai.targethandler:RaiderHere(self)
-					if safe then
-						self:ArrivalCheck()
-						self:UpdatePathProgress()
-					else
-						self:EchoDebug("unsafe position, getting new path")
-						self:ResetPath()
-						self:MoveToSafety()
-					end
+					self:ArrivalCheck()
+					self:UpdatePathProgress()
+					-- evade enemies on the way to the target, if possible
 					-- local newPos, arrived = self.ai.targethandler:BestAdjacentPosition(unit, self.target)
 					-- if newPos then
 					-- 	self:EchoDebug(self.name .. " evading")
@@ -400,7 +394,8 @@ function RaiderBehaviour:ResetPath(moveToTarget)
 	self.pathStep = nil
 	self.targetNode = nil
 	self:BeginPath(self.target)
-	if moveToTarget then self:MoveNear(self.target) end
+	-- if moveToTarget then self:MoveNear(self.target) end
+	self:MoveToSafety()
 end
 
 function RaiderBehaviour:MoveToSafety()

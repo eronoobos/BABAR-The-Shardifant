@@ -17,7 +17,6 @@ local halfNodeSize = nodeSize / 2
 local testSize = nodeSize / 6
 
 local pathGraphs = {}
-local pathNeighFuncs = {}
 local pathValidFuncs = {}
 
 function RaidHandler:Init()
