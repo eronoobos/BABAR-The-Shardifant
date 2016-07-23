@@ -128,24 +128,11 @@ function RaidHandler:GetPathGraph(mtype)
 			end
 		end
 	end
-	pathGraphs[mtype] = graph
-	return graph
-end
-
-function RaidHandler:GetPathNeighborFunc(mtype)
-	if pathNeighFuncs[mtype] then
-		return pathNeighFuncs[mtype]
-	end
-	local nodeSize = nodeSize
-	local nodeDist = 1+ (2 * (nodeSize^2))
-	local neighbor_node_func = function ( node, neighbor ) 
-		if astar.distance( node.x, node.y, neighbor.x, neighbor.y) < nodeDist then
-			return true
-		end
-		return false
-	end
-	pathNeighFuncs[mtype] = neighbor_node_func
-	return neighbor_node_func
+	local aGraph = GraphAStar()
+	aGraph:Init(graph)
+	aGraph:SetOctoGridSize(nodeSize)
+	pathGraphs[mtype] = aGraph
+	return aGraph
 end
 
 function RaidHandler:GetPathValidFunc(unitName)
@@ -157,15 +144,6 @@ function RaidHandler:GetPathValidFunc(unitName)
 	end
 	pathValidFuncs[unitName] = valid_node_func
 	return valid_node_func
-end
-
-function RaidHandler:GetPathNodeHere(position, graph)
-	local x, z = ConstrainToMap(position.x, position.z)
-	local nx = (x - (x % nodeSize)) + mCeil(nodeSize/2)
-	local nz = (z - (z % nodeSize)) + mCeil(nodeSize/2)
-	local node = astar.find_node(nx, nz, graph) or astar.nearest_node(nx, nz, graph)
-	-- spEcho(x, z, nx, nz, nodeSize, mCeil(nodeSize/2), node)
-	return node
 end
 
 function RaidHandler:GetPathNodeSize()

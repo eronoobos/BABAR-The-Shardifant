@@ -265,23 +265,17 @@ function RaiderBehaviour:BeginPath(position)
 	end
 	self:EchoDebug("getting new path")
 	local graph = self.ai.raidhandler:GetPathGraph(self.mtype)
-	local startNode = self.ai.raidhandler:GetPathNodeHere(self.unit:Internal():GetPosition(), graph)
-	if startNode then
-		local goalNode = self.ai.raidhandler:GetPathNodeHere(position, graph)
-		if goalNode and startNode ~= goalNode then
-			local neighFunc = self.ai.raidhandler:GetPathNeighborFunc(self.mtype)
-			local validFunc = self.ai.raidhandler:GetPathValidFunc(self.unit:Internal():Name())
-			self.pathTry = astar.pathtry(startNode, goalNode, graph, true, neighFunc, validFunc)
-			self.pathedTarget = position
-			self.pathedOrigin = self.unit:Internal():GetPosition()
-			self:FindPath() -- try once
-		end
-	end
+	local upos = self.unit:Internal():GetPosition()
+	local validFunc = self.ai.raidhandler:GetPathValidFunc(self.unit:Internal():Name())
+	self.pathTry = graph:PathfinderXYXY(upos.x, upos.z, position.x, position.z, nil, validFunc)
+	self.pathedTarget = position
+	self.pathedOrigin = self.unit:Internal():GetPosition()
+	self:FindPath() -- try once
 end
 
 function RaiderBehaviour:FindPath()
 	if not self.pathTry then return end
-	local path, remaining = astar.work_pathtry(self.pathTry, 1)
+	local path, remaining = self.pathTry:Find(1)
 	-- self:EchoDebug(tostring(remaining) .. " remaining to find path")
 	if path then
 		self:EchoDebug("got path")
@@ -413,7 +407,7 @@ function RaiderBehaviour:MoveToSafety()
 	local upos = self.unit:Internal():GetPosition()
 	local graph = self.ai.raidhandler:GetPathGraph(self.mtype)
 	local validFunc = self.ai.raidhandler:GetPathValidFunc(self.unit:Internal():Name())
-	local node = astar.nearest_node( upos.x, upos.z, graph, nil, validFunc)
+	local node = graph:NearestNode(upos.x, upos.z, validFunc)
 	if node then
 		self:MoveNear(node.position)
 	else
