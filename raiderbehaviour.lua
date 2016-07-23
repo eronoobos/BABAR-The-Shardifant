@@ -168,7 +168,11 @@ function RaiderBehaviour:Update()
 				if self.target ~= nil then
 					self.ai.targethandler:RaiderHere(self)
 					self:ArrivalCheck()
-					self:UpdatePathProgress()
+					-- if safe then
+						self:UpdatePathProgress()
+					-- else
+						-- self:MoveToSafety()
+					-- end
 					-- evade enemies on the way to the target, if possible
 					-- local newPos, arrived = self.ai.targethandler:BestAdjacentPosition(unit, self.target)
 					-- if newPos then
@@ -336,10 +340,12 @@ function RaiderBehaviour:UpdatePathProgress()
 			self.targetNode = self.path[self.pathStep]
 			if self.pathStep == #self.path then
 				self:MoveNear(self.target)
-			else
-				self:MoveToNode(self.targetNode)
+				return
 			end
 		end
+		self:MoveToNode(self.targetNode)
+	elseif self.target then
+		self:MoveNear(self.target)
 	end
 end
 
