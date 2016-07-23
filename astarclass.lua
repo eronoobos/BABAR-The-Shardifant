@@ -80,7 +80,7 @@ local function lowest_f_score ( set, f_score )
 	local lowest, bestNode = INF, nil
 	for i = 1, #set do
 		local node = set[i]
-		local score = f_score [ node ]
+		local score = f_score[node]
 		if score < lowest then
 			lowest, bestNode = score, node
 		end
@@ -90,13 +90,26 @@ end
 
 local function neighbor_nodes ( theNode, nodes, isNeighborNode, isValidNode )
 	local neighbors = {}
+	local numInvalidNodes = 0
+	local gotNeighCache = false
+	if theNode.neighbors then
+		nodes = theNode.neighbors
+		gotNeighCache = true
+	else
+		theNode.neighbors = {}
+	end
 	for i = 1, #nodes do
 		local node = nodes[i]
-		if theNode ~= node and isValidNode(node) and isNeighborNode(theNode, node) then
-			neighbors[#neighbors+1] = node
+		if theNode ~= node and (gotNeighCache or isNeighborNode(theNode, node)) then
+			if not gotNeighCache then theNode.neighbors[#theNode.neighbors+1] = node end
+			if isValidNode(node) then
+				neighbors[#neighbors+1] = node
+			else
+				numInvalidNodes = numInvalidNodes + 1
+			end
 		end
 	end
-	return neighbors
+	return neighbors, numInvalidNodes
 end
 
 local function not_in ( set, theNode )
@@ -111,8 +124,8 @@ local function remove_node ( set, theNode )
 	for i = 1, #set do
 		local node = set[i]
 		if node == theNode then 
-			set [ i ] = set [ #set ]
-			set [ #set ] = nil
+			set [i] = set [#set]
+			set [#set] = nil
 			break
 		end
 	end	
@@ -120,8 +133,8 @@ end
 
 local function unwind_path ( flat_path, map, current_node )
 	if map[current_node] then
-		tInsert(flat_path, 1, map [ current_node ]) 
-		return unwind_path(flat_path, map, map [ current_node ])
+		tInsert(flat_path, 1, map[current_node]) 
+		return unwind_path(flat_path, map, map[current_node])
 	else
 		return flat_path
 	end
@@ -174,11 +187,12 @@ function PathfinderAStar:Find(iterations)
 		if current == self.goal then
 			local path = unwind_path({}, self.came_from, self.goal)
 			path[#path+1] = self.goal
-			return path, #self.openset
+			return path, #self.openset, self.maxInvalid
 		end
-		remove_node(self.openset, current)		
+		remove_node(self.openset, current)
 		self.closedset[#self.closedset+1] = current
-		local neighbors = neighbor_nodes(current, nodes, isNeighborNode, isValidNode)
+		local neighbors, numInvalidNodes = neighbor_nodes(current, nodes, isNeighborNode, isValidNode)
+		if not self.maxInvalid or numInvalidNodes > self.maxInvalid then self.maxInvalid = numInvalidNodes end
 		for i = 1, #neighbors do
 			local neighbor = neighbors[i]
 			if not_in(self.closedset, neighbor) then
@@ -195,7 +209,7 @@ function PathfinderAStar:Find(iterations)
 		end
 		it = it + 1
 	end
-	return nil, #self.openset
+	return nil, #self.openset, self.maxInvalid
 end
 
 

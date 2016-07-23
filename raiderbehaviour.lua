@@ -269,12 +269,16 @@ end
 
 function RaiderBehaviour:FindPath()
 	if not self.pathTry then return end
-	local path, remaining = self.pathTry:Find(1)
+	local path, remaining, maxInvalid = self.pathTry:Find(1)
 	-- self:EchoDebug(tostring(remaining) .. " remaining to find path")
 	if path then
-		self:EchoDebug("got path")
+		self:EchoDebug("got path of", #path, "nodes", maxInvalid, "maximum invalid neighbors")
 		self.pathTry = nil
-		self:ReceivePath(path)
+		if maxInvalid == 0 then
+			self:EchoDebug("path is entirely clear of danger, not using")
+		else
+			self:ReceivePath(path)
+		end
 	elseif remaining == 0 then
 		self:EchoDebug("no path found")
 		self.pathTry = nil
