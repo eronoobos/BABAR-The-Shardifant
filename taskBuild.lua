@@ -27,7 +27,7 @@ function BuildSpecialLT(tskqbhvr)
 	if tskqbhvr.unit == nil then
 		return DummyUnitName
 	end
-	local unitName = ""
+	local unitName = DummyUnitName
 	if IsAANeeded() then
 		-- pop-up turrets are protected against bombs
 		if MyTB.side == CORESideName then
@@ -50,7 +50,7 @@ function BuildSpecialLTOnly(tskqbhvr)
 	if tskqbhvr.unit == nil then
 		return DummyUnitName
 	end
-	local unitName = ""
+	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = "hllt"
 	else
@@ -64,7 +64,7 @@ function BuildFloatHLT(tskqbhvr)
 	if tskqbhvr.unit == nil then
 		return DummyUnitName
 	end
-	local unitName = ""
+	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = "corfhlt"
 	else
@@ -79,7 +79,7 @@ function BuildHLT(tskqbhvr)
 	if tskqbhvr.unit == nil then
 		return DummyUnitName
 	end
-	local unitName = ""
+	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = "corhlt"
 	else
@@ -93,7 +93,7 @@ function BuildLvl2PopUp(tskqbhvr)
 	if tskqbhvr.unit == nil then
 		return DummyUnitName
 	end
-	local unitName = ""
+	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = "corvipe"
 	else
@@ -107,7 +107,7 @@ function BuildTachyon(tskqbhvr)
 	if tskqbhvr.unit == nil then
 		return DummyUnitName
 	end
-	local unitName = ""
+	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = "cordoom"
 	else
@@ -121,7 +121,7 @@ function BuildDepthCharge(tskqbhvr)
 	if tskqbhvr.unit == nil then
 		return DummyUnitName
 	end
-	local unitName = ""
+	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = "cordl"
 	else
@@ -135,7 +135,7 @@ function BuildLightTorpedo(tskqbhvr)
 	if tskqbhvr.unit == nil then
 		return DummyUnitName
 	end
-	local unitName = ""
+	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = "cortl"
 	else
@@ -148,7 +148,7 @@ function BuildPopTorpedo(tskqbhvr)
 	if tskqbhvr.unit == nil then
 		return DummyUnitName
 	end
-	local unitName = ""
+	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = "corptl"
 	else
@@ -161,7 +161,7 @@ function BuildHeavyTorpedo(tskqbhvr)
 	if tskqbhvr.unit == nil then
 		return DummyUnitName
 	end
-	local unitName = ""
+	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = "coratl"
 	else
@@ -179,7 +179,7 @@ function BuildLightAA(tskqbhvr)
 	if tskqbhvr.unit == nil then
 		return DummyUnitName
 	end
-	local unitName = ""
+	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = BuildAAIfNeeded("corrl")
 	else
@@ -192,7 +192,7 @@ function BuildFloatLightAA(tskqbhvr)
 	if tskqbhvr.unit == nil then
 		return DummyUnitName
 	end
-	local unitName = ""
+	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = BuildAAIfNeeded("corfrt")
 	else
@@ -205,7 +205,7 @@ function BuildMediumAA(tskqbhvr)
 	if tskqbhvr.unit == nil then
 		return DummyUnitName
 	end
-	local unitName = ""
+	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = BuildAAIfNeeded("madsam")
 	else
@@ -218,7 +218,7 @@ function BuildHeavyishAA(tskqbhvr)
 	if tskqbhvr.unit == nil then
 		return DummyUnitName
 	end
-	local unitName = ""
+	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = BuildAAIfNeeded("corerad")
 	else
@@ -231,7 +231,7 @@ function BuildHeavyAA(tskqbhvr)
 	if tskqbhvr.unit == nil then
 		return DummyUnitName
 	end
-	local unitName = ""
+	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = BuildAAIfNeeded("corflak")
 	else
@@ -244,7 +244,7 @@ function BuildFloatHeavyAA(tskqbhvr)
 	if tskqbhvr.unit == nil then
 		return DummyUnitName
 	end
-	local unitName = ""
+	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = BuildAAIfNeeded("corenaa")
 	else
@@ -257,7 +257,7 @@ function BuildExtraHeavyAA(tskqbhvr)
 	if tskqbhvr.unit == nil then
 		return DummyUnitName
 	end
-	local unitName = ""
+	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = BuildAAIfNeeded("screamer")
 	else
@@ -271,7 +271,7 @@ end
 --SONAR-RADAR
 
 function BuildSonar()
-	local unitName = ""
+	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = "corsonar"
 	else
@@ -281,7 +281,7 @@ function BuildSonar()
 end
 
 function BuildAdvancedSonar()
-	local unitName = ""
+	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = "corason"
 	else
@@ -302,7 +302,7 @@ function BuildRadar()
 end
 
 function BuildFloatRadar()
-	local unitName = ""
+	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = "corfrad"
 	else
@@ -312,7 +312,7 @@ function BuildFloatRadar()
 end
 
 function BuildAdvancedRadar()
-	local unitName = ""
+	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = "corarad"
 	else
@@ -343,7 +343,7 @@ end
 
 function BuildShield()
 	if IsShieldNeeded() then
-		local unitName = ""
+		local unitName = DummyUnitName
 		if MyTB.side == CORESideName then
 			unitName = "corgate"
 		else
@@ -356,7 +356,7 @@ end
 
 function BuildAntinuke()
 	if IsAntinukeNeeded() then
-		local unitName = ""
+		local unitName = DummyUnitName
 		if MyTB.side == CORESideName then
 			unitName = "corfmd"
 		else
@@ -368,7 +368,7 @@ function BuildAntinuke()
 end
 
 function BuildNuke()
-	local unitName = ""
+	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = "corsilo"
 	else
@@ -384,7 +384,7 @@ function BuildNukeIfNeeded()
 end
 
 function BuildTacticalNuke()
-	local unitName = ""
+	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = "cortron"
 	else
@@ -394,7 +394,7 @@ function BuildTacticalNuke()
 end
 
 function BuildLvl1Plasma()
-	local unitName = ""
+	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = "corpun"
 	else
@@ -404,7 +404,7 @@ function BuildLvl1Plasma()
 end
 
 function BuildLvl2Plasma()
-	local unitName = ""
+	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = "cortoast"
 	else
@@ -414,7 +414,7 @@ function BuildLvl2Plasma()
 end
 
 function BuildHeavyPlasma()
-	local unitName = ""
+	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = "corint"
 	else
