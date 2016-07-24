@@ -124,6 +124,7 @@ function Situation:SetEconomyAliases()
 	local attackCounter = self.ai.attackhandler:GetCounter()
 	self.notEnoughCombats = self.ai.combatCount < attackCounter * 0.6
 	self.farTooFewCombats = self.ai.combatCount < attackCounter * 0.2
+	self.ai.underReserves = self.ai.Metal.full < 0.3 or self.ai.Energy.full < 0.3
 end
 
 function Situation:StaticEvaluate()
