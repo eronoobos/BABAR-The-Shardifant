@@ -6,8 +6,7 @@ local function EchoDebug(inStr)
 	end
 end
 
---TORRETTE
-
+--t1 ground
 
 function BuildLLT(tskqbhvr)
 	if tskqbhvr.unit == nil then
@@ -60,6 +59,33 @@ function BuildSpecialLTOnly(tskqbhvr)
 	return GroundDefenseIfNeeded(unitName, unit)
 end
 
+function BuildHLT(tskqbhvr)
+	if tskqbhvr.unit == nil then
+		return DummyUnitName
+	end
+	local unitName = DummyUnitName
+	if MyTB.side == CORESideName then
+		unitName = "corhlt"
+	else
+		unitName = "armhlt"
+	end
+	local unit = tskqbhvr.unit:Internal()
+	return GroundDefenseIfNeeded(unitName, unit)
+end
+
+function BuildDepthCharge(tskqbhvr)
+	if tskqbhvr.unit == nil then
+		return DummyUnitName
+	end
+	local unitName = DummyUnitName
+	if MyTB.side == CORESideName then
+		unitName = "cordl"
+	else
+		unitName = "armdl"
+	end
+	return BuildTorpedoIfNeeded(unitName)
+end
+
 function BuildFloatHLT(tskqbhvr)
 	if tskqbhvr.unit == nil then
 		return DummyUnitName
@@ -75,20 +101,7 @@ function BuildFloatHLT(tskqbhvr)
 	return unitName
 end
 
-function BuildHLT(tskqbhvr)
-	if tskqbhvr.unit == nil then
-		return DummyUnitName
-	end
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
-		unitName = "corhlt"
-	else
-		unitName = "armhlt"
-	end
-	local unit = tskqbhvr.unit:Internal()
-	return GroundDefenseIfNeeded(unitName, unit)
-end
-
+--t2 ground
 function BuildLvl2PopUp(tskqbhvr)
 	if tskqbhvr.unit == nil then
 		return DummyUnitName
@@ -116,20 +129,6 @@ function BuildTachyon(tskqbhvr)
 	local unit = tskqbhvr.unit:Internal()
 	return GroundDefenseIfNeeded(unitName, unit)
 end
-
-function BuildDepthCharge(tskqbhvr)
-	if tskqbhvr.unit == nil then
-		return DummyUnitName
-	end
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
-		unitName = "cordl"
-	else
-		unitName = "armdl"
-	end
-	return BuildTorpedoIfNeeded(unitName)
-end
-
 
 function BuildLightTorpedo(tskqbhvr)
 	if tskqbhvr.unit == nil then
@@ -170,11 +169,10 @@ function BuildHeavyTorpedo(tskqbhvr)
 	return BuildTorpedoIfNeeded(unitName)
 end
 
-
---TORRI ANTIAEREA
-
+--AA
 
 -- build AA in area only if there's not enough of it there already
+--t1
 function BuildLightAA(tskqbhvr)
 	if tskqbhvr.unit == nil then
 		return DummyUnitName
@@ -226,6 +224,8 @@ function BuildHeavyishAA(tskqbhvr)
 	end
 	return unitName
 end
+
+--t2
 
 function BuildHeavyAA(tskqbhvr)
 	if tskqbhvr.unit == nil then
@@ -280,17 +280,6 @@ function BuildSonar()
 	return unitName
 end
 
-function BuildAdvancedSonar()
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
-		unitName = "corason"
-	else
-		unitName = "armason"
-	end
-	return unitName
-end
-
-
 function BuildRadar()
 	local unitName = DummyUnitName
 		if MyTB.side == CORESideName then
@@ -311,6 +300,27 @@ function BuildFloatRadar()
 	return unitName
 end
 
+function BuildLvl1Jammer()
+	if not IsJammerNeeded() then return DummyUnitName end
+		if MyTB.side == CORESideName then
+			return "corjamt"
+		else
+			return "armjamt"
+		end
+end
+
+--t1
+
+function BuildAdvancedSonar()
+	local unitName = DummyUnitName
+	if MyTB.side == CORESideName then
+		unitName = "corason"
+	else
+		unitName = "armason"
+	end
+	return unitName
+end
+
 function BuildAdvancedRadar()
 	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
@@ -319,15 +329,6 @@ function BuildAdvancedRadar()
 		unitName = "armarad"
 	end
 	return unitName
-end
-
-function BuildLvl1Jammer()
-	if not IsJammerNeeded() then return DummyUnitName end
-		if MyTB.side == CORESideName then
-			return "corjamt"
-		else
-			return "armjamt"
-		end
 end
 
 function BuildLvl2Jammer()
@@ -339,20 +340,19 @@ function BuildLvl2Jammer()
 	end
 end
 
---NUKE-PLASMA
+--Anti Radar/Jammer/Minefield/ScoutSpam Weapon
 
-function BuildShield()
-	if IsShieldNeeded() then
-		local unitName = DummyUnitName
-		if MyTB.side == CORESideName then
-			unitName = "corgate"
-		else
-			unitName = "armgate"
-		end
-		return unitName
+function BuildAntiRadar()
+	local unitName = DummyUnitName
+	if MyTB.side == CORESideName then
+		unitName = "cjuno"
+	else
+		unitName = "ajuno"
 	end
-	return DummyUnitName
+	return unitName
 end
+
+--NUKE
 
 function BuildAntinuke()
 	if IsAntinukeNeeded() then
@@ -393,6 +393,8 @@ function BuildTacticalNuke()
 	return BuildWithLimitedNumber(unitName, ai.situation.tacticalNukeLimit)
 end
 
+--PLASMA
+
 function BuildLvl1Plasma()
 	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
@@ -421,4 +423,29 @@ function BuildHeavyPlasma()
 		unitName = "armbrtha"
 	end
 	return BuildWithLimitedNumber(unitName, ai.situation.heavyPlasmaLimit)
+end
+
+function BuildLol()
+	local unitName = DummyUnitName
+	if MyTB.side == CORESideName then
+		unitName = "corbuzz"
+	else
+		unitName = "armvulc"
+	end
+	return unitName
+end
+
+--plasma deflector
+
+function BuildShield()
+	if IsShieldNeeded() then
+		local unitName = DummyUnitName
+		if MyTB.side == CORESideName then
+			unitName = "corgate"
+		else
+			unitName = "armgate"
+		end
+		return unitName
+	end
+	return DummyUnitName
 end
