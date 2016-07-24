@@ -341,6 +341,37 @@ attackerlist = {
 	corparrow = 1 ,
 }
 
+-- these units will be used to raid weakly defended spots
+raiderList = {
+	armfast = 1,
+	corgator = 1,
+	armflash = 1,
+	corpyro = 1,
+	armlatnk = 1,
+	armpw = 1,
+	corak = 1,
+	marauder = 1,
+	-- amphibious
+	corgarp = 1,
+	armpincer = 1,
+	-- hover
+	corsh = 1,
+	armsh = 1,
+	-- air gunships
+	armbrawl = 1,
+	armkam = 1,
+	armsaber = 1,
+	blade = 1,
+	bladew = 1,
+	corape = 1,
+	corcut = 1,
+	corcrw = 1,
+	-- subs
+	corsub = 1,
+	armsub = 1,
+	armsubk = 1,
+	corshark = 1,
+}
 
 scoutList = {
 	corfink = 1,
@@ -354,6 +385,25 @@ scoutList = {
 	armpt = 1,
 	corhunt = 1,
 	armsehak = 1,
+}
+
+raiderDisarms = {
+	bladew = 1,
+}
+
+-- units in this list are bombers or torpedo bombers
+bomberList = {
+	corshad = 1,
+	armthund = 1,
+	corhurc = 2,
+	armpnix = 2,
+	armcybr = 3,
+	corsb = 2,
+	armsb = 2,
+	cortitan = 2,
+	armlance = 2,
+	corseap = 2,
+	armseap = 2,
 }
 
 antinukeList = {
@@ -460,57 +510,6 @@ nukeList = {
 	corsilo = 5400,
 	armemp = 2700,
 	cortron = 2250,
-}	
-
--- these units will be used to raid weakly defended spots
-raiderList = {
-	armfast = 1,
-	corgator = 1,
-	armflash = 1,
-	corpyro = 1,
-	armlatnk = 1,
-	armpw = 1,
-	corak = 1,
-	marauder = 1,
-	-- amphibious
-	corgarp = 1,
-	armpincer = 1,
-	-- hover
-	corsh = 1,
-	armsh = 1,
-	-- air gunships
-	armbrawl = 1,
-	armkam = 1,
-	armsaber = 1,
-	blade = 1,
-	bladew = 1,
-	corape = 1,
-	corcut = 1,
-	corcrw = 1,
-	-- subs
-	corsub = 1,
-	armsub = 1,
-	armsubk = 1,
-	corshark = 1,
-}
-
-raiderDisarms = {
-	bladew = 1,
-}
-
--- units in this list are bombers or torpedo bombers
-bomberList = {
-	corshad = 1,
-	armthund = 1,
-	corhurc = 2,
-	armpnix = 2,
-	armcybr = 3,
-	corsb = 2,
-	armsb = 2,
-	cortitan = 2,
-	armlance = 2,
-	corseap = 2,
-	armseap = 2,
 }
 
 seaplaneConList = {
@@ -530,8 +529,8 @@ Eco1={
 	coradvsol=1,
 	cortide=1,
 
-	-- corgeo=1,
-	-- armgeo=1,
+	corgeo=1,
+	armgeo=1,
 
 	--store
 
@@ -611,8 +610,8 @@ cleaners = {
 }
 
 cleanable = {
-	armsolar='ground',
-	corsolar='ground',
+	armsolar= 'ground',
+	corsolar= 'ground',
 	armadvsol = 'ground',
 	coradvsol = 'ground',
 	armtide = 'floating',
