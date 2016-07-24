@@ -464,34 +464,34 @@ nukeList = {
 
 -- these units will be used to raid weakly defended spots
 raiderList = {
-	"armfast",
-	"corgator",
-	"armflash",
-	"corpyro",
-	"armlatnk",
-	"armpw",
-	"corak",
-	"marauder",
+	armfast = 1,
+	corgator = 1,
+	armflash = 1,
+	corpyro = 1,
+	armlatnk = 1,
+	armpw = 1,
+	corak = 1,
+	marauder = 1,
 	-- amphibious
-	"corgarp",
-	"armpincer",
+	corgarp = 1,
+	armpincer = 1,
 	-- hover
-	"corsh",
-	"armsh",
+	corsh = 1,
+	armsh = 1,
 	-- air gunships
-	"armbrawl",
-	"armkam",
-	"armsaber",
-	"blade",
-	"bladew",
-	"corape",
-	"corcut",
-	"corcrw",
+	armbrawl = 1,
+	armkam = 1,
+	armsaber = 1,
+	blade = 1,
+	bladew = 1,
+	corape = 1,
+	corcut = 1,
+	corcrw = 1,
 	-- subs
-	"corsub",
-	"armsub",
-	"armsubk",
-	"corshark",
+	corsub = 1,
+	armsub = 1,
+	armsubk = 1,
+	corshark = 1,
 }
 
 raiderDisarms = {
