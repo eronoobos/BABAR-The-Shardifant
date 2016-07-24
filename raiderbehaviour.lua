@@ -12,11 +12,7 @@ local CMD_MOVE_STATE = 50
 local MOVESTATE_ROAM = 2
 
 function IsRaider(unit)
-	if raiderList[unit:Internal():Name()] then
-		return true
-	else
-		return false
-	end
+	return raiderList[unit:Internal():Name()] or false
 end
 
 RaiderBehaviour = class(Behaviour)

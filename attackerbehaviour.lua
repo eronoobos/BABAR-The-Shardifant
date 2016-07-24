@@ -10,11 +10,7 @@ local function EchoDebug(inStr)
 end
 
 function IsAttacker(unit)
-	if attackerlist[unit:Internal():Name()] then
-		return true
-	else 
-		return false
-	end
+	return attackerlist[unit:Internal():Name()] or false
 end
 
 AttackerBehaviour = class(Behaviour)

@@ -17,11 +17,7 @@ local MOVESTATE_ROAM = 2
 
 -- not does it defend, but is it a dedicated defender
 function IsDefender(unit)
-	if defenderList[unit:Internal():Name()] then
-		return true
-	else
-		return false
-	end
+	return defenderList[unit:Internal():Name()] or false
 end
 
 DefendBehaviour = class(Behaviour)
