@@ -1,5 +1,9 @@
 CountBehaviour = class(Behaviour)
 
+function CountBehaviour:Name()
+	return "CountBehaviour"
+end
+
 local DebugEnabled = false
 
 local function EchoDebug(inStr)

@@ -21,6 +21,10 @@ end
 
 AttackerBehaviour = class(Behaviour)
 
+function AttackerBehaviour:Name()
+	return "AttackerBehaviour"
+end
+
 function AttackerBehaviour:Init()
 	local mtype, network = self.ai.maphandler:MobilityOfUnit(self.unit:Internal())
 	self.mtype = mtype

@@ -1,5 +1,9 @@
 AntinukeBehaviour = class(Behaviour)
 
+function AntinukeBehaviour:Name()
+	return "AntinukeBehaviour"
+end
+
 local DebugEnabled = false
 
 local function EchoDebug(inStr)
