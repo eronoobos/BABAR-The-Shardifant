@@ -12,15 +12,18 @@ local CMD_MOVE_STATE = 50
 local MOVESTATE_ROAM = 2
 
 function IsRaider(unit)
-	for i,name in ipairs(raiderList) do
-		if name == unit:Internal():Name() then
-			return true
-		end
+	if raiderList[unit:Internal():Name()] then
+		return true
+	else
+		return false
 	end
-	return false
 end
 
 RaiderBehaviour = class(Behaviour)
+
+function RaiderBehaviour:Name()
+	return "RaiderBehaviour"
+end
 
 function RaiderBehaviour:Init()
 	local mtype, network = self.ai.maphandler:MobilityOfUnit(self.unit:Internal())
