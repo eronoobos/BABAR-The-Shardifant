@@ -449,3 +449,39 @@ function BuildShield()
 	end
 	return DummyUnitName
 end
+
+--anti intrusion 
+
+function BuildAntiIntr()
+	local unitName = DummyUnitName
+	if MyTB.side == CORESideName then
+		unitName = "corsd"
+	else
+		unitName = "armsd"
+	end
+	return unitName
+end
+
+--targeting facility
+
+function BuildTargeting()
+	local unitName = DummyUnitName
+	if MyTB.side == CORESideName then
+		unitName = "cortarg"
+	else
+		unitName = "armtarg"
+	end
+	return unitName
+end
+
+--ARM emp launcer
+
+function BuildEmpLauncer()
+	local unitName = DummyUnitName
+	if MyTB.side == CORESideName then
+		unitName = DummyUnitName
+	else
+		unitName = "armEmp"
+	end
+	return unitName
+end
