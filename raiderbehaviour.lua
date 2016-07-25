@@ -35,10 +35,13 @@ function RaiderBehaviour:Init()
 		self.groundAirSubmerged = 'air'
 	end
 	self.hurtsList = UnitWeaponLayerList(self.name)
-	self.nearDistance = self.ai.raidhandler:GetPathNodeSize() * 0.25
-	self.arrivalRadius = self.range * 0.5
-	self.pathingRadius = self.ai.raidhandler:GetPathNodeSize() * 0.67
-	self.minPathfinderDistance = self.ai.raidhandler:GetPathNodeSize() * 3
+	self.sightRange = utable.losRadius
+	local nodeSize = self.ai.raidhandler:GetPathNodeSize()
+	self.nearDistance = nodeSize * 0.1 -- move this far away from path nodes
+	self.nearAttackDistance = nodeSize * 0.3 -- move this far away from targets before arriving
+	self.attackDistance = math.min(self.sightRange, self.range) * 0.5 -- move this far away from targets once arrived
+	self.pathingDistance = nodeSize * 0.67 -- how far away from a node means you've arrived there
+	self.minPathfinderDistance = nodeSize * 3 -- closer than this and i don't pathfind
 	self.id = self.unit:Internal():ID()
 	self.disarmer = raiderDisarms[self.name]
 	self.ai.raiderCount[mtype] = (self.ai.raiderCount[mtype] or 0) + 1
@@ -50,7 +53,7 @@ end
 function RaiderBehaviour:OwnerDead()
 	-- game:SendToConsole("raider " .. self.name .. " died")
 	if self.DebugEnabled then
-		self.map:EraseLine(nil, nil, {0,1,1}, self.unit:Internal():ID(), true, 8)
+		self.map:EraseLine(nil, nil, {0,1,1}, self.unit:Internal():ID(), nil, 8)
 	end
 	if self.target then
 		self.ai.targethandler:AddBadPosition(self.target, self.mtype)
@@ -83,7 +86,9 @@ end
 function RaiderBehaviour:Deactivate()
 	self:EchoDebug("deactivate")
 	self.active = false
-	self.map:EraseLine(nil, nil, {0,1,1}, self.unit:Internal():ID(), true, 8)
+	if self.DebugEnabled then
+		self.map:EraseLine(nil, nil, {0,1,1}, self.unit:Internal():ID(), nil, 8)
+	end
 end
 
 function RaiderBehaviour:Update()
@@ -172,8 +177,9 @@ function RaiderBehaviour:RaidCell(cell)
 	end
 end
 
-function RaiderBehaviour:MoveNear(position)
-	self.unit:Internal():Move(RandomAway(position, self.nearDistance))
+function RaiderBehaviour:MoveNear(position, distance)
+	distance = distance or self.nearDistance
+	self.unit:Internal():Move(RandomAway(position, distance))
 end
 
 function RaiderBehaviour:GetTarget()
@@ -186,7 +192,9 @@ function RaiderBehaviour:GetTarget()
 	self.clearShot = nil
 	self.offPath = nil
 	self.arrived = nil
-	self.map:EraseLine(nil, nil, {0,1,1}, self.unit:Internal():ID(), true, 8)
+	if self.DebugEnabled then
+		self.map:EraseLine(nil, nil, {0,1,1}, self.unit:Internal():ID(), nil, 8)
+	end
 	local unit = self.unit:Internal()
 	local bestCell = self.ai.targethandler:GetBestRaidCell(unit)
 	self.ai.targethandler:RaiderHere(self)
@@ -200,9 +208,9 @@ end
 
 function RaiderBehaviour:ArrivalCheck()
 	if not self.target then return end
-	if Distance(self.unit:Internal():GetPosition(), self.target) < self.arrivalRadius then
+	if Distance(self.unit:Internal():GetPosition(), self.target) < self.pathingDistance then
 		self:EchoDebug("arrived at target")
-		self:AttackTarget()
+		self:AttackTarget(self.attackDistance)
 		self.arrived = true
 	end
 end
@@ -272,7 +280,7 @@ function RaiderBehaviour:ReceivePath(path)
 	self.targetNode = self.path[self.pathStep]
 	self:ResumeCourse()
 	if self.DebugEnabled then
-		self.map:EraseLine(nil, nil, {0,1,1}, self.unit:Internal():ID(), true, 8)
+		self.map:EraseLine(nil, nil, {0,1,1}, self.unit:Internal():ID(), nil, 8)
 		for i = 2, #self.path do
 			local pos1 = self.path[i-1].position
 			local pos2 = self.path[i].position
@@ -288,7 +296,7 @@ function RaiderBehaviour:UpdatePathProgress()
 		local myPos = self.unit:Internal():GetPosition()
 		local x = myPos.x
 		local z = myPos.z
-		local r = self.pathingRadius
+		local r = self.pathingDistance
 		local nx, nz = self.targetNode.x, self.targetNode.y
 		if nx < x + r and nx > x - r and nz < z + r and nz > z - r and self.pathStep < #self.path then
 			-- we're at the targetNode and it's not the last node
@@ -339,7 +347,8 @@ function RaiderBehaviour:ResumeCourse()
 	end
 end
 
-function RaiderBehaviour:AttackTarget()
+function RaiderBehaviour:AttackTarget(distance)
+	distance = distance or self.nearAttackDistance
 	if self.unitTarget ~= nil then
 		local utpos = self.unitTarget:GetPosition()
 		if utpos.x then
@@ -347,7 +356,7 @@ function RaiderBehaviour:AttackTarget()
 			return
 		end
 	end
-	self:MoveNear(self.target)
+	self:MoveNear(self.target, distance)
 end
 
 function RaiderBehaviour:MoveToNode(node)
