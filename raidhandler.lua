@@ -20,6 +20,8 @@ local pathGraphs = {}
 local pathValidFuncs = {}
 
 function RaidHandler:Init()
+	self.DebugEnabled = false
+
 	self.counter = {}
 	self.ai.raiderCount = {}
 	self.ai.IDsWeAreRaiding = {}

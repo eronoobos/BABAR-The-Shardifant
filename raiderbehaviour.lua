@@ -22,7 +22,7 @@ local IDLEMODE_LAND = 1
 local IDLEMODE_FLY = 0
 
 function RaiderBehaviour:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 
 	local mtype, network = self.ai.maphandler:MobilityOfUnit(self.unit:Internal())
 	self.mtype = mtype
@@ -65,9 +65,10 @@ function RaiderBehaviour:OwnerDead()
 end
 
 function RaiderBehaviour:OwnerIdle()
-	if self.active then
-		self:ResumeCourse()
-	end
+	-- does recursion, which is bad
+	-- if self.active then
+	-- 	self:ResumeCourse()
+	-- end
 end
 
 function RaiderBehaviour:Priority()
