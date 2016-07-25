@@ -217,7 +217,8 @@ function LosHandler:UpdateEnemies(enemyList)
 					end
 				end
 			end
-			if los == 1 then
+			if los == 1 and not known[id] and self.ai.knownEnemies[id] ~= 2 then
+				-- don't overwrite seen with radar-seen unless it was previously not known
 				self.ai.knownEnemies[id] = e
 				e.los = los
 				known[id] = los

@@ -12,6 +12,10 @@ local CMD_PATROL = 15
 
 AssistBehaviour = class(Behaviour)
 
+function AssistBehaviour:Name()
+	return "AssistBehaviour"
+end
+
 function AssistBehaviour:DoIAssist()
 	if self.ai.nonAssistant[self.id] ~= true or self.isNanoTurret then
 		return true

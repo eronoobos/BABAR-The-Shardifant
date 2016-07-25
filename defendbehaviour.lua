@@ -15,6 +15,10 @@ local CMD_MOVE_STATE = 50
 local MOVESTATE_ROAM = 2
 
 
+function DefendBehaviour:Name()
+	return "DefendBehaviour"
+end
+
 -- not does it defend, but is it a dedicated defender
 function IsDefender(unit)
 	return defenderList[unit:Internal():Name()] or false

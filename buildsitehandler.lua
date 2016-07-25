@@ -360,9 +360,6 @@ function BuildSiteHandler:DontBuildOnMetalOrGeoSpots()
 	self:PlotAllDebug()
 end
 
--- function BuildSiteHandler:ClosestBuildSpot(builder, position, unitTypeToBuild, minimumDistance, attemptNumber, buildDistance, maximumDistance)
-
-
 function BuildSiteHandler:BuildNearNano(builder, utype)
 	EchoDebug("looking for spot near nano hotspots")
 	local nanoHots = self.ai.nanohandler:GetHotSpots()
