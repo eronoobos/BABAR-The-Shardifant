@@ -248,6 +248,7 @@ function RaiderBehaviour:FindPath()
 		self.pathTry = nil
 		if maxInvalid == 0 then
 			self:EchoDebug("path is entirely clear of danger, not using")
+			self.pathStep = 1
 			self.clearShot = true
 		else
 			self:ReceivePath(path)
