@@ -39,7 +39,7 @@ function RaiderBehaviour:Init()
 	local nodeSize = self.ai.raidhandler:GetPathNodeSize()
 	self.nearDistance = nodeSize * 0.1 -- move this far away from path nodes
 	self.nearAttackDistance = nodeSize * 0.3 -- move this far away from targets before arriving
-	self.attackDistance = math.min(self.sightRange, self.range) * 0.5 -- move this far away from targets once arrived
+	self.attackDistance = nodeSize * 0.6 -- move this far away from targets once arrived
 	self.pathingDistance = nodeSize * 0.67 -- how far away from a node means you've arrived there
 	self.minPathfinderDistance = nodeSize * 3 -- closer than this and i don't pathfind
 	self.id = self.unit:Internal():ID()
