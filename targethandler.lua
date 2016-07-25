@@ -45,8 +45,8 @@ end
 local cellElmos = 256
 local cellElmosHalf = cellElmos / 2
 local threatTypes = { "ground", "air", "submerged" }
-local baseUnitThreat = 0
-local baseUnitRange = 250
+local baseUnitThreat = 0 -- 150
+local baseUnitRange = 0 -- 250
 local unseenMetalGeoValue = 50
 local baseBuildingValue = 150
 local bomberExplosionValue = 2000
@@ -734,7 +734,7 @@ function TargetHandler:UpdateMap()
 		self:UpdateDangers()
 		self:UpdateBadPositions()
 		self:UpdateWrecks()
-		self:UpdateMetalGeoSpots()
+		-- self:UpdateMetalGeoSpots()
 		self:UpdateFronts(3)
 		self:UpdateDebug()
 		self.lastUpdateFrame = game:Frame()

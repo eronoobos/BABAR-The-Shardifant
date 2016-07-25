@@ -15,7 +15,11 @@ end
 
 local CMD_IDLEMODE = 145
 local CMD_MOVE_STATE = 50
+local MOVESTATE_HOLDPOS = 0
+local MOVESTATE_MANEUVER = 1
 local MOVESTATE_ROAM = 2
+local IDLEMODE_LAND = 1
+local IDLEMODE_FLY = 0
 
 function RaiderBehaviour:Init()
 	self.DebugEnabled = true
@@ -28,6 +32,12 @@ function RaiderBehaviour:Init()
 		self.range = utable.submergedRange
 	else
 		self.range = utable.groundRange
+	end
+	self.groundAirSubmerged = 'ground'
+	if self.mtype == 'sub' then
+		self.groundAirSubmerged = 'submerged'
+	elseif self.mtype == 'air' then
+		self.groundAirSubmerged = 'air'
 	end
 	self.hurtsList = UnitWeaponLayerList(self.name)
 	self.nearDistance = self.ai.raidhandler:GetPathNodeSize() * 0.25
@@ -45,7 +55,6 @@ end
 function RaiderBehaviour:OwnerDead()
 	-- game:SendToConsole("raider " .. self.name .. " died")
 	if self.DebugEnabled then
-		self.map:ErasePoint(nil, {0,1,1}, self.unit:Internal():ID(), 8)
 		self.map:EraseLine(nil, nil, {0,1,1}, self.unit:Internal():ID(), true, 8)
 	end
 	if self.target then
@@ -56,13 +65,9 @@ function RaiderBehaviour:OwnerDead()
 end
 
 function RaiderBehaviour:OwnerIdle()
-	-- keep planes from landing (i'd rather set land state, but how?)
-	-- if self.mtype == "air" then
-	-- 	self.moveNextUpdate = RandomAway(self.unit:Internal():GetPosition(), 500)
-	-- end
-	-- if self.active then
-	-- 	self:ResumeCourse()
-	-- end
+	if self.active then
+		self:ResumeCourse()
+	end
 end
 
 function RaiderBehaviour:Priority()
@@ -82,7 +87,6 @@ end
 function RaiderBehaviour:Deactivate()
 	self:EchoDebug("deactivate")
 	self.active = false
-	self.map:ErasePoint(nil, {0,1,1}, self.unit:Internal():ID(), 8)
 	self.map:EraseLine(nil, nil, {0,1,1}, self.unit:Internal():ID(), true, 8)
 end
 
@@ -106,7 +110,7 @@ function RaiderBehaviour:Update()
 			if self.arrived then position = self.target end
 			local safeCell = self.ai.targethandler:RaidableCell(unit, position)
 			if safeCell then
-				local mobTargets = safeCell.targets[self.mtype]
+				local mobTargets = safeCell.targets[self.groundAirSubmerged]
 				if mobTargets then
 					for i = 1, #self.hurtsList do
 						local groundAirSubmerged = self.hurtsList[i]
@@ -125,6 +129,7 @@ function RaiderBehaviour:Update()
 				CustomCommand(unit, CMD_ATTACK, {attackTarget.unitID})
 				self.offPath = true
 			elseif self.offPath then
+				self.offPath = false
 				self:ResumeCourse()
 			else
 				self:ArrivalCheck()
@@ -134,7 +139,7 @@ function RaiderBehaviour:Update()
 			end
 		end
 	else
-		if not self.target and f > self.lastGetTargetFrame + 90 then
+		if f > self.lastGetTargetFrame + 90 then
 			self.lastGetTargetFrame = f
 			self:GetTarget()
 		elseif not self.path and self.pathTry then
@@ -185,13 +190,12 @@ function RaiderBehaviour:GetTarget()
 	self.clearShot = nil
 	self.offPath = nil
 	self.arrived = nil
-	self.map:ErasePoint(nil, {0,1,1}, self.unit:Internal():ID(), 8)
 	self.map:EraseLine(nil, nil, {0,1,1}, self.unit:Internal():ID(), true, 8)
 	local unit = self.unit:Internal()
 	local bestCell = self.ai.targethandler:GetBestRaidCell(unit)
 	self.ai.targethandler:RaiderHere(self)
 	if bestCell then
-		self:EchoDebug(self.name .. " got target")
+		self:EchoDebug("got target")
 		self:RaidCell(bestCell)
 	else
 		self.unit:ElectBehaviour()
@@ -208,7 +212,7 @@ function RaiderBehaviour:ArrivalCheck()
 end
 
 -- set all raiders to roam
-function RaiderBehaviour:SetMoveState(onOff)
+function RaiderBehaviour:SetMoveState()
 	local thisUnit = self.unit
 	if thisUnit then
 		local floats = api.vectorFloat()
@@ -216,7 +220,7 @@ function RaiderBehaviour:SetMoveState(onOff)
 		thisUnit:Internal():ExecuteCustomCommand(CMD_MOVE_STATE, floats)
 		if self.mtype == "air" then
 			local floats = api.vectorFloat()
-			floats:push_back(1)
+			floats:push_back(IDLEMODE_FLY)
 			thisUnit:Internal():ExecuteCustomCommand(CMD_IDLEMODE, floats)
 		end
 	end
@@ -248,11 +252,13 @@ function RaiderBehaviour:FindPath()
 		self.pathTry = nil
 		if maxInvalid == 0 then
 			self:EchoDebug("path is entirely clear of danger, not using")
+			self.path = path
 			self.pathStep = 1
 			self.clearShot = true
 		else
 			self:ReceivePath(path)
 		end
+		self.unit:ElectBehaviour()
 	elseif remaining == 0 then
 		self:EchoDebug("no path found")
 		self.pathTry = nil
@@ -270,9 +276,7 @@ function RaiderBehaviour:ReceivePath(path)
 	self.targetNode = self.path[self.pathStep]
 	self:ResumeCourse()
 	if self.DebugEnabled then
-		self.map:ErasePoint(nil, {0,1,1}, self.unit:Internal():ID(), 8)
 		self.map:EraseLine(nil, nil, {0,1,1}, self.unit:Internal():ID(), true, 8)
-		self.map:DrawPoint(self.path[1].position, {0,0,1}, self.unit:Internal():ID(), 8)
 		for i = 2, #self.path do
 			local pos1 = self.path[i-1].position
 			local pos2 = self.path[i].position
@@ -341,10 +345,13 @@ end
 
 function RaiderBehaviour:AttackTarget()
 	if self.unitTarget ~= nil then
-		CustomCommand(self.unit:Internal(), CMD_ATTACK, {self.unitTarget.unitID})
-	else
-		self:MoveNear(self.target)
+		local utpos = self.unitTarget:GetPosition()
+		if utpos.x then
+			CustomCommand(self.unit:Internal(), CMD_ATTACK, {self.unitTarget.unitID})
+			return
+		end
 	end
+	self:MoveNear(self.target)
 end
 
 function RaiderBehaviour:MoveToNode(node)

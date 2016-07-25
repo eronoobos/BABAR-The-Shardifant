@@ -95,7 +95,7 @@ function defaultBehaviours(unit, ai)
 		end
 		if IsRaider(unit) then
 			table.insert(b, RaiderBehaviour)
-			-- table.insert(b, ScoutBehaviour)
+			table.insert(b, ScoutBehaviour)
 			if unitTable[un].mtype ~= "air" then table.insert(b, DefendBehaviour) end -- will only defend when scrambled by danger
 		end
 		if IsBomber(unit) then
