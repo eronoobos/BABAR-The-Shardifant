@@ -136,8 +136,10 @@ for (my $i=0; $i <= 1; $i++) {
 		}
 		close(FILE);
 		my $gameDir = $BAdir;
-		if ($i == 1) { $gameDir = $BARdir; }
-		system "cd \"$gameDir\" && svn add -q LuaAI.lua luarules\\gadgets\\AILoader.lua luarules\\gadgets\\ai\\*";
+		my $game = "BA";
+		if ($i == 1) { $gameDir = $BARdir; $game = "BAR"; }
+		# system "cd \"$gameDir\" && svn add -q LuaAI.lua luarules\\gadgets\\AILoader.lua luarules\\gadgets\\ai\\* luarules\\gadgets\\ai\\$game\\*";
+		system "cd \"$gameDir\" && svn add --force * --auto-props --parents --depth infinity -q";
 		system "cd \"$gameDir\" && svn commit -m \"update LuaAI to $newVerStr\"";
 	}
 }
