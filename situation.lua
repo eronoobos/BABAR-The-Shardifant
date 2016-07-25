@@ -55,7 +55,7 @@ function Situation:EvaluateSituation()
 	local attackTooExpensive = attackCounter == maxAttackCounter
 	local controlMetalSpots = self.ai.mexCount > #self.ai.mobNetworkMetals["air"][1] * 0.4
 	local needUpgrade = couldAttack or bombingTooExpensive or attackTooExpensive
-	local lotsOfMetal = self.ai.Metal.income > 25 or controlMetalSpots
+	local lotsOfMetal = self.ai.Metal.income > 30 and self.ai.Metal.full > 0.75 and self.ai.mexCount > #self.ai.mobNetworkMetals["air"][1] * 0.5
 	local economyGreat = self.ai.Energy.income > 5000 and self.ai.Metal.income > 100 and self.ai.Metal.reserves > 4000 and self.ai.factoryBuilded['air'][1] > 2 and self.ai.combatCount > 40
 
 	self.keepCommanderSafe = self.ai.totalEnemyThreat > 2000 -- turn commander into assistant
@@ -69,8 +69,9 @@ function Situation:EvaluateSituation()
 		self:EchoDebug("plasma/rocket bot ratio: " .. self.plasmaRocketBotRatio)
 	end
 	self.needSiege = (self.ai.totalEnemyImmobileThreat > self.ai.totalEnemyMobileThreat * 3.5 and self.ai.totalEnemyImmobileThreat > 50000) or attackCounter >= siegeAttackCounter or controlMetalSpots
-	local needAdvanced = (self.ai.Metal.income > 10 or controlMetalSpots) and self.ai.factories > 0 and (needUpgrade or lotsOfMetal)
+	local needAdvanced = (self.ai.Metal.income > 18 or controlMetalSpots) and self.ai.factories > 0 and (needUpgrade or lotsOfMetal)
 	if needAdvanced ~= self.ai.needAdvanced then
+		self.ai.needAdvanced = needAdvanced
 		self.ai.factorybuildershandler:UpdateFactories()
 	end
 	self.ai.needAdvanced = needAdvanced

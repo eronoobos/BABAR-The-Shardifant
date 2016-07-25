@@ -671,7 +671,7 @@ function TaskQueueBehaviour:ProgressQueue()
 				self.progress = true
 				self.failures = (self.failures or 0) + 1
 				local limit = 20
-				if self.queue then limit = #self.queue end
+				if self.queue then limit = #self.queue * 2 end
 				if self.failures > limit then
 					-- game:SendToConsole("taking a break after " .. limit .. " tries. " .. self.name .. " " .. self.id)
 					self.failOut = game:Frame()
