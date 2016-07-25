@@ -12,7 +12,7 @@ local mCeil = math.ceil
 
 -- these local variables are the same for all AI teams, in fact having them the same saves memory and processing
 
-local nodeSize = 128
+local nodeSize = 256
 local halfNodeSize = nodeSize / 2
 local testSize = nodeSize / 6
 

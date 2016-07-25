@@ -45,8 +45,9 @@ end
 local cellElmos = 256
 local cellElmosHalf = cellElmos / 2
 local threatTypes = { "ground", "air", "submerged" }
-local baseUnitThreat = 150
+local baseUnitThreat = 0
 local baseUnitRange = 250
+local unseenMetalGeoValue = 50
 local baseBuildingValue = 150
 local bomberExplosionValue = 2000
 local vulnerableHealth = 200
@@ -510,6 +511,32 @@ function TargetHandler:UpdateEnemies()
 	end
 end
 
+function TargetHandler:UpdateMetalGeoSpots()
+	local spots = self.ai.scoutSpots.air[1]
+	local fromGAS = {"ground", "air", "submerged"}
+	local toGAS = {"ground", "submerged"}
+	for i = 1, #spots do
+		local spot = spots[i]
+		if not self.ai.loshandler:IsInLos(spot) then
+			local cell = self:GetOrCreateCellHere(spot)
+			-- cell.value = cell.value + unseenMetalGeoValue
+			local underwater = self.ai.maphandler:IsUnderWater(spot)
+			for i = 1, #fromGAS do
+				local fgas = fromGAS[i]
+				if not underwater or fgas ~= 'submerged' then
+					cell.values[fgas] = cell.values[fgas] or {}
+					for ii = 1, #toGAS do
+						local tgas = toGAS[ii]
+						if not underwater or tgas == 'submerged' then
+							cell.values[fgas][tgas] = (cell.values[fgas][tgas] or 0) + unseenMetalGeoValue
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
 function TargetHandler:UpdateBadPositions()
 	local f = game:Frame()
 	for i = #self.badPositions, 1, -1 do
@@ -707,6 +734,7 @@ function TargetHandler:UpdateMap()
 		self:UpdateDangers()
 		self:UpdateBadPositions()
 		self:UpdateWrecks()
+		self:UpdateMetalGeoSpots()
 		self:UpdateFronts(3)
 		self:UpdateDebug()
 		self.lastUpdateFrame = game:Frame()
@@ -758,7 +786,7 @@ function TargetHandler:NearbyVulnerable(unit)
 	return vulnerable
 end
 
-function TargetHandler:GetBestRaidCell(representative)
+function TargetHandler:GetBestRaidCell(representative, onlyHere)
 	if not representative then return end
 	self:UpdateMap()
 	local rpos = representative:GetPosition()
@@ -776,6 +804,7 @@ function TargetHandler:GetBestRaidCell(representative)
 	if rthreat > maxThreat then maxThreat = rthreat end
 	local best
 	local bestDist = 99999
+	local cells
 	for i, cell in pairs(self.cellList) do
 		local value, threat, gas = CellValueThreat(rname, cell)
 		-- cells with other raiders in or nearby are better places to go for raiders
@@ -795,6 +824,25 @@ function TargetHandler:GetBestRaidCell(representative)
 		end
 	end
 	return best
+end
+
+function TargetHandler:RaidableCell(representative, position)
+	position = position or representative:GetPosition()
+	local cell = self:GetCellHere(position)
+	if not cell or cell.value == 0 then return end
+	local value, threat, gas = CellValueThreat(rname, cell)
+	-- cells with other raiders in or nearby are better places to go for raiders
+	if cell.raiderHere then threat = threat - cell.raiderHere end
+	if cell.raiderAdjacent then threat = threat - cell.raiderAdjacent end
+	local rname = representative:Name()
+	local maxThreat = baseUnitThreat
+	local rthreat, rrange = ThreatRange(rname)
+	EchoDebug(rname .. ": " .. rthreat .. " " .. rrange)
+	if rthreat > maxThreat then maxThreat = rthreat end
+	-- EchoDebug(value .. " " .. threat)
+	if threat <= maxThreat then
+		return cell
+	end
 end
 
 function TargetHandler:GetBestAttackCell(representative)

@@ -29,6 +29,7 @@ function RaiderBehaviour:Init()
 	else
 		self.range = utable.groundRange
 	end
+	self.hurtsList = UnitWeaponLayerList(self.name)
 	self.nearDistance = self.ai.raidhandler:GetPathNodeSize() * 0.25
 	self.arrivalRadius = self.range * 0.5
 	self.pathingRadius = self.ai.raidhandler:GetPathNodeSize() * 0.67
@@ -99,13 +100,26 @@ function RaiderBehaviour:Update()
 			self.ai.targethandler:RaiderHere(self)
 			self.lastMovementFrame = f
 			-- attack nearby vulnerables immediately
+			local attackTarget
 			local unit = self.unit:Internal()
-			local safe = self.ai.targethandler:IsSafePosition(unit:GetPosition(), unit, 1)
-			if safe then
-				local attackTarget = self.ai.targethandler:NearbyVulnerable(unit)
-				if attackTarget then
-					CustomCommand(unit, CMD_ATTACK, {attackTarget.unitID})
+			local position
+			if self.arrived then position = self.target end
+			local safeCell = self.ai.targethandler:RaidableCell(unit, position)
+			if safeCell then
+				local mobTargets = safeCell.targets[self.mtype]
+				if mobTargets then
+					for i = 1, #self.hurtsList do
+						local groundAirSubmerged = self.hurtsList[i]
+						attackTarget = mobTargets[groundAirSubmerged]
+						if attackTarget then break end
+					end
 				end
+				if not attackTarget then
+					attackTarget = self.ai.targethandler:NearbyVulnerable(unit)
+				end
+			end
+			if self.arrived and not attackTarget then
+				self:GetTarget()
 			end
 			if attackTarget then
 				CustomCommand(unit, CMD_ATTACK, {attackTarget.unitID})
@@ -114,7 +128,9 @@ function RaiderBehaviour:Update()
 				self:ResumeCourse()
 			else
 				self:ArrivalCheck()
-				self:UpdatePathProgress()
+				if not self.arrived then
+					self:UpdatePathProgress()
+				end
 			end
 		end
 	else
@@ -168,6 +184,7 @@ function RaiderBehaviour:GetTarget()
 	self.targetNode = nil
 	self.clearShot = nil
 	self.offPath = nil
+	self.arrived = nil
 	self.map:ErasePoint(nil, {0,1,1}, self.unit:Internal():ID(), 8)
 	self.map:EraseLine(nil, nil, {0,1,1}, self.unit:Internal():ID(), true, 8)
 	local unit = self.unit:Internal()
@@ -186,7 +203,7 @@ function RaiderBehaviour:ArrivalCheck()
 	if Distance(self.unit:Internal():GetPosition(), self.target) < self.arrivalRadius then
 		self:EchoDebug("arrived at target")
 		self:AttackTarget()
-		self:GetTarget()
+		self.arrived = true
 	end
 end
 
