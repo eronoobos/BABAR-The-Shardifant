@@ -17,7 +17,7 @@ function EconHandler:internalName()
 	return "econhandler"
 end
 
-local framesPerAvg = 40
+local framesPerAvg = 20
 local resourceNames = { "Energy", "Metal" }
 local resourceCount = #resourceNames
 
@@ -43,19 +43,15 @@ function EconHandler:Update()
 end
 
 function EconHandler:Average()
-	-- reset properties
-	for name, resource in pairs(self.samples[1]) do
-		for property, value in pairs(resource) do
-			self.ai[name][property] = 0
-		end
-	end
+	local resources = {}
 	-- get sum of samples
 	local samples = self.samples
 	for i = 1, #samples do
 		local sample = samples[i]
 		for name, resource in pairs(sample) do
 			for property, value in pairs(resource) do
-				self.ai[name][property] = self.ai[name][property] + value
+				resources[name] = resources[name] or {}
+				resources[name][property] = (resources[name][property] or 0) + value
 			end
 		end
 	end
@@ -63,7 +59,7 @@ function EconHandler:Average()
 	local totalSamples = #self.samples
 	for name, resource in pairs(self.samples[1]) do
 		for property, value in pairs(resource) do
-			self.ai[name][property] = self.ai[name][property] / totalSamples
+			self.ai[name][property] = resources[name][property] / totalSamples
 		end
 		self.ai[name].extra = self.ai[name].income - self.ai[name].usage
 		if self.ai[name].capacity == 0 then
