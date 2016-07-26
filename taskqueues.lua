@@ -262,7 +262,7 @@ end
 
 local function FreakerAsFactory(tskqbhvr)
 	local unitName=DummyUnitName
-	local rnd = math.random(1,8)
+	local rnd = math.random(1,7)
 	if 	rnd==1 then unitName=ConBot(tskqbhvr)
 	elseif 	rnd==2 then unitName=ConShip(tskqbhvr)
 	elseif 	rnd==3 then unitName=Lvl1BotRaider(tskqbhvr)
@@ -270,7 +270,7 @@ local function FreakerAsFactory(tskqbhvr)
 	elseif 	rnd==5 then unitName=Lvl2BotRaider(tskqbhvr)
 	elseif 	rnd==6 then unitName=Lvl2AmphBot(tskqbhvr)
 	elseif 	rnd==7 then unitName=Lvl1ShipDestroyerOnly(tskqbhvr)
-	elseif 	rnd==8 then unitName=Decoy(tskqbhvr)
+	--elseif 	rnd==8 then unitName=Decoy(tskqbhvr)
 	else unitName = DummyUnitName
 	end
 	if unitName==nil then unitName = DummyUnitName end
