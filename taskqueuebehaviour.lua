@@ -296,6 +296,16 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 		else
 			utype = nil
 		end
+	elseif assistList[self.name] and not unitTable[value].isBuilding and not nanoTurretList[value] then 
+		
+		p = ai.buildsitehandler:BuildNearNano(builder, utype)
+		if not p then
+			local builderPos = builder:GetPosition()
+			p = ai.buildsitehandler:ClosestBuildSpot(builder, builderPos, utype)
+		end
+		if not p then 
+			utype = nil 
+		end
 	elseif geothermalPlant[value] then
 		-- geothermal
 		p = self.ai.maphandler:ClosestFreeGeo(utype, builder)
