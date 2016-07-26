@@ -335,8 +335,8 @@ end
 -- mobile construction units:
 
 local anyCommander = {
-	CommanderEconomy,
 	BuildAppropriateFactory,
+	CommanderEconomy,
 	BuildLLT,
 	BuildRadar,
 	BuildLightAA,
@@ -345,8 +345,8 @@ local anyCommander = {
 }
 
 local anyConUnit = {
-	Economy1,
 	BuildAppropriateFactory,
+	Economy1,
 	BuildLLT,
 	BuildSpecialLT,
 	BuildMediumAA,
@@ -359,6 +359,7 @@ local anyConUnit = {
 }
 
 local anyConAmphibious = {
+	BuildAppropriateFactory,
 	AmphibiousEconomy,
 	BuildGeo,
 	BuildSpecialLT,
@@ -377,12 +378,12 @@ local anyConAmphibious = {
 }
 
 local anyConShip = {
+	BuildAppropriateFactory,
 	EconomyUnderWater,
 	BuildFloatLightAA,
 	BuildSonar,
 	BuildLightTorpedo,
 	BuildFloatRadar,
-	BuildAppropriateFactory,
 	BuildFloatHLT,
 }
 
@@ -401,18 +402,18 @@ local anyAdvConUnit = {
 	BuildExtraHeavyAA,
 	BuildLvl2Jammer,
 	BuildMohoGeo,
-	-- DoSomethingAdvancedForTheEconomy,
 }
 
 local anyConSeaplane = {
+	BuildAppropriateFactory,
 	EconomySeaplane,
 	BuildFloatHeavyAA,
 	BuildAdvancedSonar,
 	BuildHeavyTorpedo,
-	BuildAppropriateFactory,
 }
 
 local anyAdvConSub = {
+	BuildAppropriateFactory,
 	AdvEconomyUnderWater,
 	BuildFloatHeavyAA,
 	BuildAdvancedSonar,
@@ -420,33 +421,24 @@ local anyAdvConSub = {
 }
 
 local anyNavalEngineer = {
+	BuildAppropriateFactory,
 	EconomyNavalEngineer,
 	BuildFloatHLT,
 	BuildFloatLightAA,
-	BuildAppropriateFactory,
-	Lvl1ShipBattle,
 	BuildFloatRadar,
 	BuildSonar,
-	Lvl1ShipRaider,
-	Conship,
-	ScoutShip,
 	BuildLightTorpedo,
 }
 
 local anyCombatEngineer = {
-	EconomyBattleEngineer,
 	BuildAppropriateFactory,
+	EconomyBattleEngineer,
 	BuildMediumAA,
 	BuildAdvancedRadar,
 	BuildLvl2Jammer,
 	BuildHeavyAA,
 	BuildSpecialLTOnly,
 	BuildLvl2Plasma,
-	ConCoreBotArmVehicle,
-	Lvl2BotCorRaiderArmArty,
-	Lvl1AABot,
-	ConShip,
-	Lvl1ShipDestroyerOnly,
 }
 
 
