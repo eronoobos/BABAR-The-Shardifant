@@ -235,6 +235,9 @@ function TaskQueueBehaviour:GetHelp(value, position)
 	if value == DummyUnitName then return DummyUnitName end
 	EchoDebug(value .. " before getting help")
 	local builder = self.unit:Internal()
+	if assistList[self.name] and not unitTable[value].isBuilding and not nanoTurretList[value] then 
+		return value
+	end
 	if Eco1[value] then
 		return value
 	end
@@ -297,7 +300,6 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 			utype = nil
 		end
 	elseif assistList[self.name] and not unitTable[value].isBuilding and not nanoTurretList[value] then 
-		
 		p = ai.buildsitehandler:BuildNearNano(builder, utype)
 		if not p then
 			local builderPos = builder:GetPosition()
