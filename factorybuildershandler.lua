@@ -107,15 +107,15 @@ function FactoryBuildersHandler:ConditionsToBuildFactories()
 		self:EchoDebug('other factory planned')
 		return false
 	end
-	self:EchoDebug('ai.army '..ai.army)
+	self:EchoDebug('ai.combatCount '..ai.combatCount)
 	local idx= 0
 	for index , factoryName in pairs(ai.factoriesRanking) do
 		if self.factories[factoryName] then
 			idx=idx+1
 			local uTn = unitTable[factoryName]
 			self:EchoDebug('measure conditions to build ' .. factoryName .. ' factory')
-			--if ai.scaledMetal > uTn.metalCost * idx and ai.scaledEnergy > uTn.energyCost * idx and ai.army >= ai.factories * 20 then
-			if (ai.Metal.income > ((ai.factories ^ 2) * 10) +3 and ai.Energy.income > ((ai.factories ^ 2) * 100) +25 and ai.army >= ai.factories * 20) or (ai.Metal.income > ((ai.factories ^ 2) * 20) and ai.Energy.income > ((ai.factories ^ 2) * 200)) then
+			--if ai.scaledMetal > uTn.metalCost * idx and ai.scaledEnergy > uTn.energyCost * idx and ai.combatCount >= ai.factories * 20 then
+			if (ai.Metal.income > ((ai.factories ^ 2) * 10) +3 and ai.Energy.income > ((ai.factories ^ 2) * 100) +25 and ai.combatCount >= ai.factories * 20) or (ai.Metal.income > ((ai.factories ^ 2) * 20) and ai.Energy.income > ((ai.factories ^ 2) * 200)) then
 				self:EchoDebug(factoryName .. ' can be builded')
 				factories[factoryName] = self.factories[factoryName]
 			end

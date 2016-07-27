@@ -29,8 +29,9 @@ function CountBehaviour:Init()
 		end
 	end
 	self.level = uTn.techLevel
-	if not self.isBuilding and self.isCombat then
+	if self.isCombat then
 		self.mtypedLv = tostring(uTn.mtype)..self.level
+		
 	end
 	if uTn.totalEnergyOut > 750 then self.isBigEnergy = true end
 	if uTn.extractsMetal > 0 then self.isMex = true end
@@ -82,7 +83,6 @@ function CountBehaviour:OwnerBuilt()
 	self.finished = true
 	--mtyped leveled counters
 	if self.mtypedLv then
-		self.ai.army = self.ai.army + 1
 		if self.ai.mtypeLvCount[self.mtypedLv] == nil then 
 			self.ai.mtypeLvCount[self.mtypedLv] = 1 
 		else
@@ -117,7 +117,6 @@ function CountBehaviour:OwnerDead()
 			if self.ai.lastNanoBuild == self.unit:Internal():GetPosition() then self.ai.lastNanoBuild = nil end
 		end
 		if self.mtypedLv then
-			self.ai.army = self.ai.army - 1
 			self.ai.mtypeLvCount[self.mtypedLv] = self.ai.mtypeLvCount[self.mtypedLv] - 1
 		end
 	end
