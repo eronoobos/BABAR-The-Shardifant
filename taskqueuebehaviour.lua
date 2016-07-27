@@ -239,10 +239,14 @@ function TaskQueueBehaviour:GetHelp(value, position)
 		return value
 	end
 	if Eco1[value] then
+		if not ai.haveAdvFactory and ai.underReserves then
+			ai.assisthandler:TakeUpSlack(builder)
+		end
 		return value
 	end
 	if Eco2[value] then
 		local hashelp = ai.assisthandler:PersistantSummon(builder, position, math.ceil(unitTable[value].buildTime/10000), 0)
+		ai.assisthandler:TakeUpSlack(builder)
 		return value
 	end
 	
@@ -251,12 +255,14 @@ function TaskQueueBehaviour:GetHelp(value, position)
 			EchoDebug("can get help to build factory but don't need it")
 			ai.assisthandler:Summon(builder, position)
 			ai.assisthandler:Magnetize(builder, position)
+			ai.assisthandler:TakeUpSlack(builder)
 			return value
 		else
 			EchoDebug("help for factory that need help")
 			local hashelp = ai.assisthandler:Summon(builder, position, unitTable[value].techLevel)
 			if hashelp then
 				ai.assisthandler:Magnetize(builder, position)
+				ai.assisthandler:TakeUpSlack(builder)
 				return value
 			end
 		end
@@ -264,11 +270,14 @@ function TaskQueueBehaviour:GetHelp(value, position)
 		local number
 		if self.isFactory and not unitTable[value].needsWater then
 			-- factories have more nano output
-			number = math.floor((unitTable[value].metalCost + 1000) / 1500)
+			--number = math.floor((unitTable[value].metalCost + 1000) / 1500)
+			number = 0 -- dont ask for help, build nano instead
 		elseif self.isFactory and unitTable[value].needsWater then
-			number = math.floor((unitTable[value].metalCost + 1000) / 500)
+			--number = math.floor((unitTable[value].metalCost + 1000) / 500)
+			number = math.floor(unitTable[value].buildTime/5000) --try to use build time instead metal(more sense for me)
 		else
-			number = math.floor((unitTable[value].metalCost + 750) / 1000)
+			--number = math.floor((unitTable[value].metalCost + 750) / 1000)
+			number = math.floor(unitTable[value].buildTime/10000)
 		end
 		if number == 0 then return value end
 		local hashelp = ai.assisthandler:Summon(builder, position, number)
