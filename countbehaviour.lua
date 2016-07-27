@@ -26,13 +26,11 @@ function CountBehaviour:Init()
 			self.isCon = true
 		elseif uTn.isWeapon then
 			self.isCombat = true
+			self.mtypedLv = tostring(uTn.mtype)..self.level
+			self.mobileMtyped = uTn.mtype
 		end
 	end
 	self.level = uTn.techLevel
-	if self.isCombat then
-		self.mtypedLv = tostring(uTn.mtype)..self.level
-		self.mobileMtyped = uTn.mtype
-	end
 	if uTn.totalEnergyOut > 750 then self.isBigEnergy = true end
 	if uTn.extractsMetal > 0 then self.isMex = true end
 	if battleList[self.name] then self.isBattle = true end
