@@ -82,6 +82,7 @@ function ReclaimBehaviour:Retarget()
 	self.targetResurrection = nil
 	self.targetUnit = nil
 	self.targetCell = nil
+	self.targetRepair = nil
 	local tcell, tunit = self.ai.targethandler:GetBestReclaimCell(unit)
 	self:EchoDebug(tcell, tunit)
 	if tunit then
@@ -96,6 +97,10 @@ function ReclaimBehaviour:Retarget()
 			if not self.targetCell then
 				self.targetUnit = self.ai.cleanhandler:ClosestCleanable(unit)
 			end
+		end
+		if not self.targetCell and not self.targetUnit then
+			self:EchoDebug("get nearest damaged to repair")
+			self.targetRepair = self:NearestDamaged()
 		end
 	end
 	self.unit:ElectBehaviour()
@@ -112,9 +117,13 @@ end
 
 function ReclaimBehaviour:Reclaim()
 	if self.active then
-		if self.targetUnit then
-			self.target = self.targetUnit:GetPosition()
+		if self.targetRepair then
+			self:EchoDebug("repair unit", self.targetRepair, self.targetRepair:ID())
+			self.target = self.targetRepair:GetPosition()
+			self.unit:Internal():Repair(self.targetRepair)
+		elseif self.targetUnit then
 			self:EchoDebug("reclaim unit", self.targetUnit, self.targetUnit:ID())
+			self.target = self.targetUnit:GetPosition()
 			self.unit:Internal():Reclaim(self.targetUnit)
 			-- CustomCommand(self.unit:Internal(), CMD_RECLAIM, {self.targetUnit:ID()})
 		elseif self.targetCell then
@@ -170,4 +179,20 @@ end
 function ReclaimBehaviour:ResurrectionComplete()
 	self.resurrecting = false
 	self.ai.buildsitehandler:ClearMyPlans(self)
+end
+
+function ReclaimBehaviour:NearestDamaged()
+	local damaged = self.ai.damagehandler:GetDamagedUnits()
+	local bestDistance
+	local bestUnit
+	local upos = self.unit:Internal():GetPosition()
+	for unitID, engineUnit in pairs(damaged) do
+		local pos = engineUnit:GetPosition()
+		local dist = Distance(upos, pos)
+		if not bestDistance or dist < bestDistance then
+			bestDistance = dist
+			bestUnit = engineUnit
+		end
+	end
+	return bestUnit
 end
