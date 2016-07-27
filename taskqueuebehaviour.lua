@@ -39,6 +39,7 @@ end
 function TaskQueueBehaviour:CategoryEconFilter(value)
 	if value == nil then return DummyUnitName end
 	if value == DummyUnitName then return DummyUnitName end
+	local overview =self.ai.overviewhandler
 	EchoDebug(value .. " (before econ filter)")
 	-- EchoDebug("ai.Energy: " .. ai.Energy.reserves .. " " .. ai.Energy.capacity .. " " .. ai.Energy.income .. " " .. ai.Energy.usage)
 	-- EchoDebug("ai.Metal: " .. ai.Metal.reserves .. " " .. ai.Metal.capacity .. " " .. ai.Metal.income .. " " .. ai.Metal.usage)
@@ -48,7 +49,7 @@ function TaskQueueBehaviour:CategoryEconFilter(value)
 	if reclaimerList[value] then
 		-- dedicated reclaimer
 		EchoDebug(" dedicated reclaimer")
-		if self.ai.situation.metalAboveHalf or self.ai.situation.energyTooLow or self.ai.situation.farTooFewCombats then
+		if overview.metalAboveHalf or overview.energyTooLow or overview.farTooFewCombats then
 			value = DummyUnitName
 		end
 	elseif unitTable[value].isBuilding then
@@ -63,29 +64,29 @@ function TaskQueueBehaviour:CategoryEconFilter(value)
 			EchoDebug("  defense")
 			if bigPlasmaList[value] or nukeList[value] then
 				-- long-range plasma and nukes aren't really defense
-				if self.ai.situation.metalTooLow or self.ai.situation.energyTooLow or ai.Metal.income < 35 or ai.factories == 0 or self.ai.situation.notEnoughCombats then
+				if overview.metalTooLow or overview.energyTooLow or ai.Metal.income < 35 or ai.factories == 0 or overview.notEnoughCombats then
 					value = DummyUnitName
 				end
 			elseif littlePlasmaList[value] then
 				-- plasma turrets need units to back them up
-				if self.ai.situation.metalTooLow or self.ai.situation.energyTooLow or ai.Metal.income < 10 or ai.factories == 0 or self.ai.situation.notEnoughCombats then
+				if overview.metalTooLow or overview.energyTooLow or ai.Metal.income < 10 or ai.factories == 0 or overview.notEnoughCombats then
 					value = DummyUnitName
 				end
 			else
-				if self.ai.situation.metalTooLow or ai.Metal.income < (unitTable[value].metalCost / 35) + 2 or self.ai.situation.energyTooLow or ai.factories == 0 then
+				if overview.metalTooLow or ai.Metal.income < (unitTable[value].metalCost / 35) + 2 or overview.energyTooLow or ai.factories == 0 then
 					value = DummyUnitName
 				end
 			end
 		elseif unitTable[value].radarRadius > 0 then
 			-- radar
 			EchoDebug("  radar")
-			if self.ai.situation.metalTooLow or self.ai.situation.energyTooLow or ai.factories == 0 or ai.Energy.full < 0.5 then
+			if overview.metalTooLow or overview.energyTooLow or ai.factories == 0 or ai.Energy.full < 0.5 then
 				value = DummyUnitName
 			end
 		else
 			-- other building
 			EchoDebug("  other building")
-			if self.ai.situation.notEnoughCombats or self.ai.situation.metalTooLow or self.ai.situation.energyTooLow or ai.Energy.income < 200 or ai.Metal.income < 8 or ai.factories == 0 then
+			if overview.notEnoughCombats or overview.metalTooLow or overview.energyTooLow or ai.Energy.income < 200 or ai.Metal.income < 8 or ai.factories == 0 then
 				value = DummyUnitName
 			end
 		end
@@ -112,7 +113,7 @@ function TaskQueueBehaviour:CategoryEconFilter(value)
 		else
 			-- other unit
 			EchoDebug("  other unit")
-			if self.ai.situation.notEnoughCombats or ai.Energy.full < 0.3 or ai.Metal.full < 0.3 then
+			if overview.notEnoughCombats or ai.Energy.full < 0.3 or ai.Metal.full < 0.3 then
 				value = DummyUnitName
 			end
 		end

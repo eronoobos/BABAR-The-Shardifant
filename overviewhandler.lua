@@ -1,14 +1,14 @@
-Situation = class(Module)
+OverviewHandler = class(Module)
 
-function Situation:Name()
-	return "Situation"
+function OverviewHandler:Name()
+	return "OverviewHandler"
 end
 
-function Situation:internalName()
-	return "situation"
+function OverviewHandler:internalName()
+	return "overviewhandler"
 end
 
-function Situation:Init()
+function OverviewHandler:Init()
 	self.DebugEnabled = false
 
 	self.heavyPlasmaLimit = 3
@@ -23,11 +23,11 @@ function Situation:Init()
 	self:Evaluate()
 end
 
-function Situation:Update()
+function OverviewHandler:Update()
 	self:Evaluate()
 end
 
-function Situation:Evaluate()
+function OverviewHandler:Evaluate()
 	local f = self.game:Frame()
 	if f > self.lastCheckFrame + 240 then
 		self:EvaluateSituation()
@@ -39,7 +39,7 @@ function Situation:Evaluate()
 	end
 end
 
-function Situation:EvaluateSituation()
+function OverviewHandler:EvaluateSituation()
 	self.ai.haveAdvFactory = self.ai.factoriesAtLevel[3] and #self.ai.factoriesAtLevel[3] ~= 0
 	self.ai.haveExpFactory = self.ai.factoriesAtLevel[5] and #self.ai.factoriesAtLevel[5] ~= 0
 	
@@ -103,7 +103,7 @@ function Situation:EvaluateSituation()
 	self:EchoDebug("need advanced? " .. tostring(self.ai.needAdvanced) .. ", need upgrade? " .. tostring(needUpgrade) .. ", have attacked enough? " .. tostring(couldAttack) .. " (" .. self.ai.couldAttack .. "), have " .. self.ai.factories .. " factories, " .. math.floor(self.ai.Metal.income) .. " metal income")
 end
 
-function Situation:SetEconomyAliases()
+function OverviewHandler:SetEconomyAliases()
 	self.ai.realMetal = self.ai.Metal.income / self.ai.Metal.usage
 	self.ai.realEnergy = self.ai.Energy.income / self.ai.Energy.usage
 	self.ai.scaledMetal = self.ai.Metal.reserves * self.ai.realMetal
@@ -133,6 +133,6 @@ function Situation:SetEconomyAliases()
 	self.ai.lotsOfMetal = self.ai.Metal.income > 30 and self.ai.Metal.full > 0.75 and self.ai.mexCount > #self.ai.mobNetworkMetals["air"][1] * 0.5
 end
 
-function Situation:StaticEvaluate()
+function OverviewHandler:StaticEvaluate()
 	self.needAmphibiousCons = self.ai.hasUWSpots and self.ai.mobRating["sub"] > self.ai.mobRating["bot"] * 0.75
 end
