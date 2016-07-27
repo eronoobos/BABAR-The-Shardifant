@@ -1,14 +1,14 @@
-Situation = class(Module)
+OverviewHandler = class(Module)
 
-function Situation:Name()
-	return "Situation"
+function OverviewHandler:Name()
+	return "OverviewHandler"
 end
 
-function Situation:internalName()
-	return "situation"
+function OverviewHandler:internalName()
+	return "overviewhandler"
 end
 
-function Situation:Init()
+function OverviewHandler:Init()
 	self.DebugEnabled = false
 
 	self.heavyPlasmaLimit = 3
@@ -23,11 +23,11 @@ function Situation:Init()
 	self:Evaluate()
 end
 
-function Situation:Update()
+function OverviewHandler:Update()
 	self:Evaluate()
 end
 
-function Situation:Evaluate()
+function OverviewHandler:Evaluate()
 	local f = self.game:Frame()
 	if f > self.lastCheckFrame + 240 then
 		self:EvaluateSituation()
@@ -39,7 +39,7 @@ function Situation:Evaluate()
 	end
 end
 
-function Situation:EvaluateSituation()
+function OverviewHandler:EvaluateSituation()
 	self.ai.haveAdvFactory = self.ai.factoriesAtLevel[3] and #self.ai.factoriesAtLevel[3] ~= 0
 	self.ai.haveExpFactory = self.ai.factoriesAtLevel[5] and #self.ai.factoriesAtLevel[5] ~= 0
 	
@@ -55,8 +55,6 @@ function Situation:EvaluateSituation()
 	local attackTooExpensive = attackCounter == maxAttackCounter
 	local controlMetalSpots = self.ai.mexCount > #self.ai.mobNetworkMetals["air"][1] * 0.4
 	local needUpgrade = couldAttack or bombingTooExpensive or attackTooExpensive
-	local lotsOfMetal = self.ai.Metal.income > 30 and self.ai.Metal.full > 0.75 and self.ai.mexCount > #self.ai.mobNetworkMetals["air"][1] * 0.5
-	local economyGreat = self.ai.Energy.income > 5000 and self.ai.Metal.income > 100 and self.ai.Metal.reserves > 4000 and self.ai.factoryBuilded['air'][1] > 2 and self.ai.combatCount > 40
 
 	self.keepCommanderSafe = self.ai.totalEnemyThreat > 2000 -- turn commander into assistant
 	self.paranoidCommander = self.ai.totalEnemyThreat > 3000 -- move commander to safest place assisting a factory
@@ -69,7 +67,7 @@ function Situation:EvaluateSituation()
 		self:EchoDebug("plasma/rocket bot ratio: " .. self.plasmaRocketBotRatio)
 	end
 	self.needSiege = (self.ai.totalEnemyImmobileThreat > self.ai.totalEnemyMobileThreat * 3.5 and self.ai.totalEnemyImmobileThreat > 50000) or attackCounter >= siegeAttackCounter or controlMetalSpots
-	local needAdvanced = (self.ai.Metal.income > 18 or controlMetalSpots) and self.ai.factories > 0 and (needUpgrade or lotsOfMetal)
+	local needAdvanced = (self.ai.Metal.income > 18 or controlMetalSpots) and self.ai.factories > 0 and (needUpgrade or self.ai.lotsOfMetal)
 	if needAdvanced ~= self.ai.needAdvanced then
 		self.ai.needAdvanced = needAdvanced
 		self.ai.factorybuildershandler:UpdateFactories()
@@ -77,7 +75,7 @@ function Situation:EvaluateSituation()
 	self.ai.needAdvanced = needAdvanced
 	local needExperimental
 	self.ai.needNukes = false
-	if self.ai.Metal.income > 50 and self.ai.haveAdvFactory and (needUpgrade or economyGreat) and self.ai.enemyBasePosition then
+	if self.ai.Metal.income > 50 and self.ai.haveAdvFactory and (needUpgrade or self.ai.BigEco) and self.ai.enemyBasePosition then
 		if not self.ai.haveExpFactory then
 			for i, factory in pairs(self.ai.factoriesAtLevel[self.ai.maxFactoryLevel]) do
 				for expFactName, _ in pairs(expFactories) do
@@ -105,7 +103,7 @@ function Situation:EvaluateSituation()
 	self:EchoDebug("need advanced? " .. tostring(self.ai.needAdvanced) .. ", need upgrade? " .. tostring(needUpgrade) .. ", have attacked enough? " .. tostring(couldAttack) .. " (" .. self.ai.couldAttack .. "), have " .. self.ai.factories .. " factories, " .. math.floor(self.ai.Metal.income) .. " metal income")
 end
 
-function Situation:SetEconomyAliases()
+function OverviewHandler:SetEconomyAliases()
 	self.ai.realMetal = self.ai.Metal.income / self.ai.Metal.usage
 	self.ai.realEnergy = self.ai.Energy.income / self.ai.Energy.usage
 	self.ai.scaledMetal = self.ai.Metal.reserves * self.ai.realMetal
@@ -125,9 +123,16 @@ function Situation:SetEconomyAliases()
 	local attackCounter = self.ai.attackhandler:GetCounter()
 	self.notEnoughCombats = self.ai.combatCount < attackCounter * 0.6
 	self.farTooFewCombats = self.ai.combatCount < attackCounter * 0.2
+	
 	self.ai.underReserves = self.ai.Metal.full < 0.3 or self.ai.Energy.full < 0.3
+	self.ai.aboveReserves = self.ai.Metal.full > 0.7 and self.ai.Energy.full > 0.7
+	self.ai.normalReserves = self.ai.Metal.full > 0.5 and self.ai.Energy.full > 0.5
+	
+	self.ai.LittleEco = self.ai.Energy.income < 1000 and self.ai.Metal.income < 30
+	self.ai.BigEco = self.ai.Energy.income > 5000 and self.ai.Metal.income > 100 and self.ai.Metal.reserves > 4000 and self.ai.factoryBuilded['air'][1] > 2 and self.ai.combatCount > 40
+	self.ai.lotsOfMetal = self.ai.Metal.income > 30 and self.ai.Metal.full > 0.75 and self.ai.mexCount > #self.ai.mobNetworkMetals["air"][1] * 0.5
 end
 
-function Situation:StaticEvaluate()
+function OverviewHandler:StaticEvaluate()
 	self.needAmphibiousCons = self.ai.hasUWSpots and self.ai.mobRating["sub"] > self.ai.mobRating["bot"] * 0.75
 end
