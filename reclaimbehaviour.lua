@@ -16,18 +16,18 @@ function ReclaimBehaviour:Init()
 
 	local mtype, network = self.ai.maphandler:MobilityOfUnit(self.unit:Internal())
 	self.mtype = mtype
-	self.layers = {}
+	self.canReclaimGAS = {}
 	if self.mtype == "veh" or self.mtype == "bot" or self.mtype == "amp" or self.mtype == "hov" then
-		table.insert(self.layers, "ground")
+		table.insert(self.canReclaimGAS, "ground")
 	end
 	if self.mtype == "sub" or self.mtype == "amp" or self.mtype == "shp" or self.mtype == "hov" then
-		table.insert(self.layers, "submerged")
+		table.insert(self.canReclaimGAS, "submerged")
 	end
 	if self.mtype == "air" then
-		table.insert(self.layers, "air")
+		table.insert(self.canReclaimGAS, "air")
 	end
 	self.name = self.unit:Internal():Name()
-	if reclaimerList[self.name] then self.dedicated = true end
+	self.dedicated = reclaimerList[self.name]
 	self.id = self.unit:Internal():ID()
 end
 
@@ -87,7 +87,7 @@ function ReclaimBehaviour:Retarget()
 	if tunit then
 		self.targetUnit = tunit.unit
 	end
-	if not self.targetUnit and self.ai.Metal.full > 0.5 and self.dedicated then
+	if not self.targetUnit and self.dedicated and self.ai.Metal.full > 0.5 then
 		self.targetResurrection, self.targetCell = self.ai.targethandler:WreckToResurrect(unit)
 	end
 	if not self.targetResurrection then
@@ -138,7 +138,7 @@ function ReclaimBehaviour:Reclaim()
 					local rfpos = reclaimFeature:GetPosition()
 					if rfpos and rfpos.x then
 						local unitName = reclaimables[i].unitName
-						if unitName and unitTable[unitName] and unitTable[unitName].extractsMetal > 0 then
+						if self.dedicated and unitName and unitTable[unitName] and unitTable[unitName].extractsMetal > 0 then
 							-- always resurrect metal extractors
 							self:EchoDebug("resurrect mex", reclaimFeature, reclaimFeature:ID())
 							CustomCommand(self.unit:Internal(), CMD_RESURRECT, {rfpos.x, rfpos.y, rfpos.z, 15})

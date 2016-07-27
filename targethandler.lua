@@ -1047,8 +1047,7 @@ function TargetHandler:GetBestReclaimCell(representative, lookForEnergy)
 				else
 					mod = cell.metal
 				end
-				local vulnerable = CellVulnerable(cell, gas, {'ground'})
-				if vulnerable then game:SendToConsole(vulnerable, vulnerable.unitID, vulnerable.unit:Name()) end
+				local vulnerable = CellVulnerable(cell, gas, representative.canReclaimGAS)
 				if vulnerable then mod = mod + vulnerableReclaimDistMod end
 				if mod > 0 then
 					local dist = Distance(rpos, cell.pos) - (mod * reclaimModMult)
