@@ -45,6 +45,7 @@ end
 local cellElmos = 256
 local cellElmosHalf = cellElmos / 2
 local threatTypes = { "ground", "air", "submerged" }
+local threatTypesAsKeys = { ground = true, air = true, submerged = true }
 local baseUnitThreat = 0 -- 150
 local baseUnitRange = 0 -- 250
 local unseenMetalGeoValue = 50
@@ -120,8 +121,8 @@ local function CellValueThreat(unitName, cell)
 	if cell == nil then return 0, 0 end
 	local gas, weapons
 	if unitName == "ALL" then
-		gas = { ground = true, air = true, submerged = true }
-		weapons = { "ground", "air", "submerged" }
+		gas = threatTypesAsKeys
+		weapons = threatTypes
 		unitName = "nothing"
 	else
 		gas = WhatHurtsUnit(unitName, nil, cell.pos)
@@ -130,7 +131,9 @@ local function CellValueThreat(unitName, cell)
 	local threat = 0
 	local value = 0
 	local notThreat = 0
-	for GAS, yes in pairs(gas) do
+	for i = 1, #threatTypes do
+		local GAS = threatTypes[i]
+		local yes = gas[GAS]
 		if yes then
 			threat = threat + cell.threat[GAS]
 			for i, weaponGAS in pairs(weapons) do
@@ -144,7 +147,8 @@ local function CellValueThreat(unitName, cell)
 		threat = threat + cell.threat.ground * 0.1
 	end
 	if raiderDisarms[unitName] then
-		if notThreat == 0 then value = 0 end
+		value = notThreat
+		-- if notThreat == 0 then value = 0 end
 	end
 	return value, threat, gas
 end
@@ -786,7 +790,7 @@ function TargetHandler:NearbyVulnerable(unit)
 	return vulnerable
 end
 
-function TargetHandler:GetBestRaidCell(representative, onlyHere)
+function TargetHandler:GetBestRaidCell(representative)
 	if not representative then return end
 	self:UpdateMap()
 	local rpos = representative:GetPosition()
@@ -811,7 +815,6 @@ function TargetHandler:GetBestRaidCell(representative, onlyHere)
 		if cell.raiderHere then threat = threat - cell.raiderHere end
 		if cell.raiderAdjacent then threat = threat - cell.raiderAdjacent end
 		threat = threat - threatReduction
-		-- EchoDebug(value .. " " .. threat)
 		if value > 0 and threat <= maxThreat then
 			if self.ai.maphandler:UnitCanGoHere(representative, cell.pos) then
 				local mod = value - (threat * 3)
