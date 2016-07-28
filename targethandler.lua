@@ -153,7 +153,7 @@ local function GetCellPosition(pos)
 end
 
 function TargetHandler:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 
 	self.enemyAlreadyCounted = {}
 	self.currentEnemyThreatCount = 0
