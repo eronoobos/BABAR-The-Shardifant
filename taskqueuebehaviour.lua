@@ -490,11 +490,7 @@ function TaskQueueBehaviour:GetQueue()
 	if self.isFactory and ai.factoryUnderConstruction and ( ai.Metal.full < 0.5 or ai.Energy.full < 0.5) then
 		q = {}
 	end
-	if not q and wateryTaskqueues[self.name] ~= nil then
-		if ai.mobRating["shp"] * 0.5 > ai.mobRating["veh"] then
-			q = wateryTaskqueues[self.name]
-		end
-	end
+	
 	self.outmodedTechLevel = false
 	local uT = unitTable
 	if outmodedTaskqueues[self.name] ~= nil and not q then 
@@ -551,6 +547,10 @@ function TaskQueueBehaviour:Update()
 		return
 	end
 	local f = game:Frame()
+	if self.isFactory and f % 1000 == 0 and factoryMobilities[self.name][1] == 'bot' or factoryMobilities[self.name][1] == 'veh' then
+		self.AmpOrGroundWeapon = AmpOrGroundWeapon(self.position)
+	end
+		
 	-- watchdog check
 	if not self.constructing and not self.isFactory then
 		if (self.lastWatchdogCheck + self.watchdogTimeout < f) or (self.currentProject == nil and (self.lastWatchdogCheck + 1 < f)) then
