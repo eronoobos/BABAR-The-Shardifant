@@ -516,6 +516,14 @@ function TargetHandler:UpdateEnemies()
 	end
 end
 
+function TargetHandler:UpdateDamagedUnits()
+	for unitID, engineUnit in pairs(self.ai.damagehandler:GetDamagedUnits()) do
+		local cell = GetOrCreateCellHere(engineUnit:GetPosition())
+		cell.damagedUnits = cell.damagedUnits or {}
+		cell.damagedUnits[#cell.damagedUnits+1] = engineUnit
+	end
+end
+
 function TargetHandler:UpdateMetalGeoSpots()
 	local spots = self.ai.scoutSpots.air[1]
 	local fromGAS = {"ground", "air", "submerged"}
@@ -747,6 +755,7 @@ function TargetHandler:UpdateMap()
 		self:UpdateDangers()
 		self:UpdateBadPositions()
 		self:UpdateWrecks()
+		self:UpdateDamagedUnits()
 		-- self:UpdateMetalGeoSpots()
 		self:UpdateFronts(3)
 		self:UpdateDebug()
@@ -1063,7 +1072,7 @@ function TargetHandler:GetBestReclaimCell(representative, lookForEnergy)
 	return best, bestVulnerable
 end
 
-function TargetHandler:WreckToResurrect(representative)
+function TargetHandler:WreckToResurrect(representative, alsoDamagedUnits)
 	if not representative then return end
 	self:UpdateMap()
 	local rpos = representative:GetPosition()
@@ -1071,7 +1080,7 @@ function TargetHandler:WreckToResurrect(representative)
 	local best
 	local bestDist = 99999
 	for i, cell in pairs(self.cellList) do
-		if #cell.resurrectables ~= 0 then
+		if #cell.resurrectables ~= 0 or (alsoDamagedUnits and cell.damagedUnits and #cell.damagedUnits > 0) then
 			local value, threat, gas = CellValueThreat(rname, cell)
 			if threat == 0 and cell.pos then
 				if self.ai.maphandler:UnitCanGoHere(representative, cell.pos) then
@@ -1086,6 +1095,22 @@ function TargetHandler:WreckToResurrect(representative)
 	end
 	if best then
 		EchoDebug("got wreck to resurrect")
+		if alsoDamagedUnits and best.damagedUnits and #best.damagedUnits > 0 then
+			local bestUnit
+			local bestHealth
+			local damaged = best.damagedUnits
+			for i = 1, #damaged do
+				local engUnit = damaged[i]
+				local health = engUnit:GetHealth() / engUnit:GetMaxHealth()
+				if not bestHealth or health < bestHealth then
+					bestHealth = health
+					bestUnit = engUnit
+				end
+			end
+			if bestUnit then
+				return bestUnit, best
+			end
+		end
 		local bestWreck
 		local bestMetalCost = 0
 		for i, w in pairs(best.resurrectables) do
