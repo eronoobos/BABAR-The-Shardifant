@@ -599,19 +599,6 @@ local anyOutmodedLvl2VehPlant = {
 	Lvl2AAVeh,
 }
 
-local anyLvl1VehPlantForWater = {
-	ScoutVeh,
-	AmphibiousRaider,
-	ConVehicleAmphibious,
-	Lvl1AAVeh,
-}
-
--- use these if it's a watery map
-wateryTaskqueues = {
-	armvp = anyLvl1VehPlantForWater,
-	corvp = anyLvl1VehPlantForWater,
-}
-
 -- fall back to these when a level 2 factory exists
 outmodedTaskqueues = {
 	corlab = anyOutmodedLvl1BotLab,
