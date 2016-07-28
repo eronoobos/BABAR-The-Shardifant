@@ -121,8 +121,8 @@ function TidalIfTidal()
 end
 
 function windLimit()
-	local minWind = map:MinimumWindSpeed()
 	if map:AverageWind() >= 10 then
+		local minWind = map:MinimumWindSpeed()
 		if minWind >= 8 then
 			EchoDebug("minimum wind high enough to build only wind")
 			return true
