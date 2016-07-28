@@ -680,17 +680,27 @@ function TargetHandler:UpdateDebug()
 	end
 end
 
---[[
-function TargetHandler:UnitDamaged(unit, attacker,damage)
+function TargetHandler:UnitDamaged(unit, attacker, damage)
 	-- even if the attacker can't be seen, human players know what weapons look like
-	-- but attacker is nil if it's an enemy unit, so this is useless
-	if attacker ~= nil then
-		local attackerName = attacker:Name()
-		local attackerID = attacker:ID()
-		self:DangerCheck(attackerName, attackerID)
+	-- in non-lua shard, the attacker is nil if it's an enemy unit, so this becomes useless
+	if attacker ~= nil and self.ai.loshandler:IsKnownEnemy(attacker) ~= 2 then
+		self:DangerCheck(attacker:Name(), attacker:ID())
+		local mtype
+		local ut = unitTable[unit:Name()]
+		if ut then
+			local threat = damage
+			local aut = unitTable[attacker:Name()]
+			if aut then
+				if aut.isBuilding then
+					self.ai.loshandler:KnowEnemy(attacker)
+					return
+				end
+				threat = aut.metalCost
+			end
+			self:AddBadPosition(unit:GetPosition(), ut.mtype, threat, 900)
+		end
 	end
 end
-]]--
 
 function TargetHandler:Update()
 	local f = game:Frame()
@@ -710,8 +720,8 @@ function TargetHandler:Update()
 end
 
 function TargetHandler:AddBadPosition(position, mtype, threat, duration)
-	if threat == nil then threat = badCellThreat end
-	if duration == nil then duration = 1800 end
+	threat = threat or badCellThreat
+	duration = duration or 1800
 	local px, pz = GetCellPosition(position)
 	local gas = WhatHurtsUnit(nil, mtype, position)
 	local f = game:Frame()
