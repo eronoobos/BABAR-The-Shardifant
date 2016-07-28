@@ -48,7 +48,7 @@ local wreckMult = 100
 local vulnerableReclaimDistMod = 100
 local badCellThreat = 300
 local attackDistMult = 0.5 -- between 0 and 1, the lower number, the less distance matters
-local reclaimModMult = 0.25 -- how much does the cell's metal & energy modify the distance to the cell for reclaim cells
+local reclaimModMult = 0.5 -- how much does the cell's metal & energy modify the distance to the cell for reclaim cells
 
 local factoryValue = 1000
 local conValue = 300
@@ -1343,7 +1343,7 @@ function TargetHandler:RemoveFeature(feature, position)
 		end
 	end
 	for i = #cell.resurrectables, 1, -1 do
-		local resFeature = cell.reclaimables[i].feature
+		local resFeature = cell.resurrectables[i].feature
 		if resFeature == feature then
 			table.remove(cell.resurrectables, i)
 			return true
