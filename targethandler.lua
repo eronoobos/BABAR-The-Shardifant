@@ -1059,11 +1059,13 @@ function TargetHandler:GetBestReclaimCell(representative, lookForEnergy)
 				end
 			end
 			if canGo then
-				local mod
-				if lookForEnergy then
-					mod = cell.energy
-				else
-					mod = cell.metal
+				local mod = 0
+				if #cell.reclaimables > 0 then
+					if lookForEnergy then
+						mod = cell.energy
+					else
+						mod = cell.metal
+					end
 				end
 				local vulnerable = CellVulnerable(cell, gas, representative.canReclaimGAS)
 				if vulnerable then mod = mod + vulnerableReclaimDistMod end
@@ -1321,4 +1323,30 @@ function TargetHandler:RaiderHere(raidbehaviour)
 		end
 	end
 	self.raiderCounted[raidbehaviour.id] = true -- reset with UpdateMap()
+end
+
+-- so that reclaimers don't try to reclaim a cell with nothing in it
+function TargetHandler:RemoveFeature(feature, position)
+	local px, pz = GetCellPosition(position)
+	local cell
+	if self.cells[px] then
+		cell = self.cells[px][pz]
+	end
+	if not cell then
+		return
+	end
+	for i = #cell.reclaimables, 1, -1 do
+		local recFeature = cell.reclaimables[i].feature
+		if recFeature == feature then
+			table.remove(cell.reclaimables, i)
+			return true
+		end
+	end
+	for i = #cell.resurrectables, 1, -1 do
+		local resFeature = cell.reclaimables[i].feature
+		if resFeature == feature then
+			table.remove(cell.resurrectables, i)
+			return true
+		end
+	end
 end
