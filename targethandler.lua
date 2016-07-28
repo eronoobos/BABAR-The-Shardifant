@@ -518,7 +518,7 @@ end
 
 function TargetHandler:UpdateDamagedUnits()
 	for unitID, engineUnit in pairs(self.ai.damagehandler:GetDamagedUnits()) do
-		local cell = GetOrCreateCellHere(engineUnit:GetPosition())
+		local cell = self:GetOrCreateCellHere(engineUnit:GetPosition())
 		cell.damagedUnits = cell.damagedUnits or {}
 		cell.damagedUnits[#cell.damagedUnits+1] = engineUnit
 	end

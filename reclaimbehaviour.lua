@@ -90,22 +90,24 @@ function ReclaimBehaviour:Retarget()
 	end
 	if not self.targetUnit and self.dedicated and self.ai.Metal.full > 0.5 and self.ai.Energy.full > 0.75 then
 		local bestThing, bestCell = self.ai.targethandler:WreckToResurrect(unit, true)
-		if bestThing.className == 'unit' then
-			self:EchoDebug("got damaged to repair from WreckToResurect cell")
-			self.targetRepair = bestThing
-		elseif bestThing.className == 'feature' then
-			self:EchoDebug("got resurrectable from WreckToResurect cell")
-			self.targetResurrection = bestThing
+		if bestThing then
+			if bestThing.className == 'unit' then
+				self:EchoDebug("got damaged to repair from WreckToResurect cell")
+				self.targetRepair = bestThing
+			elseif bestThing.className == 'feature' then
+				self:EchoDebug("got resurrectable from WreckToResurect cell")
+				self.targetResurrection = bestThing
+			end
 		end
 		self.targetCell = bestCell
 	end
 	if not self.targetResurrection and not self.targetUnit then
-		if self.ai.Metal.full < 0.75 or (tcell and tcell.Metal > 1000) then
+		if tcell and (self.ai.Metal.full < 0.75 or tcell.metal > 1000) then
 			-- reclaim a cell
 			self.targetCell = tcell
 		end
 		if not self.targetCell and self.ai.Metal.full < 0.75 then
-			-- relcaim a cleanable if no cell found
+			-- reclaim a cleanable if no cell found
 			self.targetUnit = self.ai.cleanhandler:ClosestCleanable(unit)
 		end
 	end
