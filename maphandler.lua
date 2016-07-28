@@ -1219,16 +1219,8 @@ function MapHandler:UnitCanGoHere(unit, position)
 	local mtype, unet = self:MobilityOfUnit(unit)
 	if mtype == 'air' then return true end
 	if ShardSpringLua then
-		-- first check if it's even a valid move order
+		-- check if it's even a valid move order
 		local moveOrderTest = Spring.TestMoveOrder(unit:Type():ID(), position.x, position.y, position.z, nil, nil, nil, true, false)
-		-- if mtype == 'air' then
-		-- 	local newMoveOrderTest = Spring.TestMoveOrder(unit:Type():ID(), position.x, position.y, position.z)
-		-- 	if moveOrderTest or newMoveOrderTest then
-		-- 		Spring.Echo('air moveordertest', moveOrderTest, newMoveOrderTest)
-		-- 		self.map:DrawPoint(position, {0, 0.25, 1}, 'air', 3)
-		-- 	end
-		-- 	return true
-		-- end
 		if not moveOrderTest then
 			return false
 		end
