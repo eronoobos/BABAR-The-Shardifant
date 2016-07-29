@@ -58,9 +58,19 @@ local mobilityGridSize, mobilityGridSizeHalf
 local mobilityGridArea
 local hotSpot
 local spotPathMobRank
+local spotPathMobRankSuccessOnly
 local mobilityRatingFloor
 
 local savepositions = {}
+
+local mSqrt = math.sqrt
+
+local function Distance3d(pos1, pos2)
+	local dx = pos2.x - pos1.x
+	local dy = pos2.y - pos1.y
+	local dz = pos2.z - pos1.z
+	return mSqrt( dx*dx + dy*dy + dz*dz )
+end
 
 local function MapDataFilename()
 	local mapName = string.gsub(map:MapName(), "%W", "_")
@@ -518,7 +528,7 @@ function MapHandler:Init()
 	end
 	ai.hotSpot = hotSpot
 	if ShardSpringLua and not spotPathMobRank then
-		spotPathMobRank = self:SpotPathMobRank(hotSpot)
+		spotPathMobRank, spotPathMobRankSuccessOnly = self:SpotPathMobRank(scoutSpots.air[1])
 	end
 	for mtype, mspots in pairs(mobSpots) do
 		EchoDebug(mtype .. " spots: " .. #mspots)
@@ -692,8 +702,9 @@ function MapHandler:SpotSimplyfier(metalSpots,geoSpots)
 end
 
 function MapHandler:SpotPathMobRank(spotscleaned)
-	local moveclass={}
-	local waypointstable={}
+	local moveclass = {}
+	local pathDistRatios = {}
+	local pathDistRatiosSuccessOnly = {}
 	for id,unitDef in pairs(UnitDefs) do
 		if unitDef.moveDef.name  and unitDef.techLevel >=0 then 
 			if moveclass[unitDef.moveDef.name] ==   nil then
@@ -702,38 +713,73 @@ function MapHandler:SpotPathMobRank(spotscleaned)
 		end
 	end
 	for mclass, number in pairs(moveclass) do
-		waypointstable[mclass] = 0
-		local alreadypath = {}
-		for index,pos1 in pairs(spotscleaned) do
-			alreadypath[index]={}
-			for index2,pos2 in pairs(spotscleaned) do
-				if Spring.TestMoveOrder(number,pos1.x,pos1.y,pos1.z) == true and Spring.TestMoveOrder(number,pos2.x,pos2.y,pos2.z) == true then
-					if alreadypath[index2] == nil  or alreadypath[index2][index] == nil then
-						if index2~=index then
-							alreadypath[index][index2] = true
-							local metapath = Spring.RequestPath(mclass, pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
-							if metapath then 
-								local waypoints, detpath =metapath:GetPathWayPoints()
-								local waypointsNumber = #waypoints
-								local dist  = Distance(pos1,pos2)
-								if waypointsNumber > 0 and dist > 0 then
-									waypointstable[mclass] = waypointstable[mclass] + (dist / waypointsNumber)
-									--Spring.MarkerAddLine(pos1.x, pos1.y, pos1.z, pos2.x, pos2.y, pos2.z)--uncomment this line to draw on screen all the calculated path
-								end
+		pathDistRatios[mclass] = 0
+		pathDistRatiosSuccessOnly[mclass] = 0
+		local mySpots = {}
+		for i = 1, #spotscleaned do
+			mySpots[i] = spotscleaned[i]
+		end
+		local pathCount = 0
+		local pathSuccessCount = 0
+		local pos1 = table.remove(mySpots)
+		while #mySpots > 0 do
+			local pos2 = table.remove(mySpots)
+			if Spring.TestMoveOrder(number,pos1.x,pos1.y,pos1.z) == true and Spring.TestMoveOrder(number,pos2.x,pos2.y,pos2.z) == true then
+				local metapath = Spring.RequestPath(mclass, pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
+				if metapath then 
+					local waypoints, pathStartIdx = metapath:GetPathWayPoints()
+					local dist  = Distance3d(pos1,pos2)
+					if waypoints and #waypoints > 0 and dist > 0 then
+						-- if mclass == 'tank2' then
+							-- self.map:DrawLine(pos1, pos2, {0,0,0,1}, nil, true, 1)
+						-- end
+						local waypointsNumber = #waypoints
+						local last = waypoints[#waypoints]
+						if pos2.x == last[1] and pos2.z == last[3] then
+							local totalPathDist = 0
+							for i = 2, waypointsNumber do
+								local wp1 = waypoints[i-1]
+								local wp2 = waypoints[i]
+								local dx = wp2[1] - wp1[1]
+								local dy = wp2[2] - wp1[2]
+								local dz = wp2[3] - wp1[3]
+								local segDist = math.sqrt(dx*dx + dy*dy + dz*dz)
+								totalPathDist = totalPathDist + segDist
+								-- if mclass == 'tank2' then
+									-- self.map:DrawLine({x=wp1[1], y=wp1[2], z=wp1[3]}, {x=wp2[1], y=wp2[2], z=wp2[3]}, {1,1,1,1}, nil, true, 1)
+								-- end
 							end
+							pathDistRatios[mclass] = pathDistRatios[mclass] + (dist / totalPathDist)
+							pathCount = pathCount + 1
+							pathSuccessCount = pathSuccessCount + 1
+							-- Spring.Echo(mclass, totalPathDist, dist, dist / totalPathDist)
+						else
+							-- path does not get to destination
+							pathCount = pathCount + 1
 						end
 					end
 				end
 			end
+			pos1 = pos2
 		end
+		if pathDistRatios[mclass] > 0 then
+			if pathSuccessCount > 0 then
+				-- dist ratio of only paths that get to their destinations
+				pathDistRatiosSuccessOnly[mclass] = pathDistRatios[mclass] / pathSuccessCount
+			end
+			if pathCount > 0 then
+				pathDistRatios[mclass] = pathDistRatios[mclass] / pathCount
+			end
+		end
+		-- Spring.Echo(mclass, pathDistRatios[mclass], pathDistRatiosSuccessOnly[mclass])
 	end
 	if DebugEnabled then
-		for pathType, rank in pairs(waypointstable) do
+		for pathType, rank in pairs(pathDistRatios) do
 			EchoDebug(pathType .. ' = ' ..rank)
 		end
 	end
 			
-	return waypointstable
+	return pathDistRatios, pathDistRatiosSuccessOnly
 end
 
 function MapHandler:GuessStartLocations(spots)
@@ -870,7 +916,7 @@ function MapHandler:factoriesRating()
 						factoryMtypeRating = factoryMtypeRating + mtypesMapRatings[mtype]
 						-- EchoDebug(factory .. ' ' .. unit .. ' ' .. unitTable[unit].mtype .. ' ' .. mtypesMapRatings[unitTable[unit].mtype])
 						if ShardSpringLua then
-							bestPath = math.max(maxPath,spotPathMobRank[mclass])
+							bestPath = math.max(bestPath,spotPathMobRank[mclass])
 							maxPath = math.max(maxPath,spotPathMobRank[mclass])
 							mediaPath = mediaPath + spotPathMobRank[mclass]
 						end
@@ -886,8 +932,7 @@ function MapHandler:factoriesRating()
 				if maxPath == 0 then
 					mediaPath = 0
 				else
-					mediaPath = (mediaPath / count)/bestPath
-					maxPath = maxPath /bestPath
+					mediaPath = (mediaPath / count)
 					factoryPathRating = (maxPath + mediaPath) / 2
 				end
 			end
