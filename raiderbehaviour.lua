@@ -17,7 +17,7 @@ local IDLEMODE_LAND = 1
 local IDLEMODE_FLY = 0
 
 function RaiderBehaviour:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 
 	self:EchoDebug("init")
 	local mtype, network = self.ai.maphandler:MobilityOfUnit(self.unit:Internal())
