@@ -1458,12 +1458,13 @@ function MapHandler:GetPathGraph(mtype)
 					position.x = bestX
 					position.z = bestZ
 				end
-				-- local nodeX = mCeil(cx / cellsPerNodeSide)
-				-- local nodeY = mCeil(cz / cellsPerNodeSide)
 				if ShardSpringLua then
 					position.y = Spring.GetGroundHeight(x, z)
 				end
-				local node = { x = x, y = z, id = id, position = position }
+				local nodeX = mCeil(cx / cellsPerNodeSide)
+				local nodeY = mCeil(cz / cellsPerNodeSide)
+				local node = { x = nodeX, y = nodeY, id = id, position = position }
+				-- self.map:DrawPoint(position, {1,1,1,1}, mtype .. " " .. nodeX .. ", " .. nodeY, 8)
 				graph[id] = node
 				id = id + 1
 			end
@@ -1471,7 +1472,8 @@ function MapHandler:GetPathGraph(mtype)
 	end
 	local aGraph = GraphAStar()
 	aGraph:Init(graph)
-	aGraph:SetOctoGridSize(nodeSize)
+	aGraph:SetOctoGridSize(1)
+	aGraph:SetPositionUnitsPerNodeUnits(nodeSize)
 	pathGraphs[mtype] = aGraph
 	return aGraph
 end

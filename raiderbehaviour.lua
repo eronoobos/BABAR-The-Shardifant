@@ -51,7 +51,7 @@ function RaiderBehaviour:Init()
 	self.lastPathCheckFrame = 0
 
 	-- for pathfinding
-	self.graph = self.ai.maphandler:GetPathGraph(self.mtype)
+	-- self.graph = self.ai.maphandler:GetPathGraph(self.mtype)
 	self.validFunc = self.ai.raidhandler:GetPathValidFunc(self.name)
 end
 
@@ -262,6 +262,7 @@ function RaiderBehaviour:BeginPath(position)
 	end
 	self:EchoDebug("getting new path")
 	local upos = self.unit:Internal():GetPosition()
+	self.graph = self.graph or self.ai.maphandler:GetPathGraph(self.mtype)
 	self.pathfinder = self.graph:PathfinderPosPos(upos, position, nil, self.validFunc)
 	self:FindPath() -- try once
 end
@@ -316,7 +317,7 @@ function RaiderBehaviour:UpdatePathProgress()
 		local x = myPos.x
 		local z = myPos.z
 		local r = self.pathingDistance
-		local nx, nz = self.targetNode.x, self.targetNode.y
+		local nx, nz = self.targetNode.position.x, self.targetNode.position.z
 		if nx < x + r and nx > x - r and nz < z + r and nz > z - r and self.pathStep < #self.path then
 			-- we're at the targetNode and it's not the last node
 			self.pathStep = self.pathStep + 1
@@ -346,8 +347,8 @@ function RaiderBehaviour:ResumeCourse()
 	local nearestStep
 	for i = 1, #self.path do
 		local node = self.path[i]
-		local dx = upos.x - node.x
-		local dz = upos.z - node.y
+		local dx = upos.x - node.position.x
+		local dz = upos.z - node.position.z
 		local distSq = dx*dx + dz*dz
 		if not lowestDist or distSq < lowestDist then
 			lowestDist = distSq
@@ -399,7 +400,8 @@ end
 
 function RaiderBehaviour:MoveToSafety()
 	local upos = self.unit:Internal():GetPosition()
-	local node = self.graph:NearestNode(upos.x, upos.z, self.validFunc)
+	self.graph = self.graph or self.ai.maphandler:GetPathGraph(self.mtype)
+	local node = self.graph:NearestNodePosition(upos, self.validFunc)
 	if node then
 		self:MoveNear(node.position)
 	end

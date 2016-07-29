@@ -270,9 +270,13 @@ function GraphAStar:SetOctoGridSize(gridSize)
 	self.nodeDist = nodeDist
 end
 
+function GraphAStar:SetPositionUnitsPerNodeUnits(positionUnitsPerNodeUnits)
+	self.positionUnitsPerNodeUnits = positionUnitsPerNodeUnits
+end
+
 function GraphAStar:NodeHere(x, y, isValidNode)
 	isValidNode = isValidNode or self.isValidNode
-	if self.gridSize then
+	if self.gridSize and not self.positionUnitsPerNodeUnits then
 		x = (x - (x % self.gridSize)) + self.halfGridSize
 		y = (y - (y % self.gridSize)) + self.halfGridSize
 	end
@@ -287,7 +291,16 @@ function GraphAStar:NodeHere(x, y, isValidNode)
 	end
 end
 
-function GraphAStar:NearestNode(x, y, isValidNode, distFunc, minDist, maxDist)
+function GraphAStar:NodeHerePosition(position, isValidNode)
+	if not self.positionUnitsPerNodeUnits then
+		return self:NodeHere(position.x, position.z, isValidNode)
+	end
+	local nodeX = mCeil(position.x / self.positionUnitsPerNodeUnits)
+	local nodeY = mCeil(position.z / self.positionUnitsPerNodeUnits)
+	return self:NodeHere(nodeX, nodeY, isValidNode)
+end
+
+function GraphAStar:NearestNode(x, y, isValidNode, distFunc, minDist, maxDist, usePositionXZ)
 	isValidNode = isValidNode or self.isValidNode
 	distFunc = distFunc or self.distFunc
 	local nodes = self.nodes
@@ -298,7 +311,15 @@ function GraphAStar:NearestNode(x, y, isValidNode, distFunc, minDist, maxDist)
 	for i = 1, #nodes do
 		local node = nodes[i]
 		if isValidNode(node) then
-			local d = distFunc(x, y, node.x, node.y)
+			local nodeX, nodeY
+			if usePositionXZ then
+				nodeX = node.position.x
+				nodeY = node.position.z
+			else
+				nodeX = node.x
+				nodeY = node.y
+			end
+			local d = distFunc(x, y, nodeX, nodeY)
 			if (not minDist or d >= minDist) and (not maxDist or d <= maxDist) and (not bestDist or d < bestDist) then
 				bestDist = d
 				bestNode = node
@@ -308,6 +329,10 @@ function GraphAStar:NearestNode(x, y, isValidNode, distFunc, minDist, maxDist)
 	return bestNode, bestDist
 end
 
+function GraphAStar:NearestNodePosition(position, isValidNode, distFunc, minDist, maxDist)
+	return self:NearestNode(position.x, position.z, isValidNode, distFunc, minDist, maxDist, true)
+end
+
 function GraphAStar:Pathfinder(start, goal, isNeighborNode, isValidNode, distFunc)
 	local pathfinder = PathfinderAStar()
 	pathfinder:Init(start, goal, self.nodes, isNeighborNode or self.isNeighborNode, isValidNode or self.isValidNode, distFunc or self.distFunc, self)
@@ -315,13 +340,17 @@ function GraphAStar:Pathfinder(start, goal, isNeighborNode, isValidNode, distFun
 end
 
 function GraphAStar:PathfinderXYXY(x1, y1, x2, y2, isNeighborNode, isValidNode, distFunc)
-	local start = self:NodeHere(x1, y1) or self:NearestNode(x1, y1)
+	local start = self:NodeHere(x1, y1, isValidNode) or self:NearestNode(x1, y1, isValidNode, distFunc)
 	if not start then return end
-	local goal = self:NodeHere(x2, y2) or self:NearestNode(x2, y2)
+	local goal = self:NodeHere(x2, y2, isValidNode) or self:NearestNode(x2, y2, isValidNode, distFunc)
 	if not goal then return end
 	return self:Pathfinder(start, goal, isNeighborNode, isValidNode, distFunc)
 end
 
 function GraphAStar:PathfinderPosPos(pos1, pos2, isNeighborNode, isValidNode, distFunc)
-	return self:PathfinderXYXY(pos1.x, pos1.z, pos2.x, pos2.z, isNeighborNode, isValidNode, distFunc)
+	local start = self:NodeHerePosition(pos1, isValidNode) or self:NearestNodePosition(pos1, isValidNode, distFunc)
+	if not start then return end
+	local goal = self:NodeHerePosition(pos2, isValidNode) or self:NearestNodePosition(pos2, isValidNode, distFunc)
+	if not goal then return end
+	return self:Pathfinder(start, goal, isNeighborNode, isValidNode, distFunc)
 end
