@@ -201,16 +201,6 @@ function BuildWithLimitedNumber(tmpUnitName, minNumber)
 	end
 end
 
-function AmpOrGroundWeapon(MyTB)
-	local doAmp = false
-	if ai.enemyBasePosition then
-		if ai.maphandler:MobilityNetworkHere('veh', MyTB.position) ~= ai.maphandler:MobilityNetworkHere('veh', ai.enemyBasePosition) and ai.maphandler:MobilityNetworkHere('amp', MyTB.position) == ai.maphandler:MobilityNetworkHere('amp', ai.enemyBasePosition) then
-			EchoDebug('canbuild amphibious')
-			doAmp = true
-		end
-	end
-	return doAmp
-end
 function GroundDefenseIfNeeded(unitName, builder)
 	if not ai.needGroundDefense then
 		return DummyUnitName

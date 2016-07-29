@@ -36,6 +36,17 @@ local function MaxBuildDist(unitName, speed)
 	return speedDist
 end
 
+function AmpOrGroundWeapon(MyTB)
+	local doAmp = false
+	if ai.enemyBasePosition then
+		if ai.maphandler:MobilityNetworkHere('veh', MyTB.position) ~= ai.maphandler:MobilityNetworkHere('veh', ai.enemyBasePosition) and ai.maphandler:MobilityNetworkHere('amp', MyTB.position) == ai.maphandler:MobilityNetworkHere('amp', ai.enemyBasePosition) then
+			EchoDebug('canbuild amphibious')
+			doAmp = true
+		end
+	end
+	return doAmp
+end
+
 function TaskQueueBehaviour:CategoryEconFilter(value)
 	if value == nil then return DummyUnitName end
 	if value == DummyUnitName then return DummyUnitName end
