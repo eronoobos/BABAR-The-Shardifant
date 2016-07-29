@@ -17,7 +17,7 @@ local IDLEMODE_LAND = 1
 local IDLEMODE_FLY = 0
 
 function RaiderBehaviour:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 
 	self:EchoDebug("init")
 	local mtype, network = self.ai.maphandler:MobilityOfUnit(self.unit:Internal())
@@ -58,7 +58,7 @@ end
 function RaiderBehaviour:OwnerDead()
 	-- game:SendToConsole("raider " .. self.name .. " died")
 	if self.DebugEnabled then
-		self.map:EraseLine(nil, nil, {0,1,1}, self.unit:Internal():ID(), nil, 8)
+		self.map:EraseLine(nil, nil, nil, self.unit:Internal():ID(), nil, 8)
 	end
 	if self.target then
 		self.ai.targethandler:AddBadPosition(self.target, self.mtype)
@@ -92,7 +92,7 @@ function RaiderBehaviour:Deactivate()
 	self:EchoDebug("deactivate")
 	self.active = false
 	if self.DebugEnabled then
-		self.map:EraseLine(nil, nil, {0,1,1}, self.unit:Internal():ID(), nil, 8)
+		self.map:EraseLine(nil, nil, nil, self.unit:Internal():ID(), nil, 8)
 	end
 end
 
@@ -216,7 +216,7 @@ function RaiderBehaviour:GetTarget()
 	self.offPath = nil
 	self.arrived = nil
 	if self.DebugEnabled then
-		self.map:EraseLine(nil, nil, {0,1,1}, self.unit:Internal():ID(), nil, 8)
+		self.map:EraseLine(nil, nil, nil, self.unit:Internal():ID(), nil, 8)
 	end
 	local unit = self.unit:Internal()
 	local bestCell = self.ai.targethandler:GetBestRaidCell(unit)
@@ -273,7 +273,6 @@ function RaiderBehaviour:FindPath()
 	-- self:EchoDebug(tostring(remaining) .. " remaining to find path")
 	if path then
 		self:EchoDebug("got path of", #path, "nodes", maxInvalid, "maximum invalid neighbors")
-		self.pathfinder = nil
 		if maxInvalid == 0 then
 			self:EchoDebug("path is entirely clear of danger, not using")
 			self.path = path
@@ -282,6 +281,7 @@ function RaiderBehaviour:FindPath()
 		else
 			self:ReceivePath(path)
 		end
+		self.pathfinder = nil
 		self.unit:ElectBehaviour()
 	elseif remaining == 0 then
 		self:EchoDebug("no path found")
@@ -291,6 +291,16 @@ end
 
 function RaiderBehaviour:ReceivePath(path)
 	if not path then return end
+	-- if self.DebugEnabled then
+	-- 	self.map:EraseLine(nil, nil, {0,0,1}, self.unit:Internal():ID(), nil, 8)
+	-- 	for i = 2, #path do
+	-- 		local pos1 = path[i-1].position
+	-- 		local pos2 = path[i].position
+	-- 		local arrow = i == #path
+	-- 		self.map:DrawLine(pos1, pos2, {0,0,1}, self.unit:Internal():ID(), arrow, 8)
+	-- 	end
+	-- end
+	-- path = SimplifyPathByAngle(path)
 	self.path = path
 	if not self.path[2] then
 		self.pathStep = 1

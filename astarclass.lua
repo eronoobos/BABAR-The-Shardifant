@@ -184,6 +184,7 @@ function PathfinderAStar:Init(start, goal, nodes, isNeighborNode, isValidNode, d
 	self.f_score = {}
 	self.g_score[self.start] = 0
 	self.f_score[self.start] = self.g_score[self.start] + dist_between(self.start, self.goal, self.distFunc, self.graph.distCache)
+	self.neighborCounts = {}
 end
 
 function PathfinderAStar:Find(iterations)
@@ -206,6 +207,7 @@ function PathfinderAStar:Find(iterations)
 		self.closedset[#self.closedset+1] = current
 		local neighbors, numInvalidNodes = neighbor_nodes(current, nodes, isNeighborNode, isValidNode)
 		if not self.maxInvalid or numInvalidNodes > self.maxInvalid then self.maxInvalid = numInvalidNodes end
+		self.neighborCounts[current.id] = #neighbors
 		for i = 1, #neighbors do
 			local neighbor = neighbors[i]
 			if not_in(self.closedset, neighbor) then
@@ -223,6 +225,25 @@ function PathfinderAStar:Find(iterations)
 		it = it + 1
 	end
 	return nil, #self.openset, self.maxInvalid
+end
+
+function PathfinderAStar:SimplifyPath(path)
+	if not self.neighborCounts or not self.graph.maxNeighborCount then
+		return path
+	end
+	if #path < 3 then
+		return path
+	end
+	local neighCounts = self.neighborCounts
+	local maxCount = self.graph.maxNeighborCount
+	for i = #path-1, 2, -1 do
+		local node = path[i-1]
+		local count = neighCounts[node.id] or 0
+		if count == maxCount then
+			table.remove(path, i)
+		end
+	end
+	return path
 end
 
 
@@ -254,6 +275,7 @@ function GraphAStar:SetQuadGridSize(gridSize)
 	self.gridSize = gridSize
 	self.halfGridSize = mCeil(gridSize / 2)
 	self.nodeDist = nodeDist
+	self.maxNeighborCount = 4
 end
 
 -- provides a neighbor function for a grid with each node having eight neighbors
@@ -268,6 +290,7 @@ function GraphAStar:SetOctoGridSize(gridSize)
 	self.gridSize = gridSize
 	self.halfGridSize = mCeil(gridSize / 2)
 	self.nodeDist = nodeDist
+	self.maxNeighborCount = 8
 end
 
 function GraphAStar:SetPositionUnitsPerNodeUnits(positionUnitsPerNodeUnits)

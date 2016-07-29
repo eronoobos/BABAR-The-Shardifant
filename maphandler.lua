@@ -1410,13 +1410,16 @@ function MapHandler:CheckDefenseLocalization(unitName, position)
 	end
 end
 
-function MapHandler:GetPathGraph(mtype)
-	local cellsPerNodeSide = mCeil(256 / mobilityGridSize)
+function MapHandler:GetPathGraph(mtype, targetNodeSize)
+	targetNodeSize = targetNodeSize or 256
+	local cellsPerNodeSide = mCeil(targetNodeSize / mobilityGridSize)
+	if pathGraphs[mtype] then
+		if pathGraphs[mtype][cellsPerNodeSide] then
+			return pathGraphs[mtype][cellsPerNodeSide]
+		end
+	end
 	local nodeSize = cellsPerNodeSide * mobilityGridSize
 	local nodeSizeHalf = nodeSize / 2
-	if pathGraphs[mtype] then
-		return pathGraphs[mtype]
-	end
 	local graph = {}
 	local id = 1
 	local myTopology = topology[mtype]
@@ -1474,6 +1477,7 @@ function MapHandler:GetPathGraph(mtype)
 	aGraph:Init(graph)
 	aGraph:SetOctoGridSize(1)
 	aGraph:SetPositionUnitsPerNodeUnits(nodeSize)
-	pathGraphs[mtype] = aGraph
+	pathGraphs[mtype] = pathGraphs[mtype] or {}
+	pathGraphs[mtype][cellsPerNodeSide] = aGraph
 	return aGraph
 end
