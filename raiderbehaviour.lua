@@ -17,7 +17,7 @@ local IDLEMODE_LAND = 1
 local IDLEMODE_FLY = 0
 
 function RaiderBehaviour:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 
 	self:EchoDebug("init")
 	local mtype, network = self.ai.maphandler:MobilityOfUnit(self.unit:Internal())
@@ -49,6 +49,10 @@ function RaiderBehaviour:Init()
 	self.lastGetTargetFrame = 0
 	self.lastMovementFrame = 0
 	self.lastPathCheckFrame = 0
+
+	-- for pathfinding
+	self.graph = self.ai.maphandler:GetPathGraph(self.mtype)
+	self.validFunc = self.ai.raidhandler:GetPathValidFunc(self.name)
 end
 
 function RaiderBehaviour:OwnerDead()
@@ -127,7 +131,7 @@ function RaiderBehaviour:Update()
 		if f > self.lastGetTargetFrame + 90 then
 			self.lastGetTargetFrame = f
 			self:GetTarget()
-		elseif not self.path and self.pathTry then
+		elseif not self.path and self.pathfinder then
 			self:FindPath()
 		end
 	end
@@ -204,7 +208,7 @@ end
 function RaiderBehaviour:GetTarget()
 	self.target = nil
 	self.unitTarget = nil
-	self.pathTry = nil
+	self.pathfinder = nil
 	self.path = nil
 	self.pathStep = nil
 	self.targetNode = nil
@@ -257,22 +261,18 @@ function RaiderBehaviour:BeginPath(position)
 		return
 	end
 	self:EchoDebug("getting new path")
-	local graph = self.ai.raidhandler:GetPathGraph(self.mtype)
 	local upos = self.unit:Internal():GetPosition()
-	local validFunc = self.ai.raidhandler:GetPathValidFunc(self.unit:Internal():Name())
-	self.pathTry = graph:PathfinderXYXY(upos.x, upos.z, position.x, position.z, nil, validFunc)
-	self.pathedTarget = position
-	self.pathedOrigin = self.unit:Internal():GetPosition()
+	self.pathfinder = self.graph:PathfinderPosPos(upos, position, nil, self.validFunc)
 	self:FindPath() -- try once
 end
 
 function RaiderBehaviour:FindPath()
-	if not self.pathTry then return end
-	local path, remaining, maxInvalid = self.pathTry:Find(1)
+	if not self.pathfinder then return end
+	local path, remaining, maxInvalid = self.pathfinder:Find(2)
 	-- self:EchoDebug(tostring(remaining) .. " remaining to find path")
 	if path then
 		self:EchoDebug("got path of", #path, "nodes", maxInvalid, "maximum invalid neighbors")
-		self.pathTry = nil
+		self.pathfinder = nil
 		if maxInvalid == 0 then
 			self:EchoDebug("path is entirely clear of danger, not using")
 			self.path = path
@@ -284,7 +284,7 @@ function RaiderBehaviour:FindPath()
 		self.unit:ElectBehaviour()
 	elseif remaining == 0 then
 		self:EchoDebug("no path found")
-		self.pathTry = nil
+		self.pathfinder = nil
 	end
 end
 
@@ -399,9 +399,7 @@ end
 
 function RaiderBehaviour:MoveToSafety()
 	local upos = self.unit:Internal():GetPosition()
-	local graph = self.ai.raidhandler:GetPathGraph(self.mtype)
-	local validFunc = self.ai.raidhandler:GetPathValidFunc(self.unit:Internal():Name())
-	local node = graph:NearestNode(upos.x, upos.z, validFunc)
+	local node = self.graph:NearestNode(upos.x, upos.z, self.validFunc)
 	if node then
 		self:MoveNear(node.position)
 	end

@@ -61,9 +61,12 @@ local spotPathMobRank
 local spotPathMobRankSuccessOnly
 local mobilityRatingFloor
 
+local pathGraphs = {}
+
 local savepositions = {}
 
 local mSqrt = math.sqrt
+local mCeil = math.ceil
 
 local function Distance3d(pos1, pos2)
 	local dx = pos2.x - pos1.x
@@ -1405,4 +1408,60 @@ function MapHandler:CheckDefenseLocalization(unitName, position)
 	else
 		return true
 	end
+end
+
+function MapHandler:GetPathGraph(mtype)
+	local cellsPerNodeSide = mCeil(256 / mobilityGridSize)
+	local nodeSize = cellsPerNodeSide * mobilityGridSize
+	local nodeSizeHalf = nodeSize / 2
+	if pathGraphs[mtype] then
+		return pathGraphs[mtype]
+	end
+	local graph = {}
+	local id = 1
+	local myTopology = topology[mtype]
+	for cx = 1, mobilityGridMaxX, cellsPerNodeSide do
+		local x = ((cx * mobilityGridSize) - mobilityGridSizeHalf) + nodeSizeHalf
+		for cz = 1, mobilityGridMaxZ, cellsPerNodeSide do
+			local areCellsHere = false
+			local cellsComplete = true
+			local lastGoodCell
+			for ccx = cx, cx+cellsPerNodeSide-1 do
+				for ccz = cz, cz+cellsPerNodeSide-1 do
+					if myTopology[ccx] and myTopology[ccx][ccz] then
+						areCellsHere = true
+						lastGoodCell = {ccx, ccz}
+					else
+						cellsComplete = false
+					end
+				end
+			end
+			if areCellsHere then
+				local z
+				if cellsComplete then
+					z = ((cz * mobilityGridSize) - mobilityGridSizeHalf) + nodeSizeHalf
+				else
+					x = (lastGoodCell[1] * mobilityGridSize) - mobilityGridSizeHalf
+					z = (lastGoodCell[2] * mobilityGridSize) - mobilityGridSizeHalf
+				end
+				-- local nodeX = mCeil(cx / cellsPerNodeSide)
+				-- local nodeY = mCeil(cz / cellsPerNodeSide)
+				local position = api.Position()
+				position.x = x
+				position.z = z
+				position.y = 0
+				if ShardSpringLua then
+					position.y = Spring.GetGroundHeight(x, z)
+				end
+				local node = { x = x, y = z, id = id, position = position }
+				graph[id] = node
+				id = id + 1
+			end
+		end
+	end
+	local aGraph = GraphAStar()
+	aGraph:Init(graph)
+	aGraph:SetOctoGridSize(nodeSize)
+	pathGraphs[mtype] = aGraph
+	return aGraph
 end

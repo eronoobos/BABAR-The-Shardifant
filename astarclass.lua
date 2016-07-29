@@ -60,12 +60,30 @@ local function manhattan_dist ( x1, y1, x2, y2 )
 	return mAbs(dx) + mAbs(dy)
 end
 
-local function dist_between (nodeA, nodeB)
-	return dist(nodeA.x, nodeA.y, nodeB.x, nodeB.y)
-end
-
-local function heuristic_cost_estimate ( nodeA, nodeB )
-	return manhattan_dist( nodeA.x, nodeA.y, nodeB.x, nodeB.y)
+local function dist_between(nodeA, nodeB, distFunc, distCache)
+	distFunc = distFunc or dist
+	local dist
+	if distCache then
+		local thisDist
+		if distCache[nodeA.id] then
+			thisDist = distCache[nodeA.id][nodeB.id]
+			if thisDist then
+				return thisDist
+			end
+		elseif distCache[nodeB.id] then
+			thisDist = distCache[nodeB.id][nodeA.id]
+			if thisDist then
+				return thisDist
+			end
+		end
+		if not thisDist then
+			distCache[nodeA.id] = distCache[nodeA.id] or {}
+			local d = distFunc(nodeA.x, nodeA.y, nodeB.x, nodeB.y)
+			distCache[nodeA.id][nodeB.id] = d
+			return d
+		end
+	end
+	return distFunc(nodeA.x, nodeA.y, nodeB.x, nodeB.y)
 end
 
 local function is_valid_node ( node )
@@ -101,7 +119,9 @@ local function neighbor_nodes ( theNode, nodes, isNeighborNode, isValidNode )
 	for i = 1, #nodes do
 		local node = nodes[i]
 		if theNode ~= node and (gotNeighCache or isNeighborNode(theNode, node)) then
-			if not gotNeighCache then theNode.neighbors[#theNode.neighbors+1] = node end
+			if not gotNeighCache then
+				theNode.neighbors[#theNode.neighbors+1] = node
+			end
 			if isValidNode(node) then
 				neighbors[#neighbors+1] = node
 			else
@@ -149,29 +169,21 @@ PathfinderAStar = class(function(a)
 	--
 end)
 
-function PathfinderAStar:Init(start, goal, nodes, isNeighborNode, isValidNode, distFunc, heuristicDistFunc)
+function PathfinderAStar:Init(start, goal, nodes, isNeighborNode, isValidNode, distFunc, graph)
 	self.start = start
 	self.goal = goal
 	self.nodes = nodes
 	self.isNeighborNode = isNeighborNode or is_neighbor_node
 	self.isValidNode = isValidNode or is_valid_node
 	self.distFunc = distFunc or dist
-	self.distBetween = dist_between
-	if distFunc then
-		self.distBetween = function(nodeA, nodeB) return distFunc(nodeA.x, nodeA.y, nodeB.x, nodeB.y) end
-	end
-	self.heuristicDistFunc = heuristicDistFunc or manhattan_dist
-	self.heuristicEstimate = heuristic_cost_estimate
-	if heuristicDistFunc then
-		self.heuristicEstimate = function(nodeA, nodeB) return heuristicDistFunc(nodeA.x, nodeA.y, nodeB.x, nodeB.y) end
-	end
+	self.graph = graph
 	self.closedset = {}
 	self.openset = { self.start }
 	self.came_from = {}
 	self.g_score = {}
 	self.f_score = {}
 	self.g_score[self.start] = 0
-	self.f_score[self.start] = self.g_score[self.start] + self.heuristicEstimate(self.start, self.goal)
+	self.f_score[self.start] = self.g_score[self.start] + dist_between(self.start, self.goal, self.distFunc, self.graph.distCache)
 end
 
 function PathfinderAStar:Find(iterations)
@@ -180,8 +192,9 @@ function PathfinderAStar:Find(iterations)
 	local nodes = self.nodes
 	local isNeighborNode = self.isNeighborNode
 	local isValidNode = self.isValidNode
-	local distBetween = self.distBetween
-	local heuristicEstimate = self.heuristicEstimate
+	local distFunc = self.distFunc
+	local distCache = self.graph.distCache
+	local standardNeighborDist = self.graph.nodeDist
 	while #self.openset > 0 and it <= iterations do
 		local current = lowest_f_score(self.openset, self.f_score)
 		if current == self.goal then
@@ -196,11 +209,11 @@ function PathfinderAStar:Find(iterations)
 		for i = 1, #neighbors do
 			local neighbor = neighbors[i]
 			if not_in(self.closedset, neighbor) then
-				local tentative_g_score = self.g_score[current] + distBetween(current, neighbor)
+				local tentative_g_score = self.g_score[current] + (standardNeighborDist or dist_between(current, neighbor, distFunc, distCache))
 				if not_in(self.openset, neighbor) or tentative_g_score < self.g_score[neighbor] then 
 					self.came_from[neighbor] = current
 					self.g_score[neighbor] = tentative_g_score
-					self.f_score[neighbor] = self.g_score[neighbor] + heuristicEstimate(neighbor, self.goal)
+					self.f_score[neighbor] = self.g_score[neighbor] + dist_between(neighbor, self.goal, distFunc, distCache)
 					if not_in(self.openset, neighbor) then
 						self.openset[#self.openset+1] = neighbor
 					end
@@ -221,26 +234,18 @@ GraphAStar = class(function(a)
 	--
 end)
 
-function GraphAStar:Init(nodes, isNeighborNode, isValidNode, distFunc, heuristicDistFunc)
+function GraphAStar:Init(nodes, isNeighborNode, isValidNode, distFunc)
 	self.nodes = nodes
 	self.isNeighborNode = isNeighborNode or is_neighbor_node
 	self.isValidNode = isValidNode or is_valid_node
 	self.distFunc = distFunc or dist
-	self.distBetween = dist_between
-	if distFunc then
-		self.distBetween = function(nodeA, nodeB) return distFunc(nodeA.x, nodeA.y, nodeB.x, nodeB.y) end
-	end
-	self.heuristicDistFunc = heuristicDistFunc or manhattan_dist
-	self.heuristicEstimate = heuristic_cost_estimate
-	if heuristicDistFunc then
-		self.heuristicEstimate = function(nodeA, nodeB) return heuristicDistFunc(nodeA.x, nodeA.y, nodeB.x, nodeB.y) end
-	end
+	self.distCache = {}
 end
 
 -- provides a neighbor function for a grid with each node having four neighbors
 -- assumes distFunc is the default of distance squared
 function GraphAStar:SetQuadGridSize(gridSize)
-	local nodeDist = 1 + (gridSize ^ 2)
+	local nodeDist = 0.1 + (gridSize ^ 2)
 	self.isNeighborNode = function ( node, neighbor ) 
 		if self.distFunc( node.x, node.y, neighbor.x, neighbor.y) < nodeDist then
 			return true
@@ -254,7 +259,7 @@ end
 -- provides a neighbor function for a grid with each node having eight neighbors
 -- assumes distFunc is the default of distance squared
 function GraphAStar:SetOctoGridSize(gridSize)
-	local nodeDist = 1 + (2 * (gridSize^2))
+	local nodeDist = 0.1 + (2 * (gridSize^2))
 	self.isNeighborNode = function ( node, neighbor ) 
 		if self.distFunc( node.x, node.y, neighbor.x, neighbor.y) < nodeDist then
 			return true
@@ -303,16 +308,20 @@ function GraphAStar:NearestNode(x, y, isValidNode, distFunc, minDist, maxDist)
 	return bestNode, bestDist
 end
 
-function GraphAStar:Pathfinder(start, goal, isNeighborNode, isValidNode, distFunc, heuristicDistFunc)
+function GraphAStar:Pathfinder(start, goal, isNeighborNode, isValidNode, distFunc)
 	local pathfinder = PathfinderAStar()
-	pathfinder:Init(start, goal, self.nodes, isNeighborNode or self.isNeighborNode, isValidNode or self.isValidNode, distFunc or self.distFunc, heuristicDistFunc or self.heuristicDistFunc)
+	pathfinder:Init(start, goal, self.nodes, isNeighborNode or self.isNeighborNode, isValidNode or self.isValidNode, distFunc or self.distFunc, self)
 	return pathfinder
 end
 
-function GraphAStar:PathfinderXYXY(x1, y1, x2, y2, isNeighborNode, isValidNode, distFunc, heuristicDistFunc)
+function GraphAStar:PathfinderXYXY(x1, y1, x2, y2, isNeighborNode, isValidNode, distFunc)
 	local start = self:NodeHere(x1, y1) or self:NearestNode(x1, y1)
 	if not start then return end
 	local goal = self:NodeHere(x2, y2) or self:NearestNode(x2, y2)
 	if not goal then return end
-	return self:Pathfinder(start, goal, isNeighborNode, isValidNode, distFunc, heuristicDistFunc)
+	return self:Pathfinder(start, goal, isNeighborNode, isValidNode, distFunc)
+end
+
+function GraphAStar:PathfinderPosPos(pos1, pos2, isNeighborNode, isValidNode, distFunc)
+	return self:PathfinderXYXY(pos1.x, pos1.z, pos2.x, pos2.z, isNeighborNode, isValidNode, distFunc)
 end
