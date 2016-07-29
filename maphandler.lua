@@ -503,9 +503,9 @@ function MapHandler:Init()
 		game:SendToConsole(#geoSpots, "geovents")
 	end
 
-	UWMetalSpots = {}
-	landMetalSpots = {}
 	if not didMapSpotMobility then
+		UWMetalSpots = {}
+		landMetalSpots = {}
 		mobSpots, mobNetworkMetals, mobNetworks, mobNetworkCount = MapSpotMobility(metalSpots, geoSpots)
 	end
 	self.ai.landMetalSpots = landMetalSpots
@@ -1211,7 +1211,7 @@ function MapHandler:ClosestFreeGeo(unittype, builder, position)
 	local bname = builder:Name()
 	local uname = unittype:Name()
 	local bestDistance, bestPos
-	for i,p in pairs(self.geoSpots) do
+	for i,p in pairs(geoSpots) do
 		-- dont use this spot if we're already building there
 		if not ai.buildsitehandler:PlansOverlap(p, uname) and self:UnitCanGoHere(builder, p) and game.map:CanBuildHere(unittype, p) and ai.targethandler:IsSafePosition(p, builder) then
 			local dist = Distance(position, p)
@@ -1301,17 +1301,17 @@ end
 
 function MapHandler:AccessibleMetalSpotsHere(mtype, position)
 	local network = self:MobilityNetworkHere(mtype, position)
-	return self.ai.mobNetworkMetals[mtype][network] or {}
+	return mobNetworkMetals[mtype][network] or {}
 end
 
 function MapHandler:AccessibleGeoSpotsHere(mtype, position)
 	local network = self:MobilityNetworkHere(mtype, position)
-	return self.mobNetworkGeos[mtype][network] or {}
+	return mobNetworkGeos[mtype][network] or {}
 end
 
 function MapHandler:AccessibleMetalGeoSpotsHere(mtype, position)
 	local network = self:MobilityNetworkHere(mtype, position)
-	return self.scoutSpots[mtype][network] or {}
+	return scoutSpots[mtype][network] or {}
 end
 
 function MapHandler:IsUnderWater(position)
