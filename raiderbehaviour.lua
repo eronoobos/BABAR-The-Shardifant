@@ -17,7 +17,7 @@ local IDLEMODE_LAND = 1
 local IDLEMODE_FLY = 0
 
 function RaiderBehaviour:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 
 	self:EchoDebug("init")
 	local mtype, network = self.ai.maphandler:MobilityOfUnit(self.unit:Internal())
@@ -37,7 +37,12 @@ function RaiderBehaviour:Init()
 	end
 	self.hurtsList = UnitWeaponLayerList(self.name)
 	self.sightRange = utable.losRadius
-	local nodeSize = self.ai.raidhandler:GetPathNodeSize()
+
+	-- for pathfinding
+	self.graph = self.ai.maphandler:GetPathGraph(self.mtype)
+	self.validFunc = self.ai.raidhandler:GetPathValidFunc(self.name)
+	self.modifierFunc = self.ai.raidhandler:GetPathModifierFunc(self.name)
+	local nodeSize = self.graph.positionUnitsPerNodeUnits
 	self.nearDistance = nodeSize * 0.1 -- move this far away from path nodes
 	self.nearAttackDistance = nodeSize * 0.3 -- move this far away from targets before arriving
 	self.attackDistance = nodeSize * 0.6 -- move this far away from targets once arrived
@@ -49,10 +54,6 @@ function RaiderBehaviour:Init()
 	self.lastGetTargetFrame = 0
 	self.lastMovementFrame = 0
 	self.lastPathCheckFrame = 0
-
-	-- for pathfinding
-	-- self.graph = self.ai.maphandler:GetPathGraph(self.mtype)
-	self.validFunc = self.ai.raidhandler:GetPathValidFunc(self.name)
 end
 
 function RaiderBehaviour:OwnerDead()
@@ -263,7 +264,7 @@ function RaiderBehaviour:BeginPath(position)
 	self:EchoDebug("getting new path")
 	local upos = self.unit:Internal():GetPosition()
 	self.graph = self.graph or self.ai.maphandler:GetPathGraph(self.mtype)
-	self.pathfinder = self.graph:PathfinderPosPos(upos, position, nil, self.validFunc)
+	self.pathfinder = self.graph:PathfinderPosPos(upos, position, nil, self.validFunc, nil, self.modifierFunc)
 	self:FindPath() -- try once
 end
 

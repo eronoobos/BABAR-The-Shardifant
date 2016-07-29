@@ -169,13 +169,14 @@ PathfinderAStar = class(function(a)
 	--
 end)
 
-function PathfinderAStar:Init(start, goal, nodes, isNeighborNode, isValidNode, distFunc, graph)
+function PathfinderAStar:Init(start, goal, nodes, isNeighborNode, isValidNode, distFunc, modifierFunc, graph)
 	self.start = start
 	self.goal = goal
 	self.nodes = nodes
 	self.isNeighborNode = isNeighborNode or is_neighbor_node
 	self.isValidNode = isValidNode or is_valid_node
 	self.distFunc = distFunc or dist
+	self.modifierFunc = modifierFunc or function() return 0 end
 	self.graph = graph
 	self.closedset = {}
 	self.openset = { self.start }
@@ -195,6 +196,7 @@ function PathfinderAStar:Find(iterations)
 	local isValidNode = self.isValidNode
 	local distFunc = self.distFunc
 	local distCache = self.graph.distCache
+	local modifierFunc = self.modifierFunc
 	-- local standardNeighborDist = self.graph.nodeDist
 	while #self.openset > 0 and it <= iterations do
 		local current = lowest_f_score(self.openset, self.f_score)
@@ -211,11 +213,12 @@ function PathfinderAStar:Find(iterations)
 		for i = 1, #neighbors do
 			local neighbor = neighbors[i]
 			if not_in(self.closedset, neighbor) then
-				local tentative_g_score = self.g_score[current] + dist_between(current, neighbor, distFunc, distCache)
+				local distMod = modifierFunc(neighbor)
+				local tentative_g_score = self.g_score[current] + dist_between(current, neighbor, distFunc, distCache) + distMod
 				if not_in(self.openset, neighbor) or tentative_g_score < self.g_score[neighbor] then 
 					self.came_from[neighbor] = current
 					self.g_score[neighbor] = tentative_g_score
-					self.f_score[neighbor] = self.g_score[neighbor] + dist_between(neighbor, self.goal, distFunc, distCache)
+					self.f_score[neighbor] = self.g_score[neighbor] + dist_between(neighbor, self.goal, distFunc, distCache) + distMod
 					if not_in(self.openset, neighbor) then
 						self.openset[#self.openset+1] = neighbor
 					end
@@ -255,11 +258,12 @@ GraphAStar = class(function(a)
 	--
 end)
 
-function GraphAStar:Init(nodes, isNeighborNode, isValidNode, distFunc)
+function GraphAStar:Init(nodes, isNeighborNode, isValidNode, distFunc, modifierFunc)
 	self.nodes = nodes
 	self.isNeighborNode = isNeighborNode or is_neighbor_node
 	self.isValidNode = isValidNode or is_valid_node
 	self.distFunc = distFunc or dist
+	self.modifierFunc = modifierFunc or function() return 0 end
 	self.distCache = {}
 end
 
@@ -356,24 +360,24 @@ function GraphAStar:NearestNodePosition(position, isValidNode, distFunc, minDist
 	return self:NearestNode(position.x, position.z, isValidNode, distFunc, minDist, maxDist, true)
 end
 
-function GraphAStar:Pathfinder(start, goal, isNeighborNode, isValidNode, distFunc)
+function GraphAStar:Pathfinder(start, goal, isNeighborNode, isValidNode, distFunc, modifierFunc)
 	local pathfinder = PathfinderAStar()
-	pathfinder:Init(start, goal, self.nodes, isNeighborNode or self.isNeighborNode, isValidNode or self.isValidNode, distFunc or self.distFunc, self)
+	pathfinder:Init(start, goal, self.nodes, isNeighborNode or self.isNeighborNode, isValidNode or self.isValidNode, distFunc or self.distFunc, modifierFunc or self.modifierFunc, self)
 	return pathfinder
 end
 
-function GraphAStar:PathfinderXYXY(x1, y1, x2, y2, isNeighborNode, isValidNode, distFunc)
+function GraphAStar:PathfinderXYXY(x1, y1, x2, y2, isNeighborNode, isValidNode, distFunc, modifierFunc)
 	local start = self:NodeHere(x1, y1, isValidNode) or self:NearestNode(x1, y1, isValidNode, distFunc)
 	if not start then return end
 	local goal = self:NodeHere(x2, y2, isValidNode) or self:NearestNode(x2, y2, isValidNode, distFunc)
 	if not goal then return end
-	return self:Pathfinder(start, goal, isNeighborNode, isValidNode, distFunc)
+	return self:Pathfinder(start, goal, isNeighborNode, isValidNode, distFunc, modifierFunc)
 end
 
-function GraphAStar:PathfinderPosPos(pos1, pos2, isNeighborNode, isValidNode, distFunc)
+function GraphAStar:PathfinderPosPos(pos1, pos2, isNeighborNode, isValidNode, distFunc, modifierFunc)
 	local start = self:NodeHerePosition(pos1, isValidNode) or self:NearestNodePosition(pos1, isValidNode, distFunc)
 	if not start then return end
 	local goal = self:NodeHerePosition(pos2, isValidNode) or self:NearestNodePosition(pos2, isValidNode, distFunc)
 	if not goal then return end
-	return self:Pathfinder(start, goal, isNeighborNode, isValidNode, distFunc)
+	return self:Pathfinder(start, goal, isNeighborNode, isValidNode, distFunc, modifierFunc)
 end

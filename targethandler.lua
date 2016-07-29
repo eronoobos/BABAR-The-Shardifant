@@ -1184,10 +1184,10 @@ function TargetHandler:IsBombardPosition(position, unitName)
 	end
 end
 
-function TargetHandler:IsSafePosition(position, unit, threshold)
+function TargetHandler:ThreatHere(position, unit)
 	self:UpdateMap()
 	if unit == nil then
-		game:SendToConsole("nil unit given to IsSafePosition")
+		game:SendToConsole("nil unit given to ThreatHere")
 		return
 	end
 	local uname
@@ -1197,12 +1197,21 @@ function TargetHandler:IsSafePosition(position, unit, threshold)
 		uname = unit:Name()
 	end
 	if uname == nil then
-		game:SendToConsole("nil unit name give nto IsSafePosition")
+		game:SendToConsole("nil unit name give nto ThreatHere")
 		return
 	end
 	local cell = self:GetCellHere(position)
-	if cell == nil then return 0, 0 end
+	if cell == nil then return 0, nil, uname end
 	local value, threat = CellValueThreat(uname, cell)
+	return threat, cell, uname
+end
+
+
+function TargetHandler:IsSafePosition(position, unit, threshold)
+	local threat, cell, uname = self:ThreatHere(position, unit)
+	if not cell then
+		return true
+	end
 	if threshold then
 		return threat < unitTable[uname].metalCost * threshold, cell.response
 	else

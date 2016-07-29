@@ -12,12 +12,8 @@ local mCeil = math.ceil
 
 -- these local variables are the same for all AI teams, in fact having them the same saves memory and processing
 
-local nodeSize = 256
-local halfNodeSize = nodeSize / 2
-local testSize = nodeSize / 6
-
-local pathGraphs = {}
 local pathValidFuncs = {}
+local pathModifierFuncs = {}
 
 function RaidHandler:Init()
 	self.DebugEnabled = false
@@ -103,6 +99,13 @@ function RaidHandler:GetPathValidFunc(unitName)
 	return valid_node_func
 end
 
-function RaidHandler:GetPathNodeSize()
-	return nodeSize
+function RaidHandler:GetPathModifierFunc(unitName)
+	if pathModifierFuncs[unitName] then
+		return pathModifierFuncs[unitName]
+	end
+	local modifier_node_func = function ( node )
+		return ai.targethandler:ThreatHere(node.position, unitName) / unitTable[unitName].metalCost
+	end
+	pathModifierFuncs[unitName] = modifier_node_func
+	return modifier_node_func
 end
