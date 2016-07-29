@@ -1423,33 +1423,43 @@ function MapHandler:GetPathGraph(mtype)
 	for cx = 1, mobilityGridMaxX, cellsPerNodeSide do
 		local x = ((cx * mobilityGridSize) - mobilityGridSizeHalf) + nodeSizeHalf
 		for cz = 1, mobilityGridMaxZ, cellsPerNodeSide do
-			local areCellsHere = false
 			local cellsComplete = true
-			local lastGoodCell
+			local goodCells = {}
 			for ccx = cx, cx+cellsPerNodeSide-1 do
 				for ccz = cz, cz+cellsPerNodeSide-1 do
 					if myTopology[ccx] and myTopology[ccx][ccz] then
-						areCellsHere = true
-						lastGoodCell = {ccx, ccz}
+						goodCells[#goodCells+1] = {ccx, ccz}
 					else
 						cellsComplete = false
 					end
 				end
 			end
-			if areCellsHere then
-				local z
-				if cellsComplete then
-					z = ((cz * mobilityGridSize) - mobilityGridSizeHalf) + nodeSizeHalf
-				else
-					x = (lastGoodCell[1] * mobilityGridSize) - mobilityGridSizeHalf
-					z = (lastGoodCell[2] * mobilityGridSize) - mobilityGridSizeHalf
-				end
-				-- local nodeX = mCeil(cx / cellsPerNodeSide)
-				-- local nodeY = mCeil(cz / cellsPerNodeSide)
+			if #goodCells > 0 then
+				local z = ((cz * mobilityGridSize) - mobilityGridSizeHalf) + nodeSizeHalf
 				local position = api.Position()
 				position.x = x
 				position.z = z
 				position.y = 0
+				if not cellsComplete then
+					local bestDist, bestX, bestZ
+					for i = 1, #goodCells do
+						local good = goodCells[i]
+						local gx = (good[1] * mobilityGridSize) - mobilityGridSizeHalf
+						local gz = (good[2] * mobilityGridSize) - mobilityGridSizeHalf
+						local dx = x - gx
+						local dz = z - gz
+						local dist = dx*dx + dz*dz
+						if not bestDist or dist < bestDist then
+							bestDist = dist
+							bestX = gx
+							bestZ = gz
+						end
+					end
+					position.x = bestX
+					position.z = bestZ
+				end
+				-- local nodeX = mCeil(cx / cellsPerNodeSide)
+				-- local nodeY = mCeil(cz / cellsPerNodeSide)
 				if ShardSpringLua then
 					position.y = Spring.GetGroundHeight(x, z)
 				end

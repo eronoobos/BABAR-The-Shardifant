@@ -194,7 +194,7 @@ function PathfinderAStar:Find(iterations)
 	local isValidNode = self.isValidNode
 	local distFunc = self.distFunc
 	local distCache = self.graph.distCache
-	local standardNeighborDist = self.graph.nodeDist
+	-- local standardNeighborDist = self.graph.nodeDist
 	while #self.openset > 0 and it <= iterations do
 		local current = lowest_f_score(self.openset, self.f_score)
 		if current == self.goal then
@@ -209,7 +209,7 @@ function PathfinderAStar:Find(iterations)
 		for i = 1, #neighbors do
 			local neighbor = neighbors[i]
 			if not_in(self.closedset, neighbor) then
-				local tentative_g_score = self.g_score[current] + (standardNeighborDist or dist_between(current, neighbor, distFunc, distCache))
+				local tentative_g_score = self.g_score[current] + dist_between(current, neighbor, distFunc, distCache)
 				if not_in(self.openset, neighbor) or tentative_g_score < self.g_score[neighbor] then 
 					self.came_from[neighbor] = current
 					self.g_score[neighbor] = tentative_g_score
@@ -247,7 +247,7 @@ end
 function GraphAStar:SetQuadGridSize(gridSize)
 	local nodeDist = 0.1 + (gridSize ^ 2)
 	self.isNeighborNode = function ( node, neighbor ) 
-		if self.distFunc( node.x, node.y, neighbor.x, neighbor.y) < nodeDist then
+		if dist_between(node, neighbor, self.distFunc, self.distCache) < nodeDist then
 			return true
 		end
 	end
@@ -261,7 +261,7 @@ end
 function GraphAStar:SetOctoGridSize(gridSize)
 	local nodeDist = 0.1 + (2 * (gridSize^2))
 	self.isNeighborNode = function ( node, neighbor ) 
-		if self.distFunc( node.x, node.y, neighbor.x, neighbor.y) < nodeDist then
+		if dist_between(node, neighbor, self.distFunc, self.distCache) < nodeDist then
 			return true
 		end
 	end
