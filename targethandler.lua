@@ -1035,7 +1035,6 @@ function TargetHandler:GetBestBomberTarget(torpedo)
 end
 
 function TargetHandler:GetBestReclaimCell(representative, lookForEnergy)
-	if not representative then return end
 	self:UpdateMap()
 	local rpos = representative:GetPosition()
 	local rname = representative:Name()
