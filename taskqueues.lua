@@ -447,7 +447,7 @@ local anyLvl1AirPlant = {
 local anyLvl1VehPlant = {
 	ScoutVeh,
 	ConVehicle,
-	Lvl1VehRaider,
+	RaidersChoiche,
 	Lvl1VehBattle,
 	Lvl1AAVeh,
 	Lvl1VehArty,
