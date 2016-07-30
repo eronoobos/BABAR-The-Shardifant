@@ -201,7 +201,7 @@ function BuildWithLimitedNumber(tmpUnitName, minNumber)
 	end
 end
 
-function GroundDefenseIfNeeded(unitName, builder)
+function GroundDefenseIfNeeded(unitName)
 	if not ai.needGroundDefense then
 		return DummyUnitName
 	else
