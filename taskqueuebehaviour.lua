@@ -36,10 +36,10 @@ local function MaxBuildDist(unitName, speed)
 	return speedDist
 end
 
-function AmpOrGroundWeapon(MyTB)
+function AmpOrGroundWeapon(factory)
 	local doAmp = false
 	if ai.enemyBasePosition then
-		if ai.maphandler:MobilityNetworkHere('veh', MyTB.position) ~= ai.maphandler:MobilityNetworkHere('veh', ai.enemyBasePosition) and ai.maphandler:MobilityNetworkHere('amp', MyTB.position) == ai.maphandler:MobilityNetworkHere('amp', ai.enemyBasePosition) then
+		if ai.maphandler:MobilityNetworkHere('veh', factory.position) ~= ai.maphandler:MobilityNetworkHere('veh', ai.enemyBasePosition) and ai.maphandler:MobilityNetworkHere('amp', factory.position) == ai.maphandler:MobilityNetworkHere('amp', ai.enemyBasePosition) then
 			EchoDebug('canbuild amphibious')
 			doAmp = true
 		end
@@ -559,7 +559,7 @@ function TaskQueueBehaviour:Update()
 	end
 	local f = game:Frame()
 	if self.isFactory and f % 1000 == 0 and (factoryMobilities[self.name][1] == 'bot' or factoryMobilities[self.name][1] == 'veh') then
-		self.AmpOrGroundWeapon = AmpOrGroundWeapon(self.position)
+		self.AmpOrGroundWeapon = AmpOrGroundWeapon(self)
 	end
 		
 	-- watchdog check
