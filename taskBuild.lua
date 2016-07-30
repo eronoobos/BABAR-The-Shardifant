@@ -23,9 +23,6 @@ function BuildLLT(tskqbhvr)
 end
 
 function BuildSpecialLT(tskqbhvr)
-	if tskqbhvr.unit == nil then
-		return DummyUnitName
-	end
 	local unitName = DummyUnitName
 	if IsAANeeded() then
 		-- pop-up turrets are protected against bombs
@@ -46,9 +43,6 @@ function BuildSpecialLT(tskqbhvr)
 end
 
 function BuildSpecialLTOnly(tskqbhvr)
-	if tskqbhvr.unit == nil then
-		return DummyUnitName
-	end
 	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = "hllt"
@@ -60,9 +54,6 @@ function BuildSpecialLTOnly(tskqbhvr)
 end
 
 function BuildHLT(tskqbhvr)
-	if tskqbhvr.unit == nil then
-		return DummyUnitName
-	end
 	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = "corhlt"
@@ -74,9 +65,6 @@ function BuildHLT(tskqbhvr)
 end
 
 function BuildDepthCharge(tskqbhvr)
-	if tskqbhvr.unit == nil then
-		return DummyUnitName
-	end
 	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = "cordl"
@@ -87,9 +75,6 @@ function BuildDepthCharge(tskqbhvr)
 end
 
 function BuildFloatHLT(tskqbhvr)
-	if tskqbhvr.unit == nil then
-		return DummyUnitName
-	end
 	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = "corfhlt"
@@ -103,9 +88,6 @@ end
 
 --t2 ground
 function BuildLvl2PopUp(tskqbhvr)
-	if tskqbhvr.unit == nil then
-		return DummyUnitName
-	end
 	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = "corvipe"
@@ -117,9 +99,6 @@ function BuildLvl2PopUp(tskqbhvr)
 end
 
 function BuildTachyon(tskqbhvr)
-	if tskqbhvr.unit == nil then
-		return DummyUnitName
-	end
 	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = "cordoom"
@@ -131,9 +110,6 @@ function BuildTachyon(tskqbhvr)
 end
 
 function BuildLightTorpedo(tskqbhvr)
-	if tskqbhvr.unit == nil then
-		return DummyUnitName
-	end
 	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = "cortl"
@@ -144,9 +120,6 @@ function BuildLightTorpedo(tskqbhvr)
 end
 
 function BuildPopTorpedo(tskqbhvr)
-	if tskqbhvr.unit == nil then
-		return DummyUnitName
-	end
 	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = "corptl"
@@ -157,9 +130,6 @@ function BuildPopTorpedo(tskqbhvr)
 end
 
 function BuildHeavyTorpedo(tskqbhvr)
-	if tskqbhvr.unit == nil then
-		return DummyUnitName
-	end
 	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = "coratl"
@@ -174,9 +144,6 @@ end
 -- build AA in area only if there's not enough of it there already
 --t1
 function BuildLightAA(tskqbhvr)
-	if tskqbhvr.unit == nil then
-		return DummyUnitName
-	end
 	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = BuildAAIfNeeded("corrl")
@@ -187,9 +154,6 @@ function BuildLightAA(tskqbhvr)
 end
 
 function BuildFloatLightAA(tskqbhvr)
-	if tskqbhvr.unit == nil then
-		return DummyUnitName
-	end
 	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = BuildAAIfNeeded("corfrt")
@@ -200,9 +164,6 @@ function BuildFloatLightAA(tskqbhvr)
 end
 
 function BuildMediumAA(tskqbhvr)
-	if tskqbhvr.unit == nil then
-		return DummyUnitName
-	end
 	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = BuildAAIfNeeded("madsam")
@@ -213,9 +174,6 @@ function BuildMediumAA(tskqbhvr)
 end
 
 function BuildHeavyishAA(tskqbhvr)
-	if tskqbhvr.unit == nil then
-		return DummyUnitName
-	end
 	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = BuildAAIfNeeded("corerad")
@@ -228,9 +186,6 @@ end
 --t2
 
 function BuildHeavyAA(tskqbhvr)
-	if tskqbhvr.unit == nil then
-		return DummyUnitName
-	end
 	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = BuildAAIfNeeded("corflak")
@@ -241,9 +196,6 @@ function BuildHeavyAA(tskqbhvr)
 end
 
 function BuildFloatHeavyAA(tskqbhvr)
-	if tskqbhvr.unit == nil then
-		return DummyUnitName
-	end
 	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = BuildAAIfNeeded("corenaa")
@@ -254,9 +206,6 @@ function BuildFloatHeavyAA(tskqbhvr)
 end
 
 function BuildExtraHeavyAA(tskqbhvr)
-	if tskqbhvr.unit == nil then
-		return DummyUnitName
-	end
 	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = BuildAAIfNeeded("screamer")
