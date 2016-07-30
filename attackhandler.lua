@@ -35,6 +35,10 @@ function AttackHandler:Update()
 		-- actually retargets each squad every 15 seconds
 		self:ReTarget()
 	end
+	for is = #self.squads, 1, -1 do
+		local squad = self.squads[is]
+		self:SquadPathfind(squad, is)
+	end
 end
 
 function AttackHandler:DraftSquads()
@@ -56,12 +60,13 @@ function AttackHandler:DraftSquads()
 	for nothing, mtype in pairs(needtarget) do
 		-- prepare a squad
 		local squad = { members = {}, notarget = 0, congregating = false, mtype = mtype, lastReTarget = f, lastMovementFrame = 0 }
-		local representative
+		local representative, representativeBehaviour
 		self:EchoDebug(mtype, #self.recruits[mtype], "recruits")
 		for _, attkbehaviour in pairs(self.recruits[mtype]) do
 			if attkbehaviour ~= nil then
 				if attkbehaviour.unit ~= nil then
-					if representative == nil then representative = attkbehaviour.unit:Internal() end
+					representativeBehaviour = representativeBehaviour or attkbehaviour
+					representative = representative or attkbehaviour.unit:Internal()
 					table.insert(squad.members, attkbehaviour)
 				end
 			end
@@ -78,6 +83,7 @@ function AttackHandler:DraftSquads()
 				squad.buildingIDs = bestCell.buildingIDs
 				self.attackSent[mtype] = f
 				table.insert(self.squads, squad)
+				self:SquadNewPath(squad, representativeBehaviour)
 				-- clear recruits
 				self.count[mtype] = 0
 				self.recruits[mtype] = {}
@@ -107,10 +113,12 @@ function AttackHandler:SquadReTarget(squad, squadIndex)
 	if not squad.idle and f < squad.reachedTarget + 900 then
 		return
 	end
+	local representativeBehaviour
 	local representative
 	for iu, member in pairs(squad.members) do
 		if member ~= nil then
 			if member.unit ~= nil then
+				representativeBehaviour = member
 				representative = member.unit:Internal()
 				if representative ~= nil then
 					break
@@ -143,7 +151,54 @@ function AttackHandler:SquadReTarget(squad, squadIndex)
 			squad.buildingIDs = bestCell.buildingIDs
 			squad.notarget = 0
 			squad.reachedTarget = nil
+			self:SquadNewPath(squad, representativeBehaviour)
 		end
+	end
+end
+
+function AttackHandler:SquadNewPath(squad, representativeBehaviour)
+	if not squad.target then return end
+	representativeBehaviour = representativeBehaviour or squad.members[#squad.members]
+	local representative = representativeBehaviour.unit:Internal()
+	if self.DebugEnabled then
+		self.map:EraseLine(nil, nil, {1,1,0}, squad.mtype, nil, 8)
+	end
+	squad.path = nil
+	squad.pathStep = nil
+	squad.targetNode = nil
+	local startPos = self.ai.frontPosition[representativeBehaviour.hits] or representative:GetPosition()
+	squad.modifierFunc = squad.modifierFunc or self.ai.targethandler:GetPathModifierFunc(representative:Name())
+	if ShardSpringLua then
+		local startHeight = Spring.GetGroundHeight(startPos.x, startPos.z)
+		squad.modifierFunc = function(node)
+			local hMod = (Spring.GetGroundHeight(node.position.x, node.position.z) - startHeight) / 300
+			return squad.modifierFunc(node) + hMod
+		end
+	end
+	squad.graph = squad.graph or self.ai.maphandler:GetPathGraph(squad.mtype)
+	squad.pathfinder = squad.graph:PathfinderPosPos(representative:GetPosition(), squad.target, nil, nil, nil, self.modifierFunc)
+end
+
+function AttackHandler:SquadPathfind(squad, squadIndex)
+	if not squad.pathfinder then return end
+	local path, remaining, maxInvalid = squad.pathfinder:Find(2)
+	if path then
+		path = SimplifyPath(path)
+		squad.path = path
+		squad.pathStep = 1
+		squad.targetNode = squad.path[1]
+		if self.DebugEnabled then
+			self.map:EraseLine(nil, nil, {1,1,0}, squad.mtype, nil, 8)
+			for i = 2, #path do
+				local pos1 = path[i-1].position
+				local pos2 = path[i].position
+				local arrow = i == #path
+				self.map:DrawLine(pos1, pos2, {1,1,0}, squad.mtype, arrow, 8)
+			end
+		end
+	elseif remaining == 0 then
+		squad.pathfinder = nil
+		self:SquadReTarget(squad, squadIndex)
 	end
 end
 

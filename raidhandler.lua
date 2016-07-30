@@ -98,14 +98,3 @@ function RaidHandler:GetPathValidFunc(unitName)
 	pathValidFuncs[unitName] = valid_node_func
 	return valid_node_func
 end
-
-function RaidHandler:GetPathModifierFunc(unitName)
-	if pathModifierFuncs[unitName] then
-		return pathModifierFuncs[unitName]
-	end
-	local modifier_node_func = function ( node )
-		return ai.targethandler:ThreatHere(node.position, unitName) / unitTable[unitName].metalCost
-	end
-	pathModifierFuncs[unitName] = modifier_node_func
-	return modifier_node_func
-end

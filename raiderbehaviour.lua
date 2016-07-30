@@ -41,7 +41,7 @@ function RaiderBehaviour:Init()
 	-- for pathfinding
 	self.graph = self.ai.maphandler:GetPathGraph(self.mtype)
 	self.validFunc = self.ai.raidhandler:GetPathValidFunc(self.name)
-	self.modifierFunc = self.ai.raidhandler:GetPathModifierFunc(self.name)
+	self.modifierFunc = self.ai.targethandler:GetPathModifierFunc(self.name)
 	local nodeSize = self.graph.positionUnitsPerNodeUnits
 	self.nearDistance = nodeSize * 0.1 -- move this far away from path nodes
 	self.nearAttackDistance = nodeSize * 0.3 -- move this far away from targets before arriving

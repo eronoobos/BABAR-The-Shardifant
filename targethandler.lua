@@ -60,6 +60,8 @@ local feintRepeatMod = 25
 
 local unitValue = {}
 
+local pathModifierFuncs = {}
+
 local function NewCell(px, pz)
 	local values = {
 	ground = {ground = 0, air = 0, submerged = 0, value = 0},
@@ -1217,6 +1219,17 @@ function TargetHandler:IsSafePosition(position, unit, threshold)
 	else
 		return threat == 0, cell.response
 	end
+end
+
+function TargetHandler:GetPathModifierFunc(unitName)
+	if pathModifierFuncs[unitName] then
+		return pathModifierFuncs[unitName]
+	end
+	local modifier_node_func = function ( node )
+		return self:ThreatHere(node.position, unitName) / unitTable[unitName].metalCost
+	end
+	pathModifierFuncs[unitName] = modifier_node_func
+	return modifier_node_func
 end
 
 -- for on-the-fly enemy evasion
