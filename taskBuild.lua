@@ -19,7 +19,7 @@ function BuildLLT(tskqbhvr)
 			unitName = "armllt"
 		end
 		local unit = tskqbhvr.unit:Internal()
-	return GroundDefenseIfNeeded(unitName, unit)
+	return GroundDefenseIfNeeded(unitName)
 end
 
 function BuildSpecialLT(tskqbhvr)
@@ -39,7 +39,7 @@ function BuildSpecialLT(tskqbhvr)
 		end
 	end
 	local unit = tskqbhvr.unit:Internal()
-	return GroundDefenseIfNeeded(unitName, unit)
+	return GroundDefenseIfNeeded(unitName)
 end
 
 function BuildSpecialLTOnly(tskqbhvr)
@@ -50,7 +50,7 @@ function BuildSpecialLTOnly(tskqbhvr)
 		unitName = "tawf001"
 	end
 	local unit = tskqbhvr.unit:Internal()
-	return GroundDefenseIfNeeded(unitName, unit)
+	return GroundDefenseIfNeeded(unitName)
 end
 
 function BuildHLT(tskqbhvr)
@@ -61,7 +61,7 @@ function BuildHLT(tskqbhvr)
 		unitName = "armhlt"
 	end
 	local unit = tskqbhvr.unit:Internal()
-	return GroundDefenseIfNeeded(unitName, unit)
+	return GroundDefenseIfNeeded(unitName)
 end
 
 function BuildDepthCharge(tskqbhvr)
@@ -82,7 +82,7 @@ function BuildFloatHLT(tskqbhvr)
 		unitName = "armfhlt"
 	end
 	local unit = tskqbhvr.unit:Internal()
-	--return GroundDefenseIfNeeded(unitName, unit)
+	--return GroundDefenseIfNeeded(unitName)
 	return unitName
 end
 
@@ -95,7 +95,7 @@ function BuildLvl2PopUp(tskqbhvr)
 		unitName = "armpb"
 	end
 	local unit = tskqbhvr.unit:Internal()
-	return GroundDefenseIfNeeded(unitName, unit)
+	return GroundDefenseIfNeeded(unitName)
 end
 
 function BuildTachyon(tskqbhvr)
@@ -106,7 +106,7 @@ function BuildTachyon(tskqbhvr)
 		unitName = "armanni"
 	end
 	local unit = tskqbhvr.unit:Internal()
-	return GroundDefenseIfNeeded(unitName, unit)
+	return GroundDefenseIfNeeded(unitName)
 end
 
 function BuildLightTorpedo(tskqbhvr)
