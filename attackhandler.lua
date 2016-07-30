@@ -169,14 +169,15 @@ function AttackHandler:SquadNewPath(squad, representativeBehaviour)
 	local startPos = self.ai.frontPosition[representativeBehaviour.hits] or representative:GetPosition()
 	squad.modifierFunc = squad.modifierFunc or self.ai.targethandler:GetPathModifierFunc(representative:Name())
 	if ShardSpringLua then
+		local targetModFunc = self.ai.targethandler:GetPathModifierFunc(representative:Name())
 		local startHeight = Spring.GetGroundHeight(startPos.x, startPos.z)
 		squad.modifierFunc = function(node)
-			local hMod = (Spring.GetGroundHeight(node.position.x, node.position.z) - startHeight) / 300
-			return squad.modifierFunc(node) + hMod
+			local hMod = (Spring.GetGroundHeight(node.position.x, node.position.z) - startHeight) / 100
+			return targetModFunc(node) + hMod
 		end
 	end
 	squad.graph = squad.graph or self.ai.maphandler:GetPathGraph(squad.mtype)
-	squad.pathfinder = squad.graph:PathfinderPosPos(representative:GetPosition(), squad.target, nil, nil, nil, self.modifierFunc)
+	squad.pathfinder = squad.graph:PathfinderPosPos(representative:GetPosition(), squad.target, nil, nil, nil, squad.modifierFunc)
 end
 
 function AttackHandler:SquadPathfind(squad, squadIndex)
