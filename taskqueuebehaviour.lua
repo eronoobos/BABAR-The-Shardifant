@@ -558,7 +558,7 @@ function TaskQueueBehaviour:Update()
 		return
 	end
 	local f = game:Frame()
-	if self.isFactory and f % 1000 == 0 and factoryMobilities[self.name][1] == 'bot' or factoryMobilities[self.name][1] == 'veh' then
+	if self.isFactory and f % 1000 == 0 and (factoryMobilities[self.name][1] == 'bot' or factoryMobilities[self.name][1] == 'veh') then
 		self.AmpOrGroundWeapon = AmpOrGroundWeapon(self.position)
 	end
 		
