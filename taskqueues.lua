@@ -331,7 +331,7 @@ local anyCommander = {
 	CommanderEconomy,
 	BuildLLT,
 	BuildRadar,
-	BuildLightAA,
+	CommanderAA,
 	BuildPopTorpedo,
 	BuildSonar,
 }

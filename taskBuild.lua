@@ -143,6 +143,7 @@ end
 
 -- build AA in area only if there's not enough of it there already
 --t1
+
 function BuildLightAA(tskqbhvr)
 	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
@@ -431,6 +432,20 @@ function BuildEmpLauncer()
 		unitName = DummyUnitName
 	else
 		unitName = "armEmp"
+	end
+	return unitName
+end
+
+--Function of function
+
+local function CommanderAA(tskqbhvr)
+	local unitName = DummyUnitName
+	if IsAANeeded() then
+		if ai.maphandler:IsUnderWater(tskqbhvr.unit:Internal():GetPosition()) then
+			unitName = BuildFloatLightAA(tskqbhvr)
+		else
+			unitName = BuildLightAA(tskqbhvr)
+		end
 	end
 	return unitName
 end
