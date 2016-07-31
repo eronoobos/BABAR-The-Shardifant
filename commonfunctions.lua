@@ -110,6 +110,10 @@ function AngleAtoB(x1, z1, x2, z2)
 	return atan2(-dz, dx)
 end
 
+function AnglePosPos(pos1, pos2)
+	return AngleAtoB(pos1.x, pos1.z, pos2.x, pos2.z)
+end
+
 function CheckRect(rect)
 	local new = {}
 	if rect.x1 > rect.x2 then

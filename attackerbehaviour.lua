@@ -61,6 +61,49 @@ end
 
 function AttackerBehaviour:OwnerIdle()
 	self.idle = true
+	self.ai.attackhandler:MemberIdle(self)
+end
+
+function AttackerBehaviour:Priority()
+	if not self.attacking then
+		return 0
+	else
+		return 100
+	end
+end
+
+function AttackerBehaviour:Activate()
+	self.active = true
+	self:SetMoveState()
+	if self.target then
+		if self.congregating then
+			self.unit:Internal():Move(self.target)
+		else
+			self.unit:Internal():Move(self.target)
+		end
+	end
+end
+
+function AttackerBehaviour:Deactivate()
+	self.active = false
+end
+
+function AttackerBehaviour:Update()
+	if self.damaged then
+		local f = game:Frame()
+		if f > self.damaged + 450 then
+			self.damaged = nil
+		end
+	end
+end
+
+function AttackerBehaviour:Advance(pos, perpendicularAttackAngle)
+	self.idle = false
+	self.attacking = true
+	self.target = RandomAway(pos, self.formationDist, nil, perpendicularAttackAngle)
+	if self.active then
+		self.unit:Internal():Move(self.target)
+	end
 end
 
 function AttackerBehaviour:Attack(pos, realClose, perpendicularAttackAngle, maxOutFromMid)
@@ -141,40 +184,8 @@ function AttackerBehaviour:Free()
 	self.congregating = false
 	self.target = nil
 	self.idle = nil
+	self.squad = nil
 	self.unit:ElectBehaviour()
-end
-
-function AttackerBehaviour:Priority()
-	if not self.attacking then
-		return 0
-	else
-		return 100
-	end
-end
-
-function AttackerBehaviour:Activate()
-	self.active = true
-	self:SetMoveState()
-	if self.target then
-		if self.congregating then
-			self.unit:Internal():Move(self.target)
-		else
-			self.unit:Internal():Move(self.target)
-		end
-	end
-end
-
-function AttackerBehaviour:Deactivate()
-	self.active = false
-end
-
-function AttackerBehaviour:Update()
-	if self.damaged then
-		local f = game:Frame()
-		if f > self.damaged + 450 then
-			self.damaged = nil
-		end
-	end
 end
 
 -- this will issue the correct move state to all units
