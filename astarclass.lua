@@ -213,12 +213,11 @@ function PathfinderAStar:Find(iterations)
 		for i = 1, #neighbors do
 			local neighbor = neighbors[i]
 			if not_in(self.closedset, neighbor) then
-				local distMod = modifierFunc(neighbor)
-				local tentative_g_score = self.g_score[current] + distMod -- dist_between(current, neighbor, distFunc, distCache)
+				local tentative_g_score = self.g_score[current] + modifierFunc(neighbor) -- dist_between(current, neighbor, distFunc, distCache)
 				if not_in(self.openset, neighbor) or tentative_g_score < self.g_score[neighbor] then 
 					self.came_from[neighbor] = current
 					self.g_score[neighbor] = tentative_g_score
-					self.f_score[neighbor] = self.g_score[neighbor] + dist_between(neighbor, self.goal, distFunc, distCache) + distMod
+					self.f_score[neighbor] = self.g_score[neighbor] + dist_between(neighbor, self.goal, distFunc, distCache)
 					if not_in(self.openset, neighbor) then
 						self.openset[#self.openset+1] = neighbor
 					end

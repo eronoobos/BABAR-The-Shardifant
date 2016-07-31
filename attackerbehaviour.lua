@@ -61,7 +61,13 @@ end
 function AttackerBehaviour:OwnerIdle()
 	self.idle = true
 	self.timeout = nil
-	self.ai.attackhandler:MemberIdle(self)
+	if self.active then
+		self.ai.attackhandler:MemberIdle(self)
+	end
+end
+
+function AttackerBehaviour:OwnerMoveFailed()
+	self:OwnerIdle()
 end
 
 function AttackerBehaviour:Priority()
