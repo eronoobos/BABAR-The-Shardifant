@@ -866,8 +866,9 @@ function TargetHandler:RaidableCell(representative, position)
 	end
 end
 
-function TargetHandler:GetBestAttackCell(representative)
+function TargetHandler:GetBestAttackCell(representative, position)
 	if not representative then return end
+	position = position or representative:GetPosition()
 	self:UpdateMap()
 	local bestValueCell
 	local bestValue = -999999
@@ -876,7 +877,6 @@ function TargetHandler:GetBestAttackCell(representative)
 	local bestThreatCell
 	local bestThreat = 0
 	local name = representative:Name()
-	local rpos = representative:GetPosition()
 	local longrange = unitTable[name].groundRange > 1000
 	local mtype = unitTable[name].mtype
 	if mtype ~= "sub" and longrange then longrange = true end
@@ -887,7 +887,7 @@ function TargetHandler:GetBestAttackCell(representative)
 		if cell.pos then
 			if self.ai.maphandler:UnitCanGoHere(representative, cell.pos) or longrange then
 				local value, threat = CellValueThreat(name, cell)
-				local dist = Distance(rpos, cell.pos)
+				local dist = Distance(position, cell.pos)
 				if dist > highestDist then highestDist = dist end
 				if dist < lowestDist then lowestDist = dist end
 				table.insert(possibilities, { cell = cell, value = value, threat = threat, dist = dist })

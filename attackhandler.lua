@@ -130,30 +130,46 @@ function AttackHandler:SquadReTarget(squad, squadIndex)
 		self:IDsWeAreNotAttacking(squad.buildingIDs)
 	end
 	if representative == nil then
-		self.attackSent[squad.mtype] = 0
-		table.remove(self.squads, squadIndex)
+		self:SquadDisband(squad)
 	else
 		-- find a target
-		local bestCell = self.ai.targethandler:GetBestAttackCell(representative)
-		if bestCell == nil then
-			-- squad.notarget = squad.notarget + 1
-			-- if squad.target == nil or squad.notarget > 3 then
-				-- if no target found initially, or no target for the last three targetting checks, disassemble and recruit the squad
-				for iu, member in pairs(squad.members) do
-					self:AddRecruit(member)
-				end
-				self.attackSent[squad.mtype] = 0
-				table.remove(self.squads, squadIndex)
-			-- end
-		else
+		local position
+		if squad.pathStep then
+			local step = math.min(squad.pathStep+1, #squad.path)
+			position = squad.path[step].position
+		end
+		local bestCell = self.ai.targethandler:GetBestAttackCell(representative, position)
+		if bestCell then
 			squad.target = bestCell.pos
 			self:IDsWeAreAttacking(bestCell.buildingIDs, squad.mtype)
 			squad.buildingIDs = bestCell.buildingIDs
 			squad.notarget = 0
 			squad.reachedTarget = nil
 			self:SquadNewPath(squad, representativeBehaviour)
+		else
+			-- squad.notarget = squad.notarget + 1
+			-- if squad.target == nil or squad.notarget > 3 then
+				-- if no target found initially, or no target for the last three targetting checks, disassemble and recruit the squad
+				self:SquadDisband(squad, squadIndex)
+			-- end
 		end
 	end
+end
+
+function AttackHandler:SquadDisband(squad, squadIndex)
+	for iu, member in pairs(squad.members) do
+		self:AddRecruit(member)
+	end
+	self.attackSent[squad.mtype] = 0
+	if not squadIndex then
+		for is, sq in pairs(self.squads) do
+			if sq == squad then
+				squadIndex = is
+				break
+			end
+		end
+	end
+	table.remove(self.squads, squadIndex)
 end
 
 function AttackHandler:SquadFormation(squad)
@@ -165,16 +181,31 @@ function AttackHandler:SquadFormation(squad)
 			maxMemberSize = member.congSize
 		end
 	end
-	local n = 0
+	local backDist = maxMemberSize * 3
+	local backs = {}
+	local forwards = {}
 	for i = 1, #members do
 		local member = members[i]
-		local mult = 1
-		if i % 2 == 0 then
-			n = n + 1
-			mult = -1
+		if member.sturdy then
+			forwards[#forwards+1] = member
+		else
+			backs[#backs+1] = member
+			member.formationBack = backDist
 		end
-		local away = n * maxMemberSize * mult
-		member.formationDist = away
+	end
+	local half = floor(#forwards / 2)
+	local anglePerMember = halfPi / #forwards
+	for i = 1, #forwards do
+		local member = forwards[i]
+		member.formationDist = (half - i) * maxMemberSize
+		member.formationAngle = (i - half) * anglePerMember
+	end
+	half = floor(#backs / 2)
+	anglePerMember = #backs / halfPi
+	for i = 1, #backs do
+		local member = backs[i]
+		member.formationDist = (half - i) * maxMemberSize
+		member.formationAngle = (i - half) * anglePerMember
 	end
 end
 
@@ -186,14 +217,20 @@ function AttackHandler:SquadNewPath(squad, representativeBehaviour)
 		self.map:EraseLine(nil, nil, {1,1,0}, squad.mtype, nil, 8)
 	end
 	local startPos
-	if squad.pathStep and squad.pathStep < #squad.path then
-		startPos = squad.path[squad.pathStep+1].position
+	if squad.pathStep then
+		local step = math.min(squad.pathStep+1, #squad.path)
+		startPos = squad.path[step].position
+	elseif not squad.hasGottenPathOnce then
+		startPos = self.ai.frontPosition[representativeBehaviour.hits]
+		if startPos then
+			local angle = AnglePosPos(startPos, squad.target)
+			startPos = RandomAway(startPos, 150, nil, angle)
+		else
+			startPos = representative:GetPosition()
+		end
 	else
-		startPos = self.ai.frontPosition[representativeBehaviour.hits] or representative:GetPosition()
+		startPos = representative:GetPosition()
 	end
-	-- squad.path = nil
-	-- squad.pathStep = nil
-	-- squad.targetNode = nil
 	squad.modifierFunc = squad.modifierFunc or self.ai.targethandler:GetPathModifierFunc(representative:Name())
 	if ShardSpringLua then
 		local targetModFunc = self.ai.targethandler:GetPathModifierFunc(representative:Name())
@@ -217,6 +254,7 @@ function AttackHandler:SquadPathfind(squad, squadIndex)
 		squad.targetNode = squad.path[1]
 		squad.hasMovedOnce = nil
 		squad.pathfinder = nil
+		squad.hasGottenPathOnce = true
 		self:SquadAdvance(squad)
 		if self.DebugEnabled then
 			self.map:EraseLine(nil, nil, {1,1,0}, squad.mtype, nil, 8)
@@ -233,13 +271,16 @@ function AttackHandler:SquadPathfind(squad, squadIndex)
 	end
 end
 
-function AttackHandler:MemberIdle(attkbhvr)
-	local squad = attkbhvr.squad
-	if not squad then return end
-	squad.idleCount = (squad.idleCount or 0) + 1
-	-- self:EchoDebug(squad.idleCount)
+function AttackHandler:MemberIdle(attkbhvr, squad)
+	if attkbhvr then
+		squad = attkbhvr.squad
+		if not squad then return end
+		squad.idleCount = (squad.idleCount or 0) + 1
+		-- self:EchoDebug(squad.idleCount)
+	end
 	if squad.idleCount > floor(#squad.members * 0.8) then
 		if squad.pathStep < #squad.path - 1 then
+			-- self:SquadReTarget(squad)
 			self:SquadNewPath(squad) -- see if there's a better way from the point we're going to
 		end
 		self:SquadAdvance(squad)
@@ -266,9 +307,18 @@ function AttackHandler:SquadAdvance(squad)
 		nextAngle = AnglePosPos(nextPos, squad.path[squad.pathStep+1].position)
 	end
 	local nextPerpendicularAngle = AngleAdd(nextAngle, halfPi)
+	squad.lastValidMove = nextPos -- attackers use this to correct bad move orders
 	for i = #members, 1, -1 do
 		local member = members[i]
-		member:Advance(nextPos, nextPerpendicularAngle)
+		local pos = nextPos
+		if member.formationBack and squad.pathStep ~= #squad.path then
+			pos = RandomAway(nextPos, -member.formationBack, nil, nextAngle)
+		end
+		local reverseAttackAngle
+		if squad.pathStep == #squad.path then
+			reverseAttackAngle = AngleAdd(nextAngle, pi)
+		end
+		member:Advance(pos, nextPerpendicularAngle, reverseAttackAngle)
 	end
 	squad.hasMovedOnce = true
 end
@@ -292,20 +342,17 @@ end
 
 function AttackHandler:RemoveMember(attkbhvr)
 	if attkbhvr == nil then return end
+	if not attkbhvr.squad then return end
 	local squad = attkbhvr.squad
 	for iu = #squad.members, 1, -1 do
 		local member = squad.members[iu]
 		if member == attkbhvr then
 			table.remove(squad.members, iu)
 			if #squad.members == 0 then
-				self.attackSent[squad.mtype] = 0
-				for is = #self.squads, 1, -1 do
-					if squad == self.squads[is] then
-						table.remove(self.squads, is)
-					end
-				end
+				self:SquadDisband(squad)
 			else
 				self:SquadFormation(squad)
+				self:MemberIdle(nil, squad)
 			end
 			attkbhvr.squad = nil
 			return true

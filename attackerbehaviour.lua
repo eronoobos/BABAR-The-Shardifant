@@ -39,6 +39,7 @@ function AttackerBehaviour:Init()
 	elseif ut.airRange > 0 then
 		self.hits = "air"
 	end
+	self.speed = ut.speed
 end
 
 function AttackerBehaviour:OwnerBuilt()
@@ -61,6 +62,7 @@ end
 
 function AttackerBehaviour:OwnerIdle()
 	self.idle = true
+	self.timeout = nil
 	self.ai.attackhandler:MemberIdle(self)
 end
 
@@ -95,15 +97,43 @@ function AttackerBehaviour:Update()
 			self.damaged = nil
 		end
 	end
+	if self.timeout then
+		if game:Frame() >= self.timeout	then
+			game:SendToConsole("timeout triggered")
+			self.timeout = nil
+			-- self.ai.attackhandler:RemoveMember(self)
+			self.ai.attackhandler:AddRecruit(self)
+		end
+	end
 end
 
-function AttackerBehaviour:Advance(pos, perpendicularAttackAngle)
+function AttackerBehaviour:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 	self.idle = false
 	self.attacking = true
-	self.target = RandomAway(pos, self.formationDist, nil, perpendicularAttackAngle)
-	if self.active then
+	if reverseAttackAngle then
+		local awayDistance = math.min(self.sightDistance, self.weaponDistance)
+		if not self.sturdy or self.ai.loshandler:IsInLos(pos) then
+			awayDistance = self.weaponDistance
+		end
+		local myAngle = AngleAdd(reverseAttackAngle, self.formationAngle)
+		self.target = RandomAway(pos, awayDistance, nil, myAngle)
+	else
+		self.target = RandomAway(pos, self.formationDist, nil, perpendicularAttackAngle)
+	end
+	local canMoveThere = self.ai.maphandler:UnitCanGoHere(self.unit:Internal(), self.target)
+	if canMoveThere then
+		self.squad.lastValidMove = self.target
+	elseif self.squad.lastValidMove then
+		self.target = RandomAway(self.squad.lastValidMove, self.congSize)
+		canMoveThere = self.ai.maphandler:UnitCanGoHere(self.unit:Internal(), self.target)
+	end
+	if self.active and canMoveThere then
+		-- local framesToArrive = 30 * (Distance(self.unit:Internal():GetPosition(), self.target) / self.speed) * 2
+		-- game:SendToConsole("frames to arrive", framesToArrive)
+		-- self.timeout = game:Frame() + framesToArrive
 		self.unit:Internal():Move(self.target)
 	end
+	return canMoveThere
 end
 
 function AttackerBehaviour:Attack(pos, realClose, perpendicularAttackAngle, maxOutFromMid)
@@ -184,7 +214,9 @@ function AttackerBehaviour:Free()
 	self.congregating = false
 	self.target = nil
 	self.idle = nil
-	self.squad = nil
+	self.timeout = nil
+	self.ai.attackhandler:RemoveMember(self)
+	-- self.squad = nil
 	self.unit:ElectBehaviour()
 end
 
