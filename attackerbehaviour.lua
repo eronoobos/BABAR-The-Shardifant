@@ -1,5 +1,3 @@
-
-
 local DebugEnabled = false
 
 
@@ -134,79 +132,6 @@ function AttackerBehaviour:Advance(pos, perpendicularAttackAngle, reverseAttackA
 		self.unit:Internal():Move(self.target)
 	end
 	return canMoveThere
-end
-
-function AttackerBehaviour:Attack(pos, realClose, perpendicularAttackAngle, maxOutFromMid)
-	if self.unit == nil then
-		-- wtf
-	elseif self.unit:Internal() == nil then
-		-- wwttff
-	else
-		if realClose then
-			self.target = self:AwayFromTarget(pos, halfPi, maxOutFromMid)
-		elseif perpendicularAttackAngle and self.distFromMid then
-			self.target = RandomAway(pos, self.distFromMid, nil, perpendicularAttackAngle)
-		else
-			self.target = RandomAway(pos, 150)
-		end
-		self.attacking = true
-		self.congregating = false
-		if self.active then
-			self.unit:Internal():Move(self.target)
-		end
-		self.idle = nil
-		self.unit:ElectBehaviour()
-	end
-end
-
-function AttackerBehaviour:AwayFromTarget(pos, spread, maxOutFromMid)
-	local upos = self.unit:Internal():GetPosition()
-	local dx = upos.x - pos.x
-	local dz = upos.z - pos.z
-	local angle = atan2(-dz, dx)
-	if spread then
-		local halfSpread = spread / 2
-		local myAngle
-		if self.outFromMid and maxOutFromMid then
-			myAngle = (self.outFromMid / maxOutFromMid) * halfSpread
-		else
-			myAngle = (random() * spread) - halfSpread
-		end
-		angle = angle + myAngle
-	end
-	if angle > twicePi then
-		angle = angle - twicePi
-	elseif angle < 0 then
-		angle = angle + twicePi
-	end
-	local awayDistance = math.min(self.sightDistance, self.weaponDistance)
-	if not self.sturdy or self.ai.loshandler:IsInLos(pos) then
-		awayDistance = self.weaponDistance
-	end
-	return RandomAway(pos, awayDistance, false, angle)
-end
-
-function AttackerBehaviour:Congregate(pos)
-	local ordered = false
-	if self.unit == nil then
-		return false
-	elseif self.unit:Internal() == nil then
-		return false
-	else
-		local unit = self.unit:Internal()
-		self.target = pos
-		if self.ai.maphandler:UnitCanGoHere(unit, pos) then
-			self.attacking = true
-			self.congregating = true
-			if self.active then
-				unit:Move(self.target)
-			end
-			ordered = true
-		end
-		self.idle = nil
-		self.unit:ElectBehaviour()
-	end
-	return ordered
 end
 
 function AttackerBehaviour:Free()

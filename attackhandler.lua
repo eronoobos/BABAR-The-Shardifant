@@ -29,13 +29,12 @@ function AttackHandler:Update()
 	if f % 150 == 0 then
 		self:DraftSquads()
 	end
-	if f % 30 == 0 then
-		-- actually retargets each squad every 15 seconds
-		-- self:ReTarget()
-	end
+	local squadCount = #self.squads
 	for is = #self.squads, 1, -1 do
 		local squad = self.squads[is]
-		self:SquadPathfind(squad, is)
+		if f + is % squadCount == 0 then
+			self:SquadPathfind(squad, is)
+		end
 	end
 end
 
@@ -94,25 +93,8 @@ function AttackHandler:DraftSquads()
 	end
 end
 
-function AttackHandler:ReTarget()
-	local f = game:Frame()
-	for is = #self.squads, 1, -1 do
-		local squad = self.squads[is]
-		if f > squad.lastReTarget + 300 then
-			self:SquadReTarget(squad, is)
-			squad.lastReTarget = f
-		end
-	end
-end
-
 function AttackHandler:SquadReTarget(squad, squadIndex)
 	local f = game:Frame()
-	-- if not squad.idle and not squad.reachedTarget then
-	-- 	return
-	-- end
-	-- if not squad.idle and f < squad.reachedTarget + 900 then
-	-- 	return
-	-- end
 	local representativeBehaviour
 	local representative
 	for iu, member in pairs(squad.members) do
