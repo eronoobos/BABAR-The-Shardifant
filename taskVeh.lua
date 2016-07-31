@@ -77,9 +77,18 @@ function AmphibiousRaider(tskqbhvr)
 	end
 	return BuildRaiderIfNeeded(unitName)
 end
-
+function RaidersChoiche(tskqbhvr)
+	local unitName = DummyUnitName
+	if tskqbhvr.AmpOrGroundWeapon then
+		unitName = AmphibiousRaider(tskqbhvr)
+	else
+		unitName = Lvl1VehRaider(tskqbhvr)
+	end
+	return unitName
+end
+		
 function Lvl1VehRaider(tskqbhvr)
-	local unitName = ""
+	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
 		unitName = "corgator"
 	else
