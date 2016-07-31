@@ -140,6 +140,7 @@ function AttackHandler:SquadReTarget(squad, squadIndex)
 end
 
 function AttackHandler:SquadDisband(squad, squadIndex)
+	squad.disbanding = true
 	for iu, member in pairs(squad.members) do
 		self:AddRecruit(member)
 	end

@@ -140,7 +140,11 @@ function AttackerBehaviour:Free()
 	self.target = nil
 	self.idle = nil
 	self.timeout = nil
-	self.ai.attackhandler:RemoveMember(self)
+	if self.squad and self.squad.disbanding then
+		self.squad = nil
+	else
+		self.ai.attackhandler:RemoveMember(self)
+	end
 	-- self.squad = nil
 	self.unit:ElectBehaviour()
 end
