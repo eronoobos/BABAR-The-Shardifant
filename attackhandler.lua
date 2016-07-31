@@ -186,8 +186,8 @@ function AttackHandler:SquadNewPath(squad, representativeBehaviour)
 		self.map:EraseLine(nil, nil, {1,1,0}, squad.mtype, nil, 8)
 	end
 	local startPos
-	if squad.targetNode then
-		startPos = squad.targetNode.position
+	if squad.pathStep and squad.pathStep < #squad.path then
+		startPos = squad.path[squad.pathStep+1].position
 	else
 		startPos = self.ai.frontPosition[representativeBehaviour.hits] or representative:GetPosition()
 	end
@@ -204,7 +204,7 @@ function AttackHandler:SquadNewPath(squad, representativeBehaviour)
 		end
 	end
 	squad.graph = squad.graph or self.ai.maphandler:GetPathGraph(squad.mtype)
-	squad.pathfinder = squad.graph:PathfinderPosPos(representative:GetPosition(), squad.target, nil, nil, nil, squad.modifierFunc)
+	squad.pathfinder = squad.graph:PathfinderPosPos(startPos, squad.target, nil, nil, nil, squad.modifierFunc)
 end
 
 function AttackHandler:SquadPathfind(squad, squadIndex)
@@ -239,6 +239,9 @@ function AttackHandler:MemberIdle(attkbhvr)
 	squad.idleCount = (squad.idleCount or 0) + 1
 	-- self:EchoDebug(squad.idleCount)
 	if squad.idleCount > floor(#squad.members * 0.8) then
+		if squad.pathStep < #squad.path - 1 then
+			self:SquadNewPath(squad) -- see if there's a better way from the point we're going to
+		end
 		self:SquadAdvance(squad)
 	end
 end
