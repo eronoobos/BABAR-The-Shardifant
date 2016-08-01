@@ -447,7 +447,7 @@ local anyLvl1AirPlant = {
 local anyLvl1VehPlant = {
 	ScoutVeh,
 	ConVehicle,
-	RaidersChoiche,
+	Lvl1VehRaider,
 	Lvl1VehBattle,
 	Lvl1AAVeh,
 	Lvl1VehArty,
@@ -490,8 +490,8 @@ local anyAmphibiousComplex = {
 }
 
 local anyLvl2VehPlant = {
-	Lvl2VehRaider,
 	ConAdvVehicle,
+	Lvl2VehRaider,
 	Lvl2VehBattle,
 	Lvl2VehBreakthrough,
 	Lvl2VehArty,
