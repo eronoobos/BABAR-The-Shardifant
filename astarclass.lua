@@ -184,7 +184,8 @@ function PathfinderAStar:Init(start, goal, nodes, isNeighborNode, isValidNode, d
 	self.g_score = {}
 	self.f_score = {}
 	self.g_score[self.start] = 0
-	self.f_score[self.start] = self.g_score[self.start] + dist_between(self.start, self.goal, self.distFunc, self.graph.distCache)
+	self.distanceStartToGoal = dist_between(self.start, self.goal, self.distFunc, self.graph.distCache)
+	self.f_score[self.start] = self.g_score[self.start] + self.distanceStartToGoal
 	self.neighborCounts = {}
 end
 
@@ -192,17 +193,19 @@ function PathfinderAStar:Find(iterations)
 	iterations = iterations or 1
 	local it = 1
 	local nodes = self.nodes
+	local goal = self.goal
 	local isNeighborNode = self.isNeighborNode
 	local isValidNode = self.isValidNode
 	local distFunc = self.distFunc
 	local distCache = self.graph.distCache
 	local modifierFunc = self.modifierFunc
+	local distanceStartToGoal = self.distanceStartToGoal
 	-- local standardNeighborDist = self.graph.nodeDist
 	while #self.openset > 0 and it <= iterations do
 		local current = lowest_f_score(self.openset, self.f_score)
-		if current == self.goal then
-			local path = unwind_path({}, self.came_from, self.goal)
-			path[#path+1] = self.goal
+		if current == goal then
+			local path = unwind_path({}, self.came_from, goal)
+			path[#path+1] = goal
 			return path, #self.openset, self.maxInvalid
 		end
 		remove_node(self.openset, current)
@@ -213,14 +216,15 @@ function PathfinderAStar:Find(iterations)
 		for i = 1, #neighbors do
 			local neighbor = neighbors[i]
 			if not_in(self.closedset, neighbor) then
-				local tentative_g_score = self.g_score[current] + modifierFunc(neighbor) -- dist_between(current, neighbor, distFunc, distCache)
-				if not_in(self.openset, neighbor) or tentative_g_score < self.g_score[neighbor] then 
+				-- local tentative_g_score = self.g_score[current] + modifierFunc(neighbor) -- dist_between(current, neighbor, distFunc, distCache)
+				if not_in(self.openset, neighbor) then -- or tentative_g_score < self.g_score[neighbor] then 
 					self.came_from[neighbor] = current
-					self.g_score[neighbor] = tentative_g_score
-					self.f_score[neighbor] = self.g_score[neighbor] + dist_between(neighbor, self.goal, distFunc, distCache)
-					if not_in(self.openset, neighbor) then
+					local d = dist_between(neighbor, goal, distFunc, distCache)
+					self.g_score[neighbor] = self.g_score[current] + modifierFunc(neighbor, d, distanceStartToGoal)
+					self.f_score[neighbor] = self.g_score[neighbor] + d
+					-- if not_in(self.openset, neighbor) then
 						self.openset[#self.openset+1] = neighbor
-					end
+					-- end
 				end
 			end
 		end

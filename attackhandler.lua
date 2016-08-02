@@ -12,7 +12,7 @@ local floor = math.floor
 local ceil = math.ceil
 
 function AttackHandler:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 
 	self.recruits = {}
 	self.count = {}
@@ -35,8 +35,8 @@ function AttackHandler:Update()
 			if squad.arrived then
 				squad.arrived = nil
 				if squad.pathStep < #squad.path - 1 then
-					-- self:SquadReTarget(squad)
-					self:SquadNewPath(squad) -- see if there's a better way from the point we're going to
+					self:SquadReTarget(squad)
+					-- self:SquadNewPath(squad) -- see if there's a better way from the point we're going to
 				end
 				self:SquadAdvance(squad)
 			end
@@ -229,9 +229,14 @@ function AttackHandler:SquadNewPath(squad, representativeBehaviour)
 	if ShardSpringLua then
 		local targetModFunc = self.ai.targethandler:GetPathModifierFunc(representative:Name())
 		local startHeight = Spring.GetGroundHeight(startPos.x, startPos.z)
-		squad.modifierFunc = function(node)
-			local hMod = (Spring.GetGroundHeight(node.position.x, node.position.z) - startHeight) / 100
-			return targetModFunc(node) + hMod
+		squad.modifierFunc = function(node, distanceToGoal, distanceStartToGoal)
+			local hMod = math.max(0, Spring.GetGroundHeight(node.position.x, node.position.z) - startHeight) / 200
+			if distanceToGoal then
+				local dMod = distanceToGoal - 250 / 750
+				return targetModFunc(node, distanceToGoal, distanceStartToGoal) + (dMod * hMod)
+			else
+				return targetModFunc(node, distanceToGoal, distanceStartToGoal) + hMod
+			end
 		end
 	end
 	squad.graph = squad.graph or self.ai.maphandler:GetPathGraph(squad.mtype)
@@ -242,7 +247,7 @@ function AttackHandler:SquadPathfind(squad, squadIndex)
 	if not squad.pathfinder then return end
 	local path, remaining, maxInvalid = squad.pathfinder:Find(2)
 	if path then
-		path = SimplifyPath(path)
+		-- path = SimplifyPath(path)
 		squad.path = path
 		squad.pathStep = 1
 		squad.targetNode = squad.path[1]

@@ -80,6 +80,7 @@ end
 
 function AttackerBehaviour:Activate()
 	self.active = true
+	self.movestateSet = false
 	if self.target then
 		self.needToMoveToTarget = true
 	end
