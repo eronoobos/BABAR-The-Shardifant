@@ -1225,7 +1225,7 @@ function TargetHandler:GetPathModifierFunc(unitName)
 	if pathModifierFuncs[unitName] then
 		return pathModifierFuncs[unitName]
 	end
-	local divisor = unitTable[unitName].metalCost * 5
+	local divisor = unitTable[unitName].metalCost * self.ai.attackhandler:GetCounter(unitTable[unitName].mtype)
 	local modifier_node_func = function ( node )
 		return self:ThreatHere(node.position, unitName) / divisor
 	end

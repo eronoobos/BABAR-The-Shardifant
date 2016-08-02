@@ -110,26 +110,6 @@ function TurtleHandler:UnitDead(unit)
 	end
 end
 
-function TurtleHandler:Update()
-	local f = game:Frame()
-	if f % 90 then
-		for i = 1, #self.turtles then
-			local turtle = self.turtles[i]
-			if f > (turtle.lastBombardCheckFrame or 0) + 450 then
-				turtle.lastBombardCheckFrame = f
-				local bombardFor = {}
-				for unitName, _ in pairs(littlePlasmaList) do
-					bombardFor[unitName] = self.ai.targethandler:IsBombardPosition(turtle.position, unitName)
-				end
-				for unitName, _ in pairs(bigPlasmaList) do
-					bombardFor[unitName] = self.ai.targethandler:IsBombardPosition(turtle.position, unitName)
-				end
-				turtle.bombardFor = bombardFor
-			end
-		end
-	end
-end
-
 -- received from buildsitehandler
 -- also applies to plans, in which case the plan is the unitID
 function TurtleHandler:NewUnit(unitName, position, unitID)
@@ -589,6 +569,18 @@ function TurtleHandler:LeastTurtled(builder, unitName, bombard, oneOnly)
 	end
 end
 
+function TurtleHandler:GetIsBombardPosition(turtle, unitName)
+	turtle.bombardFor = turtle.bombardFor or {}
+	turtle.bombardForFrame = turtle.bombardForFrame or {}
+	local f = game:Frame()
+	if not turtle.bombardForFrame[unitName]
+	or (turtle.bombardForFrame[unitName] and f > turtle.bombardForFrame[unitName] + 450) then
+		turtle.bombardFor[unitName] = self.ai.targethandler:IsBombardPosition(turtle.position, unitName)
+		turtle.bombardForFrame[unitName] = f
+	end
+	return turtle.bombardFor[unitName]
+end
+
 function TurtleHandler:MostTurtled(builder, unitName, bombard, oneOnly, ignoreDistance)
 	local modDist = modDistance
 	if unitName then modDist = modDist * Priority(unitName) end
@@ -601,7 +593,7 @@ function TurtleHandler:MostTurtled(builder, unitName, bombard, oneOnly, ignoreDi
 	for i, turtle in pairs(self.turtles) do
 		if (not unitName or turtle.organVolume < turtle.maxOrganVolume)
 		and self.ai.maphandler:UnitCanGoHere(builder, turtle.position)
-		and (not bombard or (turtle.bombardFor and turtle.bombardFor[unitName])) then
+		and (not bombard or self:GetIsBombardPosition(turtle, unitName)) then
 			local mod = turtle.ground + turtle.air + turtle.submerged + (turtle.shield * layerMod["shield"]) + (turtle.jam * layerMod["jam"])
 			EchoDebug("turtled: " .. mod .. ", priority: " .. turtle.priority .. ", total priority: " .. self.totalPriority)
 			if mod ~= 0 then

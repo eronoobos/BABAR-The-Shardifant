@@ -80,7 +80,6 @@ end
 
 function AttackerBehaviour:Activate()
 	self.active = true
-	self:SetMoveState()
 	if self.target then
 		if self.congregating then
 			self.unit:Internal():Move(self.target)
@@ -108,6 +107,9 @@ function AttackerBehaviour:Update()
 			-- self.ai.attackhandler:RemoveMember(self)
 			self.ai.attackhandler:AddRecruit(self)
 		end
+	end
+	if self.active and not self.movestateSet then
+		self:SetMoveState()
 	end
 end
 
@@ -157,6 +159,7 @@ end
 
 -- this will issue the correct move state to all units
 function AttackerBehaviour:SetMoveState()
+	self.movestateSet = true
 	local thisUnit = self.unit
 	if thisUnit then
 		local unitName = self.name

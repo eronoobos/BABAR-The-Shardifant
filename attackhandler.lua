@@ -12,7 +12,7 @@ local floor = math.floor
 local ceil = math.ceil
 
 function AttackHandler:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 
 	self.recruits = {}
 	self.count = {}
