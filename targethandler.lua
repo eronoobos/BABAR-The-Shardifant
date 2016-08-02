@@ -1175,15 +1175,16 @@ function TargetHandler:NearestVulnerableCell(representative)
 end
 
 function TargetHandler:IsBombardPosition(position, unitName)
-	self:UpdateMap()
-	local px, pz = GetCellPosition(position)
-	local radius = unitTable[unitName].groundRange
-	local groundValue, groundThreat = self:CheckInRadius(px, pz, radius, "threat", "ground")
-	if groundValue + groundThreat > Value(unitName) * 1.5 then
-		return true
-	else
-		return false
-	end
+	return true
+	-- self:UpdateMap()
+	-- local px, pz = GetCellPosition(position)
+	-- local radius = unitTable[unitName].groundRange
+	-- local groundValue, groundThreat = self:CheckInRadius(px, pz, radius, "threat", "ground")
+	-- if groundValue + groundThreat > Value(unitName) * 1.5 then
+	-- 	return true
+	-- else
+	-- 	return false
+	-- end
 end
 
 function TargetHandler:ThreatHere(position, unit)
