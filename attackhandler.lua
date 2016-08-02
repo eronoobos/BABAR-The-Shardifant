@@ -30,7 +30,17 @@ function AttackHandler:Update()
 		self:DraftSquads()
 	end
 	if #self.squads > 0 then
-		local squadCount = #self.squads
+		for is = 1, #self.squads do
+			local squad = self.squads[is]
+			if squad.arrived then
+				squad.arrived = nil
+				if squad.pathStep < #squad.path - 1 then
+					-- self:SquadReTarget(squad)
+					self:SquadNewPath(squad) -- see if there's a better way from the point we're going to
+				end
+				self:SquadAdvance(squad)
+			end
+		end
 		local is = (self.lastSquadPathfind or 0) + 1
 		if is > #self.squads then is = 1 end
 		local squad = self.squads[is]
@@ -262,12 +272,8 @@ function AttackHandler:MemberIdle(attkbhvr, squad)
 		squad.idleCount = (squad.idleCount or 0) + 1
 		-- self:EchoDebug(squad.idleCount)
 	end
-	if squad.pathStep and squad.idleCount > floor(#squad.members * 0.85) then
-		if squad.pathStep < #squad.path - 1 then
-			-- self:SquadReTarget(squad)
-			self:SquadNewPath(squad) -- see if there's a better way from the point we're going to
-		end
-		self:SquadAdvance(squad)
+	if not squad.arrived and squad.pathStep and squad.idleCount > floor(#squad.members * 0.85) then
+		squad.arrived = true
 	end
 end
 
