@@ -1175,7 +1175,7 @@ function TargetHandler:NearestVulnerableCell(representative)
 end
 
 function TargetHandler:IsBombardPosition(position, unitName)
-	return true
+	return math.random() < 0.5
 	-- self:UpdateMap()
 	-- local px, pz = GetCellPosition(position)
 	-- local radius = unitTable[unitName].groundRange
