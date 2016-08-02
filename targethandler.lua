@@ -900,20 +900,23 @@ function TargetHandler:GetBestAttackCell(representative, position)
 		local value = pb.value * fraction
 		local threat = pb.threat
 		if pb.value > 750 then
-			value = 0 - threat
+			value = value - threat
 			if value > bestValue then
 				bestValueCell = pb.cell
 				bestValue = value
 			end
 		elseif pb.value > 0 then
-			value = 0 - threat
+			value = value - threat
 			if value > bestAnyValue then
 				bestAnyValueCell = pb.cell
 				bestAnyValue = value
 			end
-		elseif threat > bestThreat then
-			bestThreatCell = pb.cell
-			bestThreat = threat
+		else
+			threat = threat * fraction
+			if threat > bestThreat then
+				bestThreatCell = pb.cell
+				bestThreat = threat
+			end
 		end
 	end
 	local best
