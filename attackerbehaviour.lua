@@ -81,11 +81,7 @@ end
 function AttackerBehaviour:Activate()
 	self.active = true
 	if self.target then
-		if self.congregating then
-			self.unit:Internal():Move(self.target)
-		else
-			self.unit:Internal():Move(self.target)
-		end
+		self.needToMoveToTarget = true
 	end
 end
 
@@ -110,6 +106,10 @@ function AttackerBehaviour:Update()
 	end
 	if self.active and not self.movestateSet then
 		self:SetMoveState()
+	end
+	if self.active and self.needToMoveToTarget then
+		self.needToMoveToTarget = false
+		self.unit:Internal():Move(self.target)
 	end
 end
 
