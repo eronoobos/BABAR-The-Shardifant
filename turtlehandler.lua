@@ -96,6 +96,40 @@ function TurtleHandler:Init()
 	self.totalPriority = 0
 end
 
+function TurtleHandler:UnitDead(unit)
+	local unitName = unit:Name()
+	local ut = unitTable[unitName]
+	local unitID = unit:ID()
+	if ut.isBuilding or nanoTurretList[unitName] then
+		if ut.isWeapon or shieldList[unitName] then
+			self:RemoveShell(unitID)
+		else
+			self:RemoveOrgan(unitID)
+		end
+		self.turtlesByUnitID[unitID] = nil
+	end
+end
+
+function TurtleHandler:Update()
+	local f = game:Frame()
+	if f % 90 then
+		for i = 1, #self.turtles then
+			local turtle = self.turtles[i]
+			if f > (turtle.lastBombardCheckFrame or 0) + 450 then
+				turtle.lastBombardCheckFrame = f
+				local bombardFor = {}
+				for unitName, _ in pairs(littlePlasmaList) do
+					bombardFor[unitName] = self.ai.targethandler:IsBombardPosition(turtle.position, unitName)
+				end
+				for unitName, _ in pairs(bigPlasmaList) do
+					bombardFor[unitName] = self.ai.targethandler:IsBombardPosition(turtle.position, unitName)
+				end
+				turtle.bombardFor = bombardFor
+			end
+		end
+	end
+end
+
 -- received from buildsitehandler
 -- also applies to plans, in which case the plan is the unitID
 function TurtleHandler:NewUnit(unitName, position, unitID)
@@ -161,20 +195,6 @@ function TurtleHandler:PlanCancelled(plan)
 			self:RemoveOrgan(plan)
 		end
 		self.turtlesByUnitID[plan] = nil
-	end
-end
-
-function TurtleHandler:UnitDead(unit)
-	local unitName = unit:Name()
-	local ut = unitTable[unitName]
-	local unitID = unit:ID()
-	if ut.isBuilding or nanoTurretList[unitName] then
-		if ut.isWeapon or shieldList[unitName] then
-			self:RemoveShell(unitID)
-		else
-			self:RemoveOrgan(unitID)
-		end
-		self.turtlesByUnitID[unitID] = nil
 	end
 end
 
@@ -579,30 +599,26 @@ function TurtleHandler:MostTurtled(builder, unitName, bombard, oneOnly, ignoreDi
 	local best
 	local bydistance = {}
 	for i, turtle in pairs(self.turtles) do
-		if (not unitName or turtle.organVolume < turtle.maxOrganVolume) and self.ai.maphandler:UnitCanGoHere(builder, turtle.position) then
-			local okay = true
-			if bombard then 
-				okay = self.ai.targethandler:IsBombardPosition(turtle.position, bombard)
-			end
-			if okay then
-				local mod = turtle.ground + turtle.air + turtle.submerged + (turtle.shield * layerMod["shield"]) + (turtle.jam * layerMod["jam"])
-				EchoDebug("turtled: " .. mod .. ", priority: " .. turtle.priority .. ", total priority: " .. self.totalPriority)
-				if mod ~= 0 then
-					local dist = 0
-					if not ignoreDistance then
-						dist = Distance(position, turtle.position)
+		if (not unitName or turtle.organVolume < turtle.maxOrganVolume)
+		and self.ai.maphandler:UnitCanGoHere(builder, turtle.position)
+		and (not bombard or (turtle.bombardFor and turtle.bombardFor[unitName])) then
+			local mod = turtle.ground + turtle.air + turtle.submerged + (turtle.shield * layerMod["shield"]) + (turtle.jam * layerMod["jam"])
+			EchoDebug("turtled: " .. mod .. ", priority: " .. turtle.priority .. ", total priority: " .. self.totalPriority)
+			if mod ~= 0 then
+				local dist = 0
+				if not ignoreDistance then
+					dist = Distance(position, turtle.position)
+				end
+				dist = dist - (mod * modDist)
+				EchoDebug("distance: " .. dist)
+				if oneOnly then
+					if dist < bestDist then
+						EchoDebug("best distance")
+						bestDist = dist
+						best = turtle.position
 					end
-					dist = dist - (mod * modDist)
-					EchoDebug("distance: " .. dist)
-					if oneOnly then
-						if dist < bestDist then
-							EchoDebug("best distance")
-							bestDist = dist
-							best = turtle.position
-						end
-					else
-						bydistance[dist] = turtle.position
-					end
+				else
+					bydistance[dist] = turtle.position
 				end
 			end
 		end

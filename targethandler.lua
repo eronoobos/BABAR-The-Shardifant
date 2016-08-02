@@ -1175,16 +1175,15 @@ function TargetHandler:NearestVulnerableCell(representative)
 end
 
 function TargetHandler:IsBombardPosition(position, unitName)
-	return math.random() < 0.5
-	-- self:UpdateMap()
-	-- local px, pz = GetCellPosition(position)
-	-- local radius = unitTable[unitName].groundRange
-	-- local groundValue, groundThreat = self:CheckInRadius(px, pz, radius, "threat", "ground")
-	-- if groundValue + groundThreat > Value(unitName) * 1.5 then
-	-- 	return true
-	-- else
-	-- 	return false
-	-- end
+	self:UpdateMap()
+	local px, pz = GetCellPosition(position)
+	local radius = unitTable[unitName].groundRange
+	local groundValue, groundThreat = self:CheckInRadius(px, pz, radius, "threat", "ground")
+	if groundValue + groundThreat > Value(unitName) * 1.5 then
+		return true
+	else
+		return false
+	end
 end
 
 function TargetHandler:ThreatHere(position, unit)
@@ -1226,8 +1225,9 @@ function TargetHandler:GetPathModifierFunc(unitName)
 	if pathModifierFuncs[unitName] then
 		return pathModifierFuncs[unitName]
 	end
+	local divisor = unitTable[unitName].metalCost * 5
 	local modifier_node_func = function ( node )
-		return self:ThreatHere(node.position, unitName) / unitTable[unitName].metalCost
+		return self:ThreatHere(node.position, unitName) / divisor
 	end
 	pathModifierFuncs[unitName] = modifier_node_func
 	return modifier_node_func

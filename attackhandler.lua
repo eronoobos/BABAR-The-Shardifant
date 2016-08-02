@@ -12,7 +12,7 @@ local floor = math.floor
 local ceil = math.ceil
 
 function AttackHandler:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 
 	self.recruits = {}
 	self.count = {}
@@ -289,11 +289,13 @@ function AttackHandler:SquadAdvance(squad)
 		squad.targetNode = squad.path[squad.pathStep]
 	end
 	local members = squad.members
-	local nextPos = squad.targetNode.position
+	local nextPos
 	local nextAngle
 	if squad.pathStep == #squad.path then
+		nextPos = squad.target
 		nextAngle = AnglePosPos(squad.path[squad.pathStep-1].position, nextPos)
 	else
+		nextPos = squad.targetNode.position
 		nextAngle = AnglePosPos(nextPos, squad.path[squad.pathStep+1].position)
 	end
 	local nextPerpendicularAngle = AngleAdd(nextAngle, halfPi)
