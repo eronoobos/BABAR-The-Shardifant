@@ -1028,9 +1028,9 @@ function TargetHandler:GetBestBomberTarget(torpedo)
 		local target = best.explosiveTarget
 		if target == nil then
 			if torpedo then
-				target = best.targets.air.submerged
+				target = best.targets.air.submerged.unit
 			else
-				target = best.targets.air.ground
+				target = best.targets.air.ground.unit
 			end
 		end
 		return target
