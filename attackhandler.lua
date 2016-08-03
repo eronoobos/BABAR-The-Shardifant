@@ -225,14 +225,14 @@ function AttackHandler:SquadNewPath(squad, representativeBehaviour)
 	else
 		startPos = representative:GetPosition()
 	end
-	squad.modifierFunc = squad.modifierFunc or self.ai.targethandler:GetPathModifierFunc(representative:Name())
+	squad.modifierFunc = squad.modifierFunc or self.ai.targethandler:GetPathModifierFunc(representative:Name(), true)
 	if ShardSpringLua then
-		local targetModFunc = self.ai.targethandler:GetPathModifierFunc(representative:Name())
+		local targetModFunc = self.ai.targethandler:GetPathModifierFunc(representative:Name(), true)
 		local startHeight = Spring.GetGroundHeight(startPos.x, startPos.z)
 		squad.modifierFunc = function(node, distanceToGoal, distanceStartToGoal)
-			local hMod = math.max(0, Spring.GetGroundHeight(node.position.x, node.position.z) - startHeight) / 200
+			local hMod = math.max(0, Spring.GetGroundHeight(node.position.x, node.position.z) - startHeight) / 100
 			if distanceToGoal then
-				local dMod = distanceToGoal - 250 / 750
+				local dMod = math.min(1, (distanceToGoal - 500) / 500)
 				return targetModFunc(node, distanceToGoal, distanceStartToGoal) + (dMod * hMod)
 			else
 				return targetModFunc(node, distanceToGoal, distanceStartToGoal) + hMod

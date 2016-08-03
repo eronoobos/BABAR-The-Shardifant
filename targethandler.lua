@@ -183,7 +183,7 @@ end
 function TargetHandler:GetCellHere(pos)
 	local px, pz = GetCellPosition(pos)
 	if self.cells[px] then
-		return self.cells[px][pz]
+		return self.cells[px][pz], px, pz
 	end
 end
 
@@ -898,21 +898,20 @@ function TargetHandler:GetBestAttackCell(representative, position)
 	for i, pb in pairs(possibilities) do
 		local fraction = 1.5 - ((pb.dist - lowestDist) / distRange)
 		local value = pb.value * fraction
-		local threat = pb.threat
+		local threat = pb.threat * fraction
 		if pb.value > 750 then
-			value = value - threat
+			value = value - (threat * 0.5)
 			if value > bestValue then
 				bestValueCell = pb.cell
 				bestValue = value
 			end
 		elseif pb.value > 0 then
-			value = value - threat
+			value = value - (threat * 0.5)
 			if value > bestAnyValue then
 				bestAnyValueCell = pb.cell
 				bestAnyValue = value
 			end
 		else
-			threat = threat * fraction
 			if threat > bestThreat then
 				bestThreatCell = pb.cell
 				bestThreat = threat
@@ -1189,25 +1188,40 @@ function TargetHandler:IsBombardPosition(position, unitName)
 	end
 end
 
-function TargetHandler:ThreatHere(position, unit)
+function TargetHandler:ThreatHere(position, unitOrName, adjacent)
 	self:UpdateMap()
-	if unit == nil then
-		game:SendToConsole("nil unit given to ThreatHere")
+	if unitOrName == nil then
+		game:SendToConsole("nil unit or name given to ThreatHere")
 		return
 	end
 	local uname
-	if type(unit) == 'string' then
-		uname = unit
+	if type(unitOrName) == 'string' then
+		uname = unitOrName
 	else
-		uname = unit:Name()
+		uname = unitOrName:Name()
 	end
 	if uname == nil then
 		game:SendToConsole("nil unit name give nto ThreatHere")
 		return
 	end
-	local cell = self:GetCellHere(position)
+	local cell, px, pz = self:GetCellHere(position)
 	if cell == nil then return 0, nil, uname end
 	local value, threat = CellValueThreat(uname, cell)
+	if adjacent then
+		for cx = px-1, px+1 do
+			if self.cells[cx] then
+				for cz = pz-1, pz+1 do
+					if not (cx == px and cz == pz) then
+						local c = self.cells[cx][cz]
+						if c then
+							local cvalue, cthreat = CellValueThreat(uname, c)
+							threat = threat + cthreat
+						end
+					end
+				end
+			end
+		end
+	end
 	return threat, cell, uname
 end
 
@@ -1224,15 +1238,19 @@ function TargetHandler:IsSafePosition(position, unit, threshold)
 	end
 end
 
-function TargetHandler:GetPathModifierFunc(unitName)
+function TargetHandler:GetPathModifierFunc(unitName, adjacent)
 	if pathModifierFuncs[unitName] then
 		return pathModifierFuncs[unitName]
 	end
 	local divisor = unitTable[unitName].metalCost / 40
 	local modifier_node_func = function ( node, distanceToGoal, distanceStartToGoal )
-		local threatMod = self:ThreatHere(node.position, unitName) / divisor
+		local threatMod = self:ThreatHere(node.position, unitName, adjacent) / divisor
 		if distanceToGoal then
-			return threatMod * (distanceToGoal / 1000)
+			if distanceToGoal <= 500 then
+				return 0
+			else
+				return threatMod * ((distanceToGoal  - 500) / 1000)
+			end
 		else
 			return threatMod
 		end

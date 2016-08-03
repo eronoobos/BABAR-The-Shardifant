@@ -164,18 +164,15 @@ function AttackerBehaviour:SetMoveState()
 	local thisUnit = self.unit
 	if thisUnit then
 		local unitName = self.name
+		local floats = api.vectorFloat()
 		if battleList[unitName] then
-			local floats = api.vectorFloat()
-			floats:push_back(MOVESTATE_ROAM)
-			thisUnit:Internal():ExecuteCustomCommand(CMD_MOVE_STATE, floats)
-		elseif breakthroughList[unitName] then
-			local floats = api.vectorFloat()
+			-- floats:push_back(MOVESTATE_ROAM)
 			floats:push_back(MOVESTATE_MANEUVER)
-			thisUnit:Internal():ExecuteCustomCommand(CMD_MOVE_STATE, floats)
+		elseif breakthroughList[unitName] then
+			floats:push_back(MOVESTATE_MANEUVER)
 		else
-			local floats = api.vectorFloat()
 			floats:push_back(MOVESTATE_HOLDPOS)
-			thisUnit:Internal():ExecuteCustomCommand(CMD_MOVE_STATE, floats)
 		end
+		thisUnit:Internal():ExecuteCustomCommand(CMD_MOVE_STATE, floats)
 	end
 end
