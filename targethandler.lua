@@ -60,8 +60,6 @@ local feintRepeatMod = 25
 
 local unitValue = {}
 
-local pathModifierFuncs = {}
-
 local function NewCell(px, pz)
 	local values = {
 	ground = {ground = 0, air = 0, submerged = 0, value = 0},
@@ -178,6 +176,7 @@ function TargetHandler:Init()
 	self.feints = {}
 	self.raiderCounted = {}
 	self.lastUpdateFrame = 0
+	self.pathModifierFuncs = {}
 end
 
 function TargetHandler:GetCellHere(pos)
@@ -1188,6 +1187,28 @@ function TargetHandler:IsBombardPosition(position, unitName)
 	end
 end
 
+function TargetHandler:ValueHere(position, unitOrName)
+	self:UpdateMap()
+	if unitOrName == nil then
+		game:SendToConsole("nil unit or name given to ThreatHere")
+		return
+	end
+	local uname
+	if type(unitOrName) == 'string' then
+		uname = unitOrName
+	else
+		uname = unitOrName:Name()
+	end
+	if uname == nil then
+		game:SendToConsole("nil unit name give nto ThreatHere")
+		return
+	end
+	local cell, px, pz = self:GetCellHere(position)
+	if cell == nil then return 0, nil, uname end
+	local value, _ = CellValueThreat(uname, cell)
+	return value, cell, uname
+end
+
 function TargetHandler:ThreatHere(position, unitOrName, adjacent)
 	self:UpdateMap()
 	if unitOrName == nil then
@@ -1239,8 +1260,8 @@ function TargetHandler:IsSafePosition(position, unit, threshold)
 end
 
 function TargetHandler:GetPathModifierFunc(unitName, adjacent)
-	if pathModifierFuncs[unitName] then
-		return pathModifierFuncs[unitName]
+	if self.pathModifierFuncs[unitName] then
+		return self.pathModifierFuncs[unitName]
 	end
 	local divisor = unitTable[unitName].metalCost / 40
 	local modifier_node_func = function ( node, distanceToGoal, distanceStartToGoal )
@@ -1255,7 +1276,7 @@ function TargetHandler:GetPathModifierFunc(unitName, adjacent)
 			return threatMod
 		end
 	end
-	pathModifierFuncs[unitName] = modifier_node_func
+	self.pathModifierFuncs[unitName] = modifier_node_func
 	return modifier_node_func
 end
 

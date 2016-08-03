@@ -38,8 +38,11 @@ function AttackHandler:Update()
 			if squad.arrived then
 				squad.arrived = nil
 				if squad.pathStep < #squad.path - 1 then
-					self:SquadReTarget(squad)
-					-- self:SquadNewPath(squad) -- see if there's a better way from the point we're going to
+					if self.ai.targethandler:ValueHere(squad.target, squad.members[1].name) < 100 then
+						self:SquadReTarget(squad) -- get a new target, this one isn't valuable
+					else
+						self:SquadNewPath(squad) -- see if there's a better way from the point we're going to
+					end
 				end
 				self:SquadAdvance(squad)
 			end
