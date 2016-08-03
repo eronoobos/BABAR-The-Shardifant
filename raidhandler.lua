@@ -12,15 +12,13 @@ local mCeil = math.ceil
 
 -- these local variables are the same for all AI teams, in fact having them the same saves memory and processing
 
-local pathValidFuncs = {}
-local pathModifierFuncs = {}
-
 function RaidHandler:Init()
 	self.DebugEnabled = false
 
 	self.counter = {}
 	self.ai.raiderCount = {}
 	self.ai.IDsWeAreRaiding = {}
+	self.pathValidFuncs = {}
 end
 
 function RaidHandler:NeedMore(mtype, add)
@@ -89,12 +87,12 @@ function RaidHandler:TargetDied(mtype)
 end
 
 function RaidHandler:GetPathValidFunc(unitName)
-	if pathValidFuncs[unitName] then
-		return pathValidFuncs[unitName]
+	if self.pathValidFuncs[unitName] then
+		return self.pathValidFuncs[unitName]
 	end
 	local valid_node_func = function ( node )
 		return ai.targethandler:IsSafePosition(node.position, unitName, 1)
 	end
-	pathValidFuncs[unitName] = valid_node_func
+	self.pathValidFuncs[unitName] = valid_node_func
 	return valid_node_func
 end
