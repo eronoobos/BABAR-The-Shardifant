@@ -139,6 +139,9 @@ function BomberHandler:RemoveRecruit(bmbrbehaviour)
 	for i,v in ipairs(self.recruits[bmbrbehaviour.weapon]) do
 		if v == bmbrbehaviour then
 			table.remove(self.recruits[bmbrbehaviour.weapon], i)
+			if #self.recruits[bmbrbehaviour.weapon] < self.counter then
+				self.needsTargetting[bmbrbehaviour.weapon] = nil
+			end
 			return true
 		end
 	end
