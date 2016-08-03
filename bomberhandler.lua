@@ -18,7 +18,7 @@ function BomberHandler:internalName()
 end
 
 function BomberHandler:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 
 	self.recruits = {}
 	self.needsTargetting = {}
@@ -37,7 +37,7 @@ function BomberHandler:Update()
 		local pathfinder = plan.pathfinder
 		local path, remaining, maxInvalid = pathfinder:Find(1)
 		if path then
-			path = SimplifyPath(path)
+			-- path = SimplifyPath(path)
 			if self.DebugEnabled then
 				self.map:EraseLine(nil, nil, {1,1,1}, nil, nil, 8)
 				for i = 2, #path do
@@ -47,7 +47,7 @@ function BomberHandler:Update()
 					self.map:DrawLine(pos1, pos2, {1,1,1}, nil, arrow, 8)
 				end
 			end
-			if maxInvalid == 0 then
+			if maxInvalid == 0 or #path < 3 then
 				self:Bomb(plan)
 			else
 				self:Bomb(plan, path)

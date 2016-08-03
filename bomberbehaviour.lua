@@ -18,7 +18,7 @@ local IDLEMODE_LAND = 1
 local IDLEMODE_FLY = 0
 
 function BomberBehaviour:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 
 	self.lastOrderFrame = game:Frame()
 	self.name = self.unit:Internal():Name()
@@ -31,6 +31,7 @@ function BomberBehaviour:Init()
 	end
 	self.homepos = self.unit:Internal():GetPosition()
 	self:EchoDebug("init", self.weapon)
+	self:SetIdleMode()
 end
 
 function BomberBehaviour:OwnerBuilt()
@@ -54,9 +55,6 @@ end
 
 function BomberBehaviour:OwnerIdle()
 	self:EchoDebug("idle")
-	if ai.bomberhandler:IsRecruit(self) then
-		return
-	end
 	self.target = nil
 	self.ai.bomberhandler:AddRecruit(self)
 end
@@ -72,7 +70,6 @@ end
 function BomberBehaviour:Activate()
 	self:EchoDebug("activate")
 	self.active = true
-	self:SetIdleMode()
 	if self.target then
 		self.lastOrderFrame = game:Frame()
 		if self.path then
@@ -113,30 +110,40 @@ end
 
 function BomberBehaviour:FollowPathToTarget(path, unit)
 	self:EchoDebug("follow path to target")
-	-- self.unit:Internal():Move(path[1].position)
+	-- self.unit:Internal():Move(path[2].position)
 	local optFloats = api.vectorFloat()
 	optFloats:push_back("alt")
+	local firstMoved, secondMoved
+	local myPos = self.unit:Internal():GetPosition()
 	for i = 1, #path do
 		local cmdPos
 		local cmdID
 		local cmdPos = path[i].position
-		local floats = api.vectorFloat()
-		floats:push_back(-1)
-		floats:push_back(CMD_MOVE)
-		floats:push_back(CMD_OPT_SHIFT)
-		floats:push_back(cmdPos.x)
-		floats:push_back(cmdPos.y)
-		floats:push_back(cmdPos.z)
-		self.unit:Internal():ExecuteCustomCommand(CMD_INSERT, floats, optFloats)
-		-- self.unit:Internal():ExecuteCustomCommand(CMD_MOVE, floats, {"shift", "right"})
+		if secondMoved or DistanceSq(cmdPos, myPos) > 1210000 then
+			if firstMoved then
+				local floats = api.vectorFloat()
+				-- floats:push_back(-1)
+				-- floats:push_back(CMD_MOVE)
+				-- floats:push_back(CMD_OPT_SHIFT)
+				floats:push_back(cmdPos.x)
+				floats:push_back(cmdPos.y)
+				floats:push_back(cmdPos.z)
+				-- self.unit:Internal():ExecuteCustomCommand(CMD_INSERT, floats, optFloats)
+				self.unit:Internal():ExecuteCustomCommand(CMD_MOVE, floats, {"shift"})
+				secondMoved = true
+			else
+				self.unit:Internal():Move(cmdPos)
+				firstMoved = true
+			end
+		end
 	end
 	local floats = api.vectorFloat()
-	floats:push_back(-1)
-	floats:push_back(CMD_ATTACK)
-	floats:push_back(CMD_OPT_SHIFT)
+	-- floats:push_back(-1)
+	-- floats:push_back(CMD_ATTACK)
+	-- floats:push_back(CMD_OPT_SHIFT)
 	floats:push_back(unit:ID())
-	self.unit:Internal():ExecuteCustomCommand(CMD_INSERT, floats, optFloats)
-	-- self.unit:Internal():ExecuteCustomCommand(CMD_ATTACK, floats, {"shift", "right"})
+	-- self.unit:Internal():ExecuteCustomCommand(CMD_INSERT, floats, optFloats)
+	self.unit:Internal():ExecuteCustomCommand(CMD_ATTACK, floats, {"shift"})
 end
 
    -- Spring.GiveOrderToUnit(unitID,
@@ -157,7 +164,7 @@ function BomberBehaviour:BombTarget(targetUnit, path)
 		return
 	end
 	if not targetUnit then
-		self.target = nil
+		self:EchoDebug("no target given to :BombTarget")
 		self.ai.bomberhandler:AddRecruit(self)
 		return
 	end
