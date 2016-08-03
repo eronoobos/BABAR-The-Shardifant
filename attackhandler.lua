@@ -32,6 +32,9 @@ function AttackHandler:Update()
 	if #self.squads > 0 then
 		for is = 1, #self.squads do
 			local squad = self.squads[is]
+			if not squad.arrived and squad.idleTimeout and f >= squad.idleTimeout then
+				squad.arrived = true
+			end
 			if squad.arrived then
 				squad.arrived = nil
 				if squad.pathStep < #squad.path - 1 then
@@ -169,10 +172,14 @@ end
 function AttackHandler:SquadFormation(squad)
 	local members = squad.members
 	local maxMemberSize
+	local lowestSpeed
 	for i = 1, #members do
 		local member = members[i]
 		if not maxMemberSize or member.congSize > maxMemberSize then
 			maxMemberSize = member.congSize
+		end
+		if not lowestSpeed or member.speed < lowestSpeed then
+			lowestSpeed = member.speed
 		end
 	end
 	local backDist = maxMemberSize * 3
@@ -201,6 +208,7 @@ function AttackHandler:SquadFormation(squad)
 		member.formationDist = (half - i) * maxMemberSize
 		member.formationAngle = (i - half) * anglePerMember
 	end
+	squad.lowestSpeed = lowestSpeed
 end
 
 function AttackHandler:SquadNewPath(squad, representativeBehaviour)
@@ -316,6 +324,10 @@ function AttackHandler:SquadAdvance(squad)
 			reverseAttackAngle = AngleAdd(nextAngle, pi)
 		end
 		member:Advance(pos, nextPerpendicularAngle, reverseAttackAngle)
+	end
+	if squad.hasMovedOnce then
+		local distToNext = Distance(squad.path[squad.pathStep-1].position, nextPos)
+		squad.idleTimeout = game:Frame() + (3 * 30 * (distToNext / squad.lowestSpeed))
 	end
 	squad.hasMovedOnce = true
 end
