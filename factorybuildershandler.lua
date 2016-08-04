@@ -25,7 +25,6 @@ end
 function FactoryBuildersHandler:AvailableFactories(factoriesPreCleaned)
 	for index, factoryName in pairs (factoriesPreCleaned) do
 		local utype = game:GetTypeByName(factoryName)
-		self.factories[factoryName] = {}
 		for id, bldr in pairs(ai.conList) do
 			local builder = bldr.unit:Internal() 
 			if builder:CanBuild(utype) then
