@@ -94,7 +94,7 @@ function AttackHandler:DraftSquads()
 			if not self.potentialAttackCounted[mtype] then
 				-- only count once per attack
 				self.ai.couldAttack = self.ai.couldAttack + 1
-				self.potentialAttackCounted = true
+				self.potentialAttackCounted[mtype] = true
 			end
 			-- don't actually draft the squad unless there's something to attack
 			local bestCell = self.ai.targethandler:GetBestAttackCell(representative)
