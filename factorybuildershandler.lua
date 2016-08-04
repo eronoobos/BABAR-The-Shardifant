@@ -143,21 +143,19 @@ function FactoryBuildersHandler:ConditionsToBuildFactories(builder)
 	local canDoFactory = false
 	for order = 1, #self.factories do
 		local factoryName = self.factories[order]
-		if not self.ai.buildsitehandler:CheckForDuplicates(factoryName) then
-			local uTn = unitTable[factoryName]
-			self:EchoDebug(factoryName .. ' not duplicated')
-			--if ai.scaledMetal > uTn.metalCost * order and ai.scaledEnergy > uTn.energyCost * order and ai.combatCount >= ai.factories * 20 then
-			if (ai.Metal.income > ((ai.factories ^ 2) * 10) +3 and ai.Energy.income > ((ai.factories ^ 2) * 100) +25 and ai.combatCount >= ai.factories * 20) or (ai.Metal.income > ((ai.factories ^ 2) * 20) and ai.Energy.income > ((ai.factories ^ 2) * 200)) then
-				self:EchoDebug(factoryName .. ' conditions met')
-				local canBuild = builder:CanBuild(game:GetTypeByName(factoryName))
-				if canBuild then
-					factories[#factories+1] = factoryName
-					self:EchoDebug(#factories .. ' ' .. factoryName .. ' can be built by builder ' .. builder:Name())
-					canDoFactory = true
-				elseif not canDoFactory then
-					self:EchoDebug('best factory with conditions met ' .. factoryName .. ' cant be built by builder ' .. builder:Name())
-					return false
-				end
+		local uTn = unitTable[factoryName]
+		self:EchoDebug(factoryName .. ' not duplicated')
+		--if ai.scaledMetal > uTn.metalCost * order and ai.scaledEnergy > uTn.energyCost * order and ai.combatCount >= ai.factories * 20 then
+		if (ai.Metal.income > ((ai.factories ^ 2) * 10) +3 and ai.Energy.income > ((ai.factories ^ 2) * 100) +25 and ai.combatCount >= ai.factories * 20) or (ai.Metal.income > ((ai.factories ^ 2) * 20) and ai.Energy.income > ((ai.factories ^ 2) * 200)) then
+			self:EchoDebug(factoryName .. ' conditions met')
+			local canBuild = builder:CanBuild(game:GetTypeByName(factoryName))
+			if canBuild then
+				factories[#factories+1] = factoryName
+				self:EchoDebug(#factories .. ' ' .. factoryName .. ' can be built by builder ' .. builder:Name())
+				canDoFactory = true
+			elseif not canDoFactory then
+				self:EchoDebug('best factory with conditions met ' .. factoryName .. ' cant be built by builder ' .. builder:Name())
+				return false
 			end
 		end
 	end
@@ -186,12 +184,14 @@ function FactoryBuildersHandler:GetBuilderFactory(builder)
 	if not factories then return false end
 	for order = 1, #factories do
 		local factoryName = factories[order]
-		self:EchoDebug(builder:Name())
-		local p = self:FactoryPosition(factoryName,builder)
-		if p then
-			if self:PostPositionalFilter(factoryName,p) then
-				self:EchoDebug(factoryName .. ' position passed filter')
-				return p, factoryName
+		if not self.ai.buildsitehandler:CheckForDuplicates(factoryName) then -- need to check for duplicates right now, not 15 seconds ago
+			self:EchoDebug(builder:Name())
+			local p = self:FactoryPosition(factoryName,builder)
+			if p then
+				if self:PostPositionalFilter(factoryName,p) then
+					self:EchoDebug(factoryName .. ' position passed filter')
+					return p, factoryName
+				end
 			end
 		end
 	end
