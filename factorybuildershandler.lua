@@ -11,7 +11,8 @@ end
 function FactoryBuildersHandler:Init()
 	self.DebugEnabled = false
 
-	self.lastCheckFrame = 0
+	self.lastCheckFrameForConName = {}
+	self.lastFactoriesForConName = {}
 	self.conTypesByName = {}
 	self.finishedConIDs = {}
 	self.factories = {}
@@ -172,12 +173,16 @@ end
 
 function FactoryBuildersHandler:GetBuilderFactory(builder)
 	local builderID = builder:ID()
+	local builderName = builder:Name()
 	local f = game:Frame()
-	if f - self.lastCheckFrame < 1000 then
-		return false
+	if self.lastCheckFrameForConName[builderName] and f - self.lastCheckFrameForConName[builderName] < 450 then
+		-- update every 15 seconds
+		-- between updates return the last factories we got for this builder
+		return self.lastFactoriesForConName[builderName]
 	end
-	self.lastCheckFrame = f
 	local factories = self:ConditionsToBuildFactories(builder)
+	self.lastCheckFrameForConName[builderName] = f
+	self.lastFactoriesForConName[builderName] = factories
 	if not factories then return false end
 	for order = 1, #factories do
 		local factoryName = factories[order]
@@ -185,6 +190,7 @@ function FactoryBuildersHandler:GetBuilderFactory(builder)
 		local p = self:FactoryPosition(factoryName,builder)
 		if p then
 			if self:PostPositionalFilter(factoryName,p) then
+				self:EchoDebug(factoryName .. ' position passed filter')
 				return p, factoryName
 			end
 		end
@@ -243,7 +249,7 @@ function FactoryBuildersHandler:FactoryPosition(factoryName,builder)
 	end
 	if p == nil then
 		self:EchoDebug("trying near builder for " .. factoryName)
-		p = ai.buildsitehandler:ClosestBuildSpot(builder, builderPos, utype, 10, nil, nil, 1000) -- check at most 1000 elmos away
+		p = ai.buildsitehandler:ClosestBuildSpot(builder, builderPos, utype, 10, nil, nil, 1500) -- check at most 1500 elmos away
 	end
 	if p then
 		self:EchoDebug("position found for " .. factoryName)
@@ -252,30 +258,36 @@ function FactoryBuildersHandler:FactoryPosition(factoryName,builder)
 end
 
 function FactoryBuildersHandler:PostPositionalFilter(factoryName,p)
-	local buildMe = true
-	
-	local mtype = factoryMobilities[factoryName][1]
-	local network = ai.maphandler:MobilityNetworkHere(mtype ,p)
-	if ai.factoryBuilded[mtype] == nil or ai.factoryBuilded[mtype][network] == nil then
-		self:EchoDebug('area to small for ' .. factoryName)
+	local mobNetOkay = false
+	for i, mtype in pairs(factoryMobilities[factoryName]) do
+		local network = ai.maphandler:MobilityNetworkHere(mtype, p)
+		if ai.factoryBuilded[mtype] and ai.factoryBuilded[mtype][network] then
+			mobNetOkay = true
+			break
+		end
+	end
+	if not mobNetOkay then
+		self:EchoDebug('area to small or not enough spots for ' .. factoryName)
 		return false
 	end
-	if unitTable[factoryName].techLevel <= ai.factoryBuilded[mtype][network] then
-		self:EchoDebug('tech level ' .. unitTable[factoryName].techLevel .. ' of ' .. factoryName .. ' is too low for mobility network ' .. ai.factoryBuilded[mtype][network])
-		buildMe = false
-	end
+	local mtype = factoryMobilities[factoryName][1]
+	-- below is commented out because sometimes you need a lower level factory to build things the higher level cannot, when the previous low level factory has been destroyed
+	-- if unitTable[factoryName].techLevel <= ai.factoryBuilded[mtype][network] then
+	-- 	self:EchoDebug('tech level ' .. unitTable[factoryName].techLevel .. ' of ' .. factoryName .. ' is too low for mobility network ' .. ai.factoryBuilded[mtype][network])
+	-- 	return false
+	-- end
 	if mtype == 'bot' then
 		local vehNetwork = ai.factoryBuilded['veh'][ai.maphandler:MobilityNetworkHere('veh',p)]
 		if (vehNetwork and vehNetwork > 0) and (vehNetwork < 4 or ai.factoryBuilded['air'][1] < 1) then
 			self:EchoDebug('dont build bot where are already veh not on top of tech level')
-			buildMe = false
+			return false
 		end
 	elseif mtype == 'veh' then
 		local botNetwork = ai.factoryBuilded['bot'][ai.maphandler:MobilityNetworkHere('bot',p)]
 		if (botNetwork and botNetwork > 0) and (botNetwork < 9 or ai.factoryBuilded['air'][1] < 1) then
 			self:EchoDebug('dont build veh where are already bot not on top of tech level')
-			buildMe = false
+			return false
 		end
 	end
-	return buildMe
+	return true
 end
