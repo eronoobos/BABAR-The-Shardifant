@@ -258,7 +258,7 @@ function FactoryBuildersHandler:PostPositionalFilter(factoryName,p)
 		return false
 	end
 	if unitTable[factoryName].techLevel <= ai.factoryBuilded[mtype][network] then
-		self:EchoDebug('tech level ' unitTable[factoryName].techLevel .. ' of ' .. factoryName .. ' is too low for mobility network ' .. ai.factoryBuilded[mtype][network])
+		self:EchoDebug('tech level ' .. unitTable[factoryName].techLevel .. ' of ' .. factoryName .. ' is too low for mobility network ' .. ai.factoryBuilded[mtype][network])
 		buildMe = false
 	end
 	if mtype == 'bot' then
