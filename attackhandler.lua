@@ -19,6 +19,8 @@ function AttackHandler:Init()
 	self.squads = {}
 	self.counter = {}
 	self.attackSent = {}
+	self.attackCountReached = {}
+	self.potentialAttackCounted = {}
 	self.ai.hasAttacked = 0
 	self.ai.couldAttack = 0
 	self.ai.IDsWeAreAttacking = {}
@@ -66,8 +68,9 @@ function AttackHandler:DraftSquads()
 	local f = game:Frame()
 	-- find which mtypes need targets
 	for mtype, count in pairs(self.count) do
-		if f > self.attackSent[mtype] + 1800 and count >= self.counter[mtype] then
+		if (f > (self.attackCountReached[mtype] or 0) + 150 or f > (self.attackSent[mtype] or 0) + 1200) and count >= self.counter[mtype] then
 			self:EchoDebug(mtype, "needs target with", count, "units of", self.counter[mtype], "needed")
+			self.attackCountReached[mtype] = f
 			table.insert(needtarget, mtype)
 		end
 	end
@@ -88,7 +91,11 @@ function AttackHandler:DraftSquads()
 		end
 		if representative ~= nil then
 			self:EchoDebug(mtype, "has representative")
-			self.ai.couldAttack = self.ai.couldAttack + 1
+			if not self.potentialAttackCounted[mtype] then
+				-- only count once per attack
+				self.ai.couldAttack = self.ai.couldAttack + 1
+				self.potentialAttackCounted = true
+			end
 			-- don't actually draft the squad unless there's something to attack
 			local bestCell = self.ai.targethandler:GetBestAttackCell(representative)
 			if bestCell ~= nil then
@@ -104,6 +111,7 @@ function AttackHandler:DraftSquads()
 				self.count[mtype] = 0
 				self.recruits[mtype] = {}
 				self.ai.hasAttacked = self.ai.hasAttacked + 1
+				self.potentialAttackCounted[mtype] = false
 				self.counter[mtype] = math.min(maxAttackCounter, self.counter[mtype] + 1)
 			end
 		end
