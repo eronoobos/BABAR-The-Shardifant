@@ -98,7 +98,7 @@ function BomberHandler:DoTargetting()
 				midPos.x = sumX / #recruits
 				midPos.z = sumZ / #recruits
 				midPos.y = 0
-				self.graph = self.graph or self.ai.maphandler:GetPathGraph('air')
+				self.graph = self.graph or self.ai.maphandler:GetPathGraph('air', 512)
 				local pathfinder = self.graph:PathfinderPosPos(midPos, targetUnit:GetPosition(), nil, validFunc)
 				local bombers = {}
 				for i = 1, #recruits do
@@ -169,7 +169,7 @@ function BomberHandler:GetPathValidFunc(unitName)
 		return self.pathValidFuncs[unitName]
 	end
 	local valid_node_func = function ( node )
-		return ai.targethandler:IsSafePosition(node.position, unitName)
+		return ai.targethandler:IsSafePosition(node.position, unitName, nil, true)
 	end
 	self.pathValidFuncs[unitName] = valid_node_func
 	return valid_node_func
