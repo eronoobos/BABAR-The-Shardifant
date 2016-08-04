@@ -23,23 +23,16 @@ function FactoryBuildersHandler:UpdateFactories()
 end
 
 function FactoryBuildersHandler:AvailableFactories(factoriesPreCleaned)
-	for index, factoryName in pairs (ai.factoriesRanking) do
+	for index, factoryName in pairs (factoriesPreCleaned) do
 		local utype = game:GetTypeByName(factoryName)
 		self.factories[factoryName] = {}
 		for id, bldr in pairs(ai.conList) do
 			local builder = bldr.unit:Internal() 
 			if builder:CanBuild(utype) then
+				self.factories[factoryName] = self.factories[factoryName] or {}
 				--table.insert(self.factories[factoryName], id)
 				self.factories[factoryName][id] = true
 			end
-		end
-		local buildMe = false
-		for i,v in pairs(self.factories[factoryName]) do
-			buildMe = true
-			break
-		end
-		if not buildMe then
-			self.factories[factoryName] = nil
 		end
 	end
 	if self.DebugEnabled then
@@ -67,8 +60,12 @@ function FactoryBuildersHandler:PrePositionFilter()
 			self:EchoDebug(factoryName ..' not Experimental when i need it')
 			buildMe = false 
 		end
+		if buildMe and not ai.needAdvanced and not ai.haveAdvFactory and isAdvanced then
+			self:EchoDebug(factoryName .. ' Advanced when i dont need it')
+			buildMe = false
+		end
 		if buildMe and (not ai.needExperimental or ai.haveExpFactory) and expFactories[factoryName] then
-			self:EchoDebug('Experimental when i dont need it')
+			self:EchoDebug(factoryName .. 'Experimental when i dont need it')
 			buildMe = false 
 		end
 		if buildMe and mtype == 'air' and ai.factoryBuilded['air'][1] >= 1 and utn.needsWater then
@@ -109,30 +106,24 @@ function FactoryBuildersHandler:ConditionsToBuildFactories()
 	end
 	self:EchoDebug('ai.combatCount '..ai.combatCount)
 	local idx= 0
-	for index , factoryName in pairs(ai.factoriesRanking) do
-		if self.factories[factoryName] then
-			idx=idx+1
-			local uTn = unitTable[factoryName]
-			self:EchoDebug('measure conditions to build ' .. factoryName .. ' factory')
-			--if ai.scaledMetal > uTn.metalCost * idx and ai.scaledEnergy > uTn.energyCost * idx and ai.combatCount >= ai.factories * 20 then
-			if (ai.Metal.income > ((ai.factories ^ 2) * 10) +3 and ai.Energy.income > ((ai.factories ^ 2) * 100) +25 and ai.combatCount >= ai.factories * 20) or (ai.Metal.income > ((ai.factories ^ 2) * 20) and ai.Energy.income > ((ai.factories ^ 2) * 200)) then
-				self:EchoDebug(factoryName .. ' can be builded')
-				factories[factoryName] = self.factories[factoryName]
-			end
+	local canDoFactory = false
+	for factoryName, ids in pairs(self.factories) do
+		idx=idx+1
+		local uTn = unitTable[factoryName]
+		self:EchoDebug('measure conditions to build ' .. factoryName .. ' factory')
+		--if ai.scaledMetal > uTn.metalCost * idx and ai.scaledEnergy > uTn.energyCost * idx and ai.combatCount >= ai.factories * 20 then
+		if (ai.Metal.income > ((ai.factories ^ 2) * 10) +3 and ai.Energy.income > ((ai.factories ^ 2) * 100) +25 and ai.combatCount >= ai.factories * 20) or (ai.Metal.income > ((ai.factories ^ 2) * 20) and ai.Energy.income > ((ai.factories ^ 2) * 200)) then
+			self:EchoDebug(factoryName .. ' can be builded')
+			factories[factoryName] = self.factories[factoryName]
+			canDoFactory = true
 		end
 	end
 	
-	local canDoFactory = false
-	for factoryName, _ in pairs(factories)do
-		canDoFactory = true
-		self:EchoDebug('OK Conditions to build something'  )
-		break
-	end
 	if canDoFactory then
+		self:EchoDebug('OK Conditions to build something'  )
 		self:EchoDebug('4')
 		return factories
 	else
-		
 		self:EchoDebug('5')
 		return false
 	end
@@ -147,15 +138,13 @@ function FactoryBuildersHandler:GetBuilderFactory(builder)
 	self.lastCheckFrame = f
 	local factories = self:ConditionsToBuildFactories()
 	if not factories then return false end
-	for rank, factoryName in pairs(ai.factoriesRanking ) do
-		if factories[factoryName] then
-			if factories[factoryName][builderID] then
-				self:EchoDebug(builder:Name())
-				local p = self:FactoryPosition(factoryName,builder)
-				if p then
-					if self.ai.factorybuildershandler:PostPositionalFilter(factoryName,p) then
-						return p, factoryName
-					end
+	for rank, factoryName in pairs(ai.factoriesRanking) do
+		if factories[factoryName] and factories[factoryName][builderID] then
+			self:EchoDebug(builder:Name())
+			local p = self:FactoryPosition(factoryName,builder)
+			if p then
+				if self:PostPositionalFilter(factoryName,p) then
+					return p, factoryName
 				end
 			end
 		end
