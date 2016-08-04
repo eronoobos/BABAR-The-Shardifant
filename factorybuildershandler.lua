@@ -155,21 +155,21 @@ function FactoryBuildersHandler:FactoryPosition(factoryName,builder)
 	local utype = game:GetTypeByName(factoryName)
 	local mtype = factoryMobilities[factoryName][1]
 	local builderPos = builder:GetPosition()
+	local factoryPos
 	local p
 	if p == nil then
-		self:EchoDebug("looking next to last nano turrets for " .. factoryName)
+		self:EchoDebug("looking next to nano turrets for " .. factoryName)
 		p = ai.buildsitehandler:BuildNearNano(builder, utype)
 	end
 	if p == nil then
 		self:EchoDebug("looking next to factory for " .. factoryName)
-		local factoryPos = ai.buildsitehandler:ClosestHighestLevelFactory(builderPos, 10000)
+		factoryPos = ai.buildsitehandler:ClosestHighestLevelFactory(builderPos, 10000)
 		if factoryPos then
 			p = ai.buildsitehandler:ClosestBuildSpot(builder, factoryPos, utype)
 		end
 	end
 	if p == nil then
 		self:EchoDebug('builfactory near hotSpot')
-		local factoryPos = ai.buildsitehandler:ClosestHighestLevelFactory(builderPos, 10000)
 		local place = false
 		local distance = 99999
 		if factoryPos then
@@ -202,7 +202,7 @@ function FactoryBuildersHandler:FactoryPosition(factoryName,builder)
 	end
 	if p == nil then
 		self:EchoDebug("trying near builder for " .. factoryName)
-		p = ai.buildsitehandler:ClosestBuildSpot(builder, builderPos, utype)
+		p = ai.buildsitehandler:ClosestBuildSpot(builder, builderPos, utype, 10, nil, nil, 1000) -- check at most 1000 elmos away
 	end
 	if p then
 		self:EchoDebug("position found for " .. factoryName)
