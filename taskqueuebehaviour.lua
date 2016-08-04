@@ -209,7 +209,6 @@ function TaskQueueBehaviour:HasQueues()
 end
 
 function TaskQueueBehaviour:OwnerBuilt()
-	self.ai.factorybuildershandler:UpdateFactories()
 	if self:IsActive() then self.progress = true end
 end
 
@@ -238,7 +237,6 @@ function TaskQueueBehaviour:OwnerDead()
 		ai.assisthandler:Release(nil, self.id, true)
 		ai.buildsitehandler:ClearMyPlans(self)
 		ai.buildsitehandler:ClearMyConstruction(self)
-		self.ai.factorybuildershandler:UpdateFactories()
 	end
 end
 
