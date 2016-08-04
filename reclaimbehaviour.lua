@@ -202,7 +202,6 @@ function ReclaimBehaviour:Act()
 						-- always resurrect metal extractors
 						self:EchoDebug("resurrect mex", reclaimFeature, reclaimFeature:ID())
 						CustomCommand(self.unit:Internal(), CMD_RESURRECT, {rfpos.x, rfpos.y, rfpos.z, 15})
-						self.ai.buildsitehandler:NewPlan(unitName, rfpos, self, true)
 						self.resurrecting = true
 						self.myFeature = reclaimFeature
 						self.myFeaturePos = reclaimFeature:GetPosition()
