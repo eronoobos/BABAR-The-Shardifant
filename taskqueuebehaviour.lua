@@ -36,15 +36,20 @@ local function MaxBuildDist(unitName, speed)
 	return speedDist
 end
 
-function AmpOrGroundWeapon(factory)
-	local doAmp = false
+function TaskQueueBehaviour:GetAmpOrGroundWeapon()
 	if ai.enemyBasePosition then
-		if ai.maphandler:MobilityNetworkHere('veh', factory.position) ~= ai.maphandler:MobilityNetworkHere('veh', ai.enemyBasePosition) and ai.maphandler:MobilityNetworkHere('amp', factory.position) == ai.maphandler:MobilityNetworkHere('amp', ai.enemyBasePosition) then
-			EchoDebug('canbuild amphibious')
-			doAmp = true
+		if ai.maphandler:MobilityNetworkHere('veh', self.position) ~= ai.maphandler:MobilityNetworkHere('veh', ai.enemyBasePosition) and ai.maphandler:MobilityNetworkHere('amp', self.position) == ai.maphandler:MobilityNetworkHere('amp', ai.enemyBasePosition) then
+			EchoDebug('canbuild amphibious because of enemyBasePosition')
+			return true
 		end
 	end
-	return doAmp
+	local mtype = factoryMobilities[self.name][1]
+	local network = ai.maphandler:MobilityNetworkHere(mtype, self.position)
+	if not network or not ai.factoryBuilded[mtype] or not ai.factoryBuilded[mtype][network] then
+		EchoDebug('canbuild amphibious because ' .. mtype .. ' network here is too small or has not enough spots')
+		return true
+	end
+	return false
 end
 
 function TaskQueueBehaviour:CategoryEconFilter(value)
@@ -556,8 +561,8 @@ function TaskQueueBehaviour:Update()
 		return
 	end
 	local f = game:Frame()
-	if self.isFactory and f % 1000 == 0 and (factoryMobilities[self.name][1] == 'bot' or factoryMobilities[self.name][1] == 'veh') then
-		self.AmpOrGroundWeapon = AmpOrGroundWeapon(self)
+	if self.isFactory and f % 311 == 0 and (factoryMobilities[self.name][1] == 'bot' or factoryMobilities[self.name][1] == 'veh') then
+		self.AmpOrGroundWeapon = self:GetAmpOrGroundWeapon()
 	end
 		
 	-- watchdog check
