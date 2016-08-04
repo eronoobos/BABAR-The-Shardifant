@@ -13,6 +13,7 @@ function FactoryBuildersHandler:Init()
 
 	self.lastCheckFrame = 0
 	self.conTypesByName = {}
+	self.finishedConIDs = {}
 	self.factories = {}
 	self:EchoDebug('Initialize')
 end
@@ -24,6 +25,7 @@ function FactoryBuildersHandler:UnitBuilt(engineUnit)
 		-- it's not a construction unit
 		return
 	end
+	self.finishedConIDs[engineUnit:ID()] = true
 	if not self.conTypesByName[uname] then
 		self:EchoDebug("new con type: " .. uname)
 		doUpdate = true
@@ -37,9 +39,10 @@ end
 
 function FactoryBuildersHandler:UnitDead(engineUnit)
 	local uname = engineUnit:Name()
-	if not self.conTypesByName[uname] then
+	if not self.finishedConIDs[engineUnit:ID()] or not self.conTypesByName[uname] then
 		return
 	end
+	self.finishedConIDs[engineUnit:ID()] = nil
 	self.conTypesByName[uname].count = self.conTypesByName[uname].count - 1
 	self:EchoDebug("con type count: " .. uname .. " " .. self.conTypesByName[uname].count)
 	if self.conTypesByName[uname].count == 0 then
