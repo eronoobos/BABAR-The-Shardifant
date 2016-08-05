@@ -144,9 +144,19 @@ function FactoryBuildersHandler:ConditionsToBuildFactories(builder)
 	for order = 1, #self.factories do
 		local factoryName = self.factories[order]
 		local uTn = unitTable[factoryName]
-		self:EchoDebug(factoryName .. ' not duplicated')
 		--if ai.scaledMetal > uTn.metalCost * order and ai.scaledEnergy > uTn.energyCost * order and ai.combatCount >= ai.factories * 20 then
-		if (ai.Metal.income > ((ai.factories ^ 2) * 10) +3 and ai.Energy.income > ((ai.factories ^ 2) * 100) +25 and ai.combatCount >= ai.factories * 20) or (ai.Metal.income > ((ai.factories ^ 2) * 20) and ai.Energy.income > ((ai.factories ^ 2) * 200)) then
+		local factoryCountSq = ai.factories * ai.factories
+		local sameFactoryCount = ai.nameCountFinished[factoryName] or 0
+		local sameFactoryMetal = sameFactoryCount * 20
+		local sameFactoryEnergy = sameFactoryCount * 500
+		if (
+			ai.Metal.income > (factoryCountSq * 10) + 3 + sameFactoryMetal
+			and ai.Energy.income > (factoryCountSq * 100) + 25 + sameFactoryEnergy
+			and ai.combatCount >= ai.factories * 20
+		) or (
+			ai.Metal.income > (factoryCountSq * 20) + (sameFactoryMetal * 2)
+			and ai.Energy.income > (factoryCountSq * 200) + (sameFactoryEnergy * 2)
+		) then
 			self:EchoDebug(factoryName .. ' conditions met')
 			local canBuild = builder:CanBuild(game:GetTypeByName(factoryName))
 			if canBuild then
@@ -185,6 +195,7 @@ function FactoryBuildersHandler:GetBuilderFactory(builder)
 	for order = 1, #factories do
 		local factoryName = factories[order]
 		if not self.ai.buildsitehandler:CheckForDuplicates(factoryName) then -- need to check for duplicates right now, not 15 seconds ago
+			self:EchoDebug(factoryName .. ' not duplicated')
 			self:EchoDebug(builder:Name())
 			local p = self:FactoryPosition(factoryName,builder)
 			if p then
