@@ -36,11 +36,14 @@ function AttackHandler:Update()
 			local squad = self.squads[is]
 			if not squad.arrived and squad.idleTimeout and f >= squad.idleTimeout then
 				squad.arrived = true
+				squad.idleTimeout = nil
 			end
 			if squad.arrived then
 				squad.arrived = nil
 				if squad.pathStep < #squad.path - 1 then
-					if self.ai.targethandler:ValueHere(squad.target, squad.members[1].name) < 100 then
+					local value = self.ai.targethandler:ValueHere(squad.target, squad.members[1].name)
+					local threat = self.ai.targethandler:ThreatHere(squad.target, squad.members[1].name)
+					if (value == 0 and threat == 0) or threat > squad.totalThreat * 0.67 then
 						self:SquadReTarget(squad) -- get a new target, this one isn't valuable
 					else
 						self:SquadNewPath(squad) -- see if there's a better way from the point we're going to
@@ -76,7 +79,7 @@ function AttackHandler:DraftSquads()
 	end
 	for nothing, mtype in pairs(needtarget) do
 		-- prepare a squad
-		local squad = { members = {}, notarget = 0, congregating = false, mtype = mtype, lastReTarget = f, lastMovementFrame = 0 }
+		local squad = { members = {}, mtype = mtype }
 		local representative, representativeBehaviour
 		self:EchoDebug(mtype, #self.recruits[mtype], "recruits")
 		for _, attkbhvr in pairs(self.recruits[mtype]) do
@@ -97,7 +100,7 @@ function AttackHandler:DraftSquads()
 				self.potentialAttackCounted[mtype] = true
 			end
 			-- don't actually draft the squad unless there's something to attack
-			local bestCell = self.ai.targethandler:GetBestAttackCell(representative)
+			local bestCell = self.ai.targethandler:GetNearestAttackCell(representative) or self.ai.targethandler:GetBestAttackCell(representative)
 			if bestCell ~= nil then
 				self:EchoDebug(mtype, "has target, recruiting squad...")
 				squad.target = bestCell.pos
@@ -145,25 +148,22 @@ function AttackHandler:SquadReTarget(squad, squadIndex)
 			local step = math.min(squad.pathStep+1, #squad.path)
 			position = squad.path[step].position
 		end
-		local bestCell = self.ai.targethandler:GetBestAttackCell(representative, position)
+		local bestCell = self.ai.targethandler:GetNearestAttackCell(representative, position, squad.totalThreat) or self.ai.targethandler:GetBestAttackCell(representative, position, squad.totalThreat)
 		if bestCell then
 			squad.target = bestCell.pos
 			self:IDsWeAreAttacking(bestCell.buildingIDs, squad.mtype)
 			squad.buildingIDs = bestCell.buildingIDs
-			squad.notarget = 0
 			squad.reachedTarget = nil
 			self:SquadNewPath(squad, representativeBehaviour)
 		else
-			-- squad.notarget = squad.notarget + 1
-			-- if squad.target == nil or squad.notarget > 3 then
-				-- if no target found initially, or no target for the last three targetting checks, disassemble and recruit the squad
-				self:SquadDisband(squad, squadIndex)
-			-- end
+			self:EchoDebug("no target found on retarget")
+			self:SquadDisband(squad, squadIndex)
 		end
 	end
 end
 
 function AttackHandler:SquadDisband(squad, squadIndex)
+	self:EchoDebug("disband squad")
 	squad.disbanding = true
 	for iu, member in pairs(squad.members) do
 		self:AddRecruit(member)
@@ -184,6 +184,7 @@ function AttackHandler:SquadFormation(squad)
 	local members = squad.members
 	local maxMemberSize
 	local lowestSpeed
+	local totalThreat = 0
 	for i = 1, #members do
 		local member = members[i]
 		if not maxMemberSize or member.congSize > maxMemberSize then
@@ -192,6 +193,7 @@ function AttackHandler:SquadFormation(squad)
 		if not lowestSpeed or member.speed < lowestSpeed then
 			lowestSpeed = member.speed
 		end
+		totalThreat = totalThreat + member.threat
 	end
 	local backDist = maxMemberSize * 3
 	local backs = {}
@@ -220,6 +222,7 @@ function AttackHandler:SquadFormation(squad)
 		member.formationAngle = (i - half) * anglePerMember
 	end
 	squad.lowestSpeed = lowestSpeed
+	squad.totalThreat = totalThreat
 end
 
 function AttackHandler:SquadNewPath(squad, representativeBehaviour)

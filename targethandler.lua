@@ -865,7 +865,7 @@ function TargetHandler:RaidableCell(representative, position)
 	end
 end
 
-function TargetHandler:GetBestAttackCell(representative, position)
+function TargetHandler:GetBestAttackCell(representative, position, ourThreat)
 	if not representative then return end
 	position = position or representative:GetPosition()
 	self:UpdateMap()
@@ -878,6 +878,7 @@ function TargetHandler:GetBestAttackCell(representative, position)
 	local name = representative:Name()
 	local longrange = unitTable[name].groundRange > 1000
 	local mtype = unitTable[name].mtype
+	ourThreat = ourThreat or unitTable[name].metalCost * self.ai.attackhandler:GetCounter(mtype)
 	if mtype ~= "sub" and longrange then longrange = true end
 	local possibilities = {}
 	local highestDist = 0
@@ -931,6 +932,44 @@ function TargetHandler:GetBestAttackCell(representative, position)
 	end
 	self.lastAttackCell = best
 	return best
+end
+
+function TargetHandler:GetNearestAttackCell(representative, position, ourThreat)
+	if not representative then return end
+	position = position or representative:GetPosition()
+	self:UpdateMap()
+	local name = representative:Name()
+	local longrange = unitTable[name].groundRange > 1000
+	local mtype = unitTable[name].mtype
+	ourThreat = ourThreat or unitTable[name].metalCost * self.ai.attackhandler:GetCounter(mtype)
+	if mtype ~= "sub" and longrange then longrange = true end
+	local lowestDistValueable
+	local lowestDistThreatening
+	local closestValuableCell
+	local closestThreateningCell
+	for i, cell in pairs(self.cellList) do
+		if cell.pos then
+			if self.ai.maphandler:UnitCanGoHere(representative, cell.pos) or longrange then
+				local value, threat = CellValueThreat(name, cell)
+				if that <= ourThreat * 0.67 then
+					if value > 0 then
+						local dist = Distance(position, cell.pos)
+						if not lowestDistValueable or dist < lowestDistValueable then
+							lowestDistValueable = dist
+							closestValuableCell = cell
+						end
+					elseif threat > 0 then
+						local dist = Distance(position, cell.pos)
+						if not lowestDistThreatening or dist < lowestDistThreatening then
+							lowestDistThreatening = dist
+							closestThreateningCell = cell
+						end
+					end
+				end
+			end
+		end
+	end
+	return closestValuableCell or closestThreateningCell
 end
 
 function TargetHandler:GetBestNukeCell()
@@ -1247,8 +1286,8 @@ function TargetHandler:ThreatHere(position, unitOrName, adjacent)
 end
 
 
-function TargetHandler:IsSafePosition(position, unit, threshold)
-	local threat, cell, uname = self:ThreatHere(position, unit)
+function TargetHandler:IsSafePosition(position, unit, threshold, adjacent)
+	local threat, cell, uname = self:ThreatHere(position, unit, adjacent)
 	if not cell then
 		return true
 	end

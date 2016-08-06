@@ -38,6 +38,7 @@ function AttackerBehaviour:Init()
 		self.hits = "air"
 	end
 	self.speed = ut.speed
+	self.threat = ut.metalCost
 end
 
 function AttackerBehaviour:OwnerBuilt()
@@ -145,7 +146,6 @@ end
 
 function AttackerBehaviour:Free()
 	self.attacking = false
-	self.congregating = false
 	self.target = nil
 	self.idle = nil
 	self.timeout = nil
