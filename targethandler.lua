@@ -951,7 +951,7 @@ function TargetHandler:GetNearestAttackCell(representative, position, ourThreat)
 		if cell.pos then
 			if self.ai.maphandler:UnitCanGoHere(representative, cell.pos) or longrange then
 				local value, threat = CellValueThreat(name, cell)
-				if that <= ourThreat * 0.67 then
+				if threat <= ourThreat * 0.67 then
 					if value > 0 then
 						local dist = Distance(position, cell.pos)
 						if not lowestDistValueable or dist < lowestDistValueable then
