@@ -71,7 +71,17 @@ function CommanderBehaviour:MoveToSafety()
 end
 
 function CommanderBehaviour:HelpFactory()
-	CustomCommand(self.unit:Internal(), CMD_GUARD, {self.factoryToHelp:ID()})
+	local factPos = self.factoryToHelp:GetPosition()
+	local angle = math.random() * twicePi
+	local pos1 = RandomAway(factPos, 200, nil, angle)
+	local pos2 = RandomAway(factPos, 200, nil, AngleAdd(angle, pi))
+	local floats = api.vectorFloat()
+	floats:push_back(pos2.x)
+	floats:push_back(pos2.y)
+	floats:push_back(pos2.z)
+	self.unit:Internal():Move(pos1)
+	self.unit:Internal():ExecuteCustomCommand(CMD_PATROL, floats, {"shift"})
+	-- CustomCommand(self.unit:Internal(), CMD_GUARD, {self.factoryToHelp:ID()})
 end
 
 function CommanderBehaviour:FindSafeHouse()
